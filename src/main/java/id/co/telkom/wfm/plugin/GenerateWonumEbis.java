@@ -152,9 +152,10 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 LogUtil.info(getClass().getName(), "Start Process: Generate task | Wonum: " + parent);
                 final boolean hasChild = check.childStatus(parent);
                 //Getting Labor for New Manja
-//                        JSONObject laborObj = (JSONObject) dao2.getLabor(parent);
-//                        String laborCode = (laborObj.get("laborCode") == null ? "" : laborObj.get("laborCode").toString());
-//                        String laborName = (laborObj.get("laborCode") == null ? "" : laborObj.get("laborCode").toString());
+                JSONObject laborObj = (JSONObject) dao2.getLabor(parent);
+                String laborCode = (laborObj.get("laborCode") == null ? "" : laborObj.get("laborCode").toString());
+                String laborName = (laborObj.get("laborCode") == null ? "" : laborObj.get("laborCode").toString());
+                
                 if (hasChild) 
                     dao2.reviseTask(parent);
                 //Getting workzone for query owner group
@@ -173,6 +174,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //Task Dispatch
                     act.setDescriptionTask(((JSONObject) ossitem_arrayObj).get("ITEMNAME").toString());
                     act.setCorrelation(((JSONObject) ossitem_arrayObj).get("CORRELATIONID").toString());
+                    dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, laborCode, laborName, act.getCorrelation(), ownerGroup);
                     //@insertOSSItem
                     dao.insertToOssItem(wonum, listOssItem);
                         JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
@@ -216,10 +218,10 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                                 LogUtil.info(getClassName(), "Labor Not Found");
                           } else {
                                 JSONArray laborArray = (JSONArray)data.get("data");
-                                JSONObject laborObj = (JSONObject)laborArray.get(0);
-                                listAttr.setTechCode(laborObj.get("technicianCode") == null ? "" : laborObj.get("technicianCode").toString());
-                                listAttr.setTechName(laborObj.get("technicianName") == null ? "" : laborObj.get("technicianName").toString());
-                                LogUtil.info(getClassName(), "Labor Found - Code: " + laborObj.get("technicianCode").toString() + " Name: " + laborObj.get("technicianName").toString());
+                                JSONObject laborObj2 = (JSONObject)laborArray.get(0);
+                                listAttr.setTechCode(laborObj2.get("technicianCode") == null ? "" : laborObj.get("technicianCode").toString());
+                                listAttr.setTechName(laborObj2.get("technicianName") == null ? "" : laborObj.get("technicianName").toString());
+                                LogUtil.info(getClassName(), "Labor Found - Code: " + laborObj2.get("technicianCode").toString() + " Name: " + laborObj2.get("technicianName").toString());
                           }
                         } catch (SQLException e) {
                             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());

@@ -164,11 +164,34 @@ public class TaskActivityDao {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
     }
+
+    public void insertToWoActivity (PreparedStatement ps, String parent, ActivityTask act, String detailActCode, String description, String serviceType, String sequence, String actplace, String classstructureid, String siteId, String laborCode, String laborName, String correlationId, String ownerGroup) throws SQLException{              
+        ps.setString(1, UuidGenerator.getInstance().getUuid());
+        ps.setString(2, parent);
+        ps.setString(3, parent + " - " + act.getTaskId()/10);
+        ps.setString(4, detailActCode);
+        ps.setString(5, description);
+        ps.setString(6, serviceType);
+        ps.setString(7, sequence);
+        ps.setString(8, actplace);
+        ps.setString(9, classstructureid);
+        ps.setString(10, assignStatus(act));
+        ps.setString(11, "NEW");
+        ps.setString(12, "TELKOM");     
+        ps.setString(13, siteId);
+        ps.setString(14, "WFM");
+        ps.setString(15, "ACTIVITY");       
+        ps.setString(16, Integer.toString(act.getTaskId()));       
+        ps.setString(17, laborCode);       
+        ps.setString(18, laborName);       
+        ps.setString(19, correlationId);       
+        ps.setString(20, ownerGroup);       
+    }
     
-    public void generateActivityTask (String parent, String activity, ActivityTask act, String actType, String siteId, String laborCode, String laborName, String correlationId, String ownerGroup){
+    public void generateActivityTask (String parent, String activity, ActivityTask act, String siteId, String laborCode, String laborName, String correlationId, String ownerGroup){
         String insert = "INSERT INTO app_fd_woactivity (id, c_parent, c_wonum, c_detailactcode, c_description, c_servicetype, c_wosequence, c_actplace, c_classstructureid, c_status, c_wfmdoctype, c_orgid, c_siteId, c_worktype, c_woclass, c_taskid, c_laborcode, c_laborname, c_correlation, c_ownergroup, dateCreated, dateModified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate, sysdate)";
         //Check type of task
-        if (!actType.equals("val")){
+//        if (!actType.equals("val")){
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
             String query = "SELECT c_description, c_sequence, c_actplace, c_classstructureid FROM app_fd_detailactivity WHERE c_activity = ? ";
             try {
@@ -221,86 +244,63 @@ public class TaskActivityDao {
                 LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
             } 
         //Val type of task
-        } else {
-            String seq = "";
-            String description = "";
-            if ("Voice".equals(activity)) {seq = "120"; description = "Testing Service Voice";}
-            else if ("Internet".equals(activity)) {seq = "121"; description = "Testing Service Internet";}
-            else if ("Broadband".equals(activity)) {seq = "122"; description = "Testing Service Broadband";}
-            else if ("IPTV".equals(activity)) {seq = "123"; description = "Testing Service IPTV";}
-            else if ("DigitalService".equals(activity)) {seq = "124"; description = "Testing Service DigitalService";}
-            DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-            try {
-                Connection con = ds.getConnection();
-                try {               
-                    PreparedStatement ps = con.prepareStatement(insert);
-                    try {       
-                        insertToWoActivity(ps, parent, act, "Validate_Service", description, activity, seq, "HOME", "", siteId, laborCode, laborName, correlationId, ownerGroup);
-                        int exe = ps.executeUpdate();
-                        //Checking insert status
-                        if (exe > 0) {
-                            LogUtil.info(getClass().getName(), "Testing Service '" + activity + "' generated as task.");
-                            act.setTaskId(act.getTaskId()+10);
-                        }
-                        if (ps != null)
-                        ps.close();
-                    } catch (Throwable throwable) {
-                        try {
-                            if (ps != null)
-                                ps.close();
-                        } catch (Throwable throwable1) {
-                            throwable.addSuppressed(throwable1);
-                        }    
-                        throw throwable;
-                    }
-                    if (con !=null)
-                        con.close();    
-                } catch (Throwable throwable) {
-                    if (con !=null)
-                        try {
-                            con.close();
-                        }catch(Throwable throwable1){
-                            throwable.addSuppressed(throwable1);
-                        }
-                    throw throwable;
-                }  
-            } catch (SQLException e) {
-                LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-            } 
-        }
+//        } else {
+//            String seq = "";
+//            String description = "";
+//            if ("Voice".equals(activity)) {seq = "120"; description = "Testing Service Voice";}
+//            else if ("Internet".equals(activity)) {seq = "121"; description = "Testing Service Internet";}
+//            else if ("Broadband".equals(activity)) {seq = "122"; description = "Testing Service Broadband";}
+//            else if ("IPTV".equals(activity)) {seq = "123"; description = "Testing Service IPTV";}
+//            else if ("DigitalService".equals(activity)) {seq = "124"; description = "Testing Service DigitalService";}
+//            DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+//            try {
+//                Connection con = ds.getConnection();
+//                try {               
+//                    PreparedStatement ps = con.prepareStatement(insert);
+//                    try {       
+//                        insertToWoActivity(ps, parent, act, "Validate_Service", description, activity, seq, "HOME", "", siteId, laborCode, laborName, correlationId, ownerGroup);
+//                        int exe = ps.executeUpdate();
+//                        //Checking insert status
+//                        if (exe > 0) {
+//                            LogUtil.info(getClass().getName(), "Testing Service '" + activity + "' generated as task.");
+//                            act.setTaskId(act.getTaskId()+10);
+//                        }
+//                        if (ps != null)
+//                        ps.close();
+//                    } catch (Throwable throwable) {
+//                        try {
+//                            if (ps != null)
+//                                ps.close();
+//                        } catch (Throwable throwable1) {
+//                            throwable.addSuppressed(throwable1);
+//                        }    
+//                        throw throwable;
+//                    }
+//                    if (con !=null)
+//                        con.close();    
+//                } catch (Throwable throwable) {
+//                    if (con !=null)
+//                        try {
+//                            con.close();
+//                        }catch(Throwable throwable1){
+//                            throwable.addSuppressed(throwable1);
+//                        }
+//                    throw throwable;
+//                }  
+//            } catch (SQLException e) {
+//                LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+//            } 
+//        }
     }
     
      public String assignStatus(ActivityTask act){
         String status = "";
-        if (act.getTaskId()==10){
-            status = "LABASSIGN";
-        } else {
-            status = "APPR";
-        }
+//        if (act.getTaskId()==10){
+//            status = "LABASSIGN";
+//        } else {
+            status = "WAPPR";
+//        }
         return status;
-    }
-    
-    public void insertToWoActivity (PreparedStatement ps, String parent, ActivityTask act, String detailActCode, String description, String serviceType, String sequence, String actplace, String classstructureid, String siteId, String laborCode, String laborName, String correlationId, String ownerGroup) throws SQLException{              
-        ps.setString(1, UuidGenerator.getInstance().getUuid());
-        ps.setString(2, parent);
-        ps.setString(3, parent + " - " + act.getTaskId()/10);
-        ps.setString(4, detailActCode);
-        ps.setString(5, description);
-        ps.setString(6, serviceType);
-        ps.setString(7, sequence);
-        ps.setString(8, actplace);
-        ps.setString(9, classstructureid);
-        ps.setString(10, assignStatus(act));
-        ps.setString(11, "NEW");
-        ps.setString(12, "TELKOM");     
-        ps.setString(13, siteId);
-        ps.setString(14, "WFM");
-        ps.setString(15, "ACTIVITY");       
-        ps.setString(16, Integer.toString(act.getTaskId()));       
-        ps.setString(17, laborCode);       
-        ps.setString(18, laborName);       
-        ps.setString(19, correlationId);       
-        ps.setString(20, ownerGroup);       
     }
     
     public Object getLabor(String wonum) throws SQLException {
