@@ -101,52 +101,41 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                 String currentDate = LocalDateTime.now().format(currentDateFormat);
                 int nextTaskId = Integer.parseInt(taskId) + 10;
-                if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40")) { 
+                if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) { 
                     //Update status
-                    UpdateTaskStatusEbisDao updateTaskStatusDao = new UpdateTaskStatusEbisDao();
+                    UpdateTaskStatusEbisDao updateTaskStatusEbisDao = new UpdateTaskStatusEbisDao();
                     if ("STARTWA".equals(data_obj.get("status"))){
-                        final boolean updateTask = updateTaskStatusDao.updateTask(wonum, status);
+                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                         if (updateTask) 
                             hsr1.setStatus(200);
                     } else if ("COMPWA".equals(data_obj.get("status"))){
-                        //Give LABASSIGN to next task
-                        final boolean nextAssign = updateTaskStatusDao.nextAssign(parent, Integer.toString(nextTaskId));
-                        if (nextAssign)
-                            hsr1.setStatus(200);  
-                        updateTaskStatusDao.updateTask(wonum, status);
+                        // Define the next move
+                        final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
+                        if("COMPLETE".equals(nextMove)) {                           
+                            // Update parent status
+                            updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate, "");
+                            
+                            // update task status
+                            updateTaskStatusEbisDao.updateTask(wonum, status);
+                            
+                            //Build Response
+                            JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
+     
+                            // Response to Kafka
+                            String kafkaRes = data.toJSONString();
+                            KafkaProducerTool kaf = new KafkaProducerTool();
+                            kaf.generateMessage(kafkaRes, "WFM_MILESTONE", "");
+                        } else {
+                            //Give LABASSIGN to next task
+                            final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
+                            if (nextAssign)
+                                hsr1.setStatus(200);  
+                            updateTaskStatusEbisDao.updateTask(wonum, status);
+                            
+                        }
                         
                     }
-                } else if (woSequence.equals("50")){
-                    //Update status
-                    UpdateTaskStatusEbisDao updateTaskStatusDao = new UpdateTaskStatusEbisDao();
-                    if ("STARTWA".equals(data_obj.get("status"))){
-                        final boolean updateTask = updateTaskStatusDao.updateTask(wonum, status);
-                        if (updateTask) { 
-                            hsr1.setStatus(200);
-                        }
-                    }else if ("COMPWA".equals(data_obj.get("status"))){
-                        //Give LABASSIGN to next task
-                        final boolean nextAssign = updateTaskStatusDao.nextAssign(parent, Integer.toString(nextTaskId));
-                        if (nextAssign)
-                            hsr1.setStatus(200);  
-                        updateTaskStatusDao.updateTask(wonum, status);
-                    }
-                } else if (woSequence.equals("60")) {
-                    //Update status
-                    UpdateTaskStatusEbisDao updateTaskStatusDao = new UpdateTaskStatusEbisDao();
-                    if ("STARTWA".equals(data_obj.get("status"))){
-                        final boolean updateTask = updateTaskStatusDao.updateTask(wonum, status);
-                        if (updateTask) { 
-                            hsr1.setStatus(200);
-                        }
-                    }else if ("COMPWA".equals(data_obj.get("status"))){
-                        //Give LABASSIGN to next task
-                        final boolean nextAssign = updateTaskStatusDao.nextAssign(parent, Integer.toString(nextTaskId));
-                        if (nextAssign)
-                            hsr1.setStatus(200);  
-                        updateTaskStatusDao.updateTask(wonum, status);
-                    }
-                }
+                }   
             } catch (ParseException | SQLException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
