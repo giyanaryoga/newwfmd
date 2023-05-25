@@ -24,8 +24,8 @@ public class UpdateTaskStatusEbisDao {
     public boolean updateTask(String wonum, String status) throws SQLException{
         boolean updateTask = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_woactivity SET c_status = ? WHERE c_wonum = ? AND c_wfmdoctype = 'NEW'";
-//        String update = "UPDATE app_fd_workorder SET c_status = ? WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+//        String update = "UPDATE app_fd_woactivity SET c_status = ? WHERE c_wonum = ? AND c_wfmdoctype = 'NEW'";
+        String update = "UPDATE app_fd_workorder SET c_status = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try(Connection con = ds.getConnection(); 
             PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, status);
@@ -48,8 +48,8 @@ public class UpdateTaskStatusEbisDao {
     public String nextMove(String parent, String nextTaskId) throws SQLException {
         String nextMove = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_wosequence FROM APP_FD_WOACTIVITY WHERE c_parent = ? AND c_taskId = ? AND c_wfmdoctype = 'NEW' AND C_WOSEQUENCE IN ('10','20','30','40','50','60')";
-//        String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wosequence IN ('10','20','30','40','50','60') AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+//        String query = "SELECT c_wosequence FROM APP_FD_WOACTIVITY WHERE c_parent = ? AND c_taskId = ? AND c_wfmdoctype = 'NEW' AND C_WOSEQUENCE IN ('10','20','30','40','50','60')";
+        String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wosequence IN ('10','20','30','40','50','60') AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try(Connection con = ds.getConnection(); 
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
@@ -78,8 +78,8 @@ public class UpdateTaskStatusEbisDao {
     public boolean nextAssign(String parent, String nextTaskId) throws SQLException{
         boolean nextAssign = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_woactivity SET c_status = 'LABASSIGN' WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW'";
-//        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN' WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+//        String update = "UPDATE app_fd_woactivity SET c_status = 'LABASSIGN' WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW'";
+        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = sysdate WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try(Connection con = ds.getConnection(); 
             PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, parent);
@@ -110,7 +110,8 @@ public class UpdateTaskStatusEbisDao {
         }
         update
             .append("c_status = ?, ")
-            .append("c_statusdate = ? ")
+            .append("c_statusdate = ?, ")
+            .append("dateModified = sysdate ")
             .append("WHERE ")
             .append("c_wonum = ?");
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
