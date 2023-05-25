@@ -243,17 +243,24 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         String statusHeaders = "200";
                         String statusRequest = "Success";
                         //Create response
+                        JSONObject outer1 = new JSONObject();
+                        JSONObject outer2 = new JSONObject();
+                        JSONObject outer3 = new JSONObject();
                         JSONObject data = new JSONObject();
-                        data.put("wonum", wonum);
-                        data.put("siteid", siteId);
-                        res.put("code", statusHeaders);
-                        res.put("message", statusRequest);
-                        res.put("data", data);
-                        res.writeJSONString(hsr1.getWriter());
+                        data.put("WONUM", wonum);
+                        data.put("SITEID", siteId);
+                        outer1.put("WORKORDER", data);
+                        outer2.put("WORKORDERMboKeySet", outer1);
+                        outer3.put("CreateMXTELKOWOResponse", outer2);
+                        JSONObject res1 = new JSONObject(); 
+                        res1.put("code", statusHeaders);
+                        res1.put("message", statusRequest);
+                        res1.put("data", data);
+                        res1.writeJSONString(hsr1.getWriter());
                         //Response to Kafka
-                        String kafkaRes = data.toJSONString();
-                        KafkaProducerTool kaf = new KafkaProducerTool();
-                        kaf.generateMessage(kafkaRes, "WFM_OSM", "Generate Wonum");
+                        String kafkaRes = outer3.toJSONString();
+                        KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
+                        kafkaProducerTool.generateMessage(kafkaRes, "WFM_WONUM", "");
                     } catch (IOException e) {
                         LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                     }  
