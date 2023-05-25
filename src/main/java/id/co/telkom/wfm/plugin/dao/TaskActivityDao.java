@@ -6,7 +6,7 @@ package id.co.telkom.wfm.plugin.dao;
 
 //import id.co.telkom.wfm.plugin.model.ListAttributes;
 //import id.co.telkom.wfm.plugin.model.ListDevice;
-import id.co.telkom.wfm.plugin.model.ListOssItem;
+//import id.co.telkom.wfm.plugin.model.ListOssItem;
 import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
 import id.co.telkom.wfm.plugin.model.ActivityTask;
 import java.sql.Connection;
@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
-import org.json.simple.JSONObject;
+//import org.json.simple.JSONObject;
 //import org.json.simple.JSONArray;
 
 /**
@@ -227,15 +227,13 @@ public class TaskActivityDao {
         ps.setString(13, siteId);
         ps.setString(14, "WFM");
         ps.setString(15, "ACTIVITY");       
-        ps.setString(16, Integer.toString(act.getTaskId()));       
-//        ps.setString(17, laborCode);       
-//        ps.setString(18, laborName);       
+        ps.setString(16, Integer.toString(act.getTaskId()));  
         ps.setString(17, correlationId);       
         ps.setString(18, ownerGroup);       
     }
     
     public void generateActivityTask (String parent, String activity, ActivityTask act, String siteId, String correlationId, String ownerGroup){
-        String insert = "INSERT INTO app_fd_woactivity (id, c_parent, c_wonum, c_detailactcode, c_description, c_servicetype, c_wosequence, c_actplace, c_classstructureid, c_status, c_wfmdoctype, c_orgid, c_siteId, c_worktype, c_woclass, c_taskid, c_correlation, c_ownergroup, dateCreated, dateModified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate, sysdate)";
+        String insert = "INSERT INTO app_fd_workorder (id, c_parent, c_wonum, c_detailactcode, c_description, c_servicetype, c_wosequence, c_actplace, c_classstructureid, c_status, c_wfmdoctype, c_orgid, c_siteId, c_worktype, c_woclass, c_taskid, c_correlation, c_ownergroup, dateCreated, dateModified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate, sysdate)";
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
             String query = "SELECT c_description, c_sequence, c_actplace, c_classstructureid FROM app_fd_detailactivity WHERE c_activity = ? ";
             try {
