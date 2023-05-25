@@ -13,6 +13,9 @@ public class APIConfig {
     private String apiToken;
     private String apiId;
     private String apiKey;
+    private String clientId;
+    private String clientSecret;
+    private String grantType;
 
     /**
      * @return the url
@@ -68,5 +71,47 @@ public class APIConfig {
      */
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    /**
+     * @return the clientId
+     */
+    public String getClientId() {
+        return clientId;
+    }
+
+    /**
+     * @param clientId the clientId to set
+     */
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    /**
+     * @return the clientSecret
+     */
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    /**
+     * @param clientSecret the clientSecret to set
+     */
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+
+    /**
+     * @return the grantType
+     */
+    public String getGrantType() {
+        return grantType;
+    }
+
+    /**
+     * @param grantType the grantType to set
+     */
+    public void setGrantType(String grantType) {
+        this.grantType = grantType;
     }
 }

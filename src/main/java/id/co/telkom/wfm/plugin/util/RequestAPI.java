@@ -113,4 +113,56 @@ public class RequestAPI {
       } 
       return stringResponse;
     }
+    
+    public String sendPostEaiToken(APIConfig apiConfig, RequestBody formBody) throws Exception {
+        String stringResponse = "";
+        Request request = (new Request.Builder()).url(apiConfig.getUrl()).post(formBody).build();
+        Response response = this.httpClient.newCall(request).execute();
+        try {
+          if (!response.isSuccessful()) {
+            LogUtil.info(getClass().getName(), "Unexpected code " + response);
+            throw new IOException("Unexpected code " + response);
+          } 
+          stringResponse = response.body().string();
+          if (response != null)
+            response.close(); 
+        } catch (Throwable throwable) {
+          if (response != null)
+            try {
+              response.close();
+            } catch (Throwable throwable1) {
+              throwable.addSuppressed(throwable1);
+            }  
+          throw throwable;
+        } 
+        return stringResponse;
+    }
+    
+    public String sendGetQueryNte(APIConfig apiConfig, HashMap<String, String> params) throws Exception {
+        String stringResponse = "";
+        HttpUrl.Builder httpBuilder = HttpUrl.parse(apiConfig.getUrl()).newBuilder();
+        if (params != null)
+          for (Map.Entry<String, String> param : params.entrySet())
+            httpBuilder.addQueryParameter(param.getKey(), param.getValue());  
+        Request request = (new Request.Builder()).url(httpBuilder.build()).addHeader("Authorization", "Bearer " + apiConfig.getApiToken()).build();
+        Response response = this.httpClient.newCall(request).execute();
+        try {
+          if (!response.isSuccessful()) {
+            LogUtil.info(getClass().getName(), "Unexpected code " + response);
+            throw new IOException("Unexpected code " + response);
+          } 
+          stringResponse = response.body().string();
+          if (response != null)
+            response.close(); 
+        } catch (IOException throwable) {
+          if (response != null)
+            try {
+              response.close();
+            } catch (Throwable throwable1) {
+              throwable.addSuppressed(throwable1);
+            }  
+          throw throwable;
+        } 
+        return stringResponse;
+    }
 }
