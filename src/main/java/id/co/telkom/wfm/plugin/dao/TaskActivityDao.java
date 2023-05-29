@@ -9,17 +9,19 @@ package id.co.telkom.wfm.plugin.dao;
 //import id.co.telkom.wfm.plugin.model.ListOssItem;
 import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
 import id.co.telkom.wfm.plugin.model.ActivityTask;
+import id.co.telkom.wfm.plugin.model.ListClassStructure;
+import id.co.telkom.wfm.plugin.model.ListClassSpec;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-//import java.sql.Statement;
+import java.sql.Statement;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
-//import org.json.simple.JSONObject;
-//import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
 
 /**
  *
@@ -119,57 +121,6 @@ public class TaskActivityDao {
         return ownerGroup;
     }
     
-    public void insertWoActAttribute(String parent, ActivityTask act, ListOssItemAttribute listOssAttr, String siteid) throws SQLException {
-        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
-        String wonum = parent +" - "+ (act.getTaskId()/10-1);
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert1 = "INSERT INTO app_fd_workorderspec (id, c_attribute_name, c_alnvalue, c_wonum, c_siteid, c_orgid, dateCreated, dateModified) VALUES (?, ?, ?, ?, ?, ?, sysdate, sysdate)";
-//        String insert2 = "INSERT INTO app_fd_assetattribute () VALUES ()";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(insert1);
-                try {
-                    ps.setString(1, uuId);
-                    ps.setString(2, listOssAttr.getAttrName());
-                    ps.setString(3, listOssAttr.getAttrValue());
-                    ps.setString(4, wonum);
-                    ps.setString(5, siteid);
-                    ps.setString(6, "TELKOM");
-                    //Execute insert
-                    int exe = ps.executeUpdate();
-                    if (exe > 0) {
-                        LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " + listOssAttr.getAttrName() + " done");  
-                    }
-                    //Close connection of statement
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
-                }
-                //Close connection of con
-                if (con != null)
-                    con.close();
-            } catch (Throwable throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        }
-    }
-
     public void reviseTask(String parent){
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_woactivity SET c_wfmdoctype = ? WHERE c_parent = ?";
@@ -286,6 +237,81 @@ public class TaskActivityDao {
                 LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
             }
     }
+    
+    public void insertToWoAttribute (PreparedStatement ps, String classStructureId, String classSpecId, String parent, String siteId, String attr_name, String attr_value, String isRequired, String isShared, String isReported, String readOnly ) throws SQLException{              
+        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
+        ps.setString(1, uuId);
+        ps.setString(2, classStructureId);
+        ps.setString(3, classSpecId);
+        ps.setString(4, "TELKOM");
+        ps.setString(5, parent);
+        ps.setString(6, siteId);
+        ps.setString(7, attr_name);
+        ps.setString(8, attr_value);
+        ps.setString(9, isRequired);
+        ps.setString(10, isShared);
+        ps.setString(11, isReported);
+        ps.setString(12, readOnly);
+    }
+    
+    public void GenerateTaskAttribute(String parent, ActivityTask act, ListOssItemAttribute listOssAttr, String siteid, ListClassSpec taskAttr) throws SQLException {
+        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
+        String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_siteid, c_attribute_name, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+        String wonum = parent +" - "+ (act.getTaskId()/10-1);
+        
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec WHERE c_assetattrid = ?";
+        try {
+            Connection con = ds.getConnection();
+            con.setAutoCommit(false); 
+            try {
+                PreparedStatement ps = con.prepareStatement(insert);
+                PreparedStatement stmt = con.prepareStatement(query);
+                try {
+                    stmt.setString(1, listOssAttr.getAttrName());
+                    ResultSet rs = stmt.executeQuery();
+                    if (rs.next()){
+                        insertToWoAttribute(ps, rs.getString("c_classstructureid"), rs.getString("c_classspecid"), wonum, siteid, rs.getString("c_assetattrid"), listOssAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"));
+                        int exe = ps.executeUpdate();
+                        //Checking insert status
+                        if (exe > 0) {
+                            LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " + taskAttr.getAssetAttr()+ " done");
+                        }
+                        con.commit();
+                    } else con.rollback();
+                    con.setAutoCommit(true);
+                    if (ps != null)
+                        ps.close();
+                    if (stmt != null)
+                        stmt.close();
+                } catch (SQLException throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                        if (stmt != null)
+                            stmt.close();
+                    } catch (SQLException throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                //Close connection of con
+                if (con != null)
+                    con.close();
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (SQLException throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+
     
 //    public Object getLabor(String wonum) throws SQLException {
 //        JSONObject resultObj = new JSONObject();

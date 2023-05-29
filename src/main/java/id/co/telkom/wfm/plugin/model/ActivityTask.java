@@ -10,29 +10,8 @@ package id.co.telkom.wfm.plugin.model;
  */
 public class ActivityTask {
     private int taskId;
-//    private int tempStb;
     private String descriptionTask;
     private String correlation;
-//    private String pullDropCable;
-//    private String revOrder;
-//    private String shipDeliv;
-//    private String getNte;
-//    private String populOAM;
-//    private String valVPN;
-//    private String valMetroVPN;
-//    private String valPeRouter;
-//    private String ceJump;
-//    private String servTestVPN;
-//    private String regSuplychain;
-//    private String apprE2ETesting;
-//    private String insOnt;
-//    private String insStb;
-//    private String valVoice;
-//    private String valInet;
-//    private String valBroad;
-//    private String valIptv;
-//    private String valDigital;
-//    private String corr1;
 
     /**
      * @return the taskId

@@ -12,6 +12,7 @@ import id.co.telkom.wfm.plugin.model.ListAttributes;
 import id.co.telkom.wfm.plugin.model.ListOssItem;
 import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
 import id.co.telkom.wfm.plugin.model.ActivityTask;
+import id.co.telkom.wfm.plugin.model.ListClassSpec;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -182,6 +183,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     dao.insertToOssItem(wonum, listOssItem);
                         JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
                         ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
+                        ListClassSpec taskAttr = new ListClassSpec();
                         for (int j = 0; j < ossitem_attr.size(); j++){
                             JSONObject oss_itemObj1 = (JSONObject)ossitem_attr.get(j);
                             listOssItemAtt.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
@@ -189,7 +191,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                             //@insert Oss Item Attribute
                             dao.insertToOssAttribute(listOssItemAtt);
                             //@insert to workorderspec
-                            dao2.insertWoActAttribute(parent, act, listOssItemAtt, siteId);
+                            dao2.GenerateTaskAttribute(parent, act, listOssItemAtt, siteId, taskAttr);
                         }
                 } else if (ossitem_arrayObj instanceof JSONArray) {
                     for (int i = 0 ; i < ((JSONArray) ossitem_arrayObj).size() ; i++){
@@ -205,6 +207,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         dao.insertToOssItem(wonum, listOssItem);
                             JSONArray ossitem_attr = (JSONArray) oss_itemObj.get("OSSITEMATTRIBUTE");
                             ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
+                            ListClassSpec taskAttr = new ListClassSpec();
                             for (int j = 0; j < ossitem_attr.size(); j++){
                                 JSONObject oss_itemObj2 = (JSONObject)ossitem_attr.get(j);
                                 listOssItemAtt.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
@@ -212,7 +215,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                                 //@insert Oss Item Attribute
                                 dao.insertToOssAttribute(listOssItemAtt);
                                 //@insert to workorderspec
-                                dao2.insertWoActAttribute(parent, act, listOssItemAtt, siteId);
+                                dao2.GenerateTaskAttribute(parent, act, listOssItemAtt, siteId, taskAttr);
                             }
                     }
                 }
