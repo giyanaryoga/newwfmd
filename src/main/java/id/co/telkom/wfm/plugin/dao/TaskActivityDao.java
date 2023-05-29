@@ -260,7 +260,7 @@ public class TaskActivityDao {
         String wonum = parent +" - "+ (act.getTaskId()/10-1);
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec WHERE c_assetattrid = ?";
+        String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec cls WHERE c_assetattrid = ?";
         try {
             Connection con = ds.getConnection();
             con.setAutoCommit(false); 
@@ -275,7 +275,7 @@ public class TaskActivityDao {
                         int exe = ps.executeUpdate();
                         //Checking insert status
                         if (exe > 0) {
-                            LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " + taskAttr.getAssetAttr()+ " done");
+                            LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " +listOssAttr.getAttrName()+ " done");
                         }
                         con.commit();
                     } else con.rollback();
