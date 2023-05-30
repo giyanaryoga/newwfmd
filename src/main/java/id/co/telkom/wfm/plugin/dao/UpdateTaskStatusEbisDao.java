@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -140,13 +142,13 @@ public class UpdateTaskStatusEbisDao {
     public JSONObject getCompleteJson (String parent) throws SQLException {
         JSONArray itemArray = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status FROM app_fd_woactivity WHERE c_parent = ? AND c_wosequence IN ('10', '20', '30', '40', '50', '60') AND c_wfmdoctype = 'NEW'";
+        String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status, c_wonum FROM app_fd_workorder WHERE c_parent = ? AND c_wosequence IN ('10', '20', '30', '40', '50', '60') AND c_wfmdoctype = 'NEW'";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                JSONObject itemObj = buildTaskAttribute (rs.getString("c_detailactcode"), 
+                JSONObject itemObj = buildTaskAttribute (rs.getString("c_wonum"), rs.getString("c_detailactcode"), 
                         rs.getString("c_wosequence"), rs.getString("c_correlation"), 
                         rs.getString("c_status"));
                 itemArray.add(itemObj);
@@ -165,7 +167,7 @@ public class UpdateTaskStatusEbisDao {
     private JSONObject buildTaskJson (String wonum, JSONArray itemArray) throws SQLException {
         JSONObject milestoneInput = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_jmscorrelationid, c_worevisionno, c_wostatus  FROM app_fd_workorder WHERE c_wonum = ?";
+        String query = "SELECT c_jmscorrelationid, c_worevisionno, c_status  FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -200,13 +202,62 @@ public class UpdateTaskStatusEbisDao {
         
         return completeJson;
     }
+    private JSONObject getListAttribute (String wonum) throws SQLException {
+        JSONObject attributeObject = new JSONObject();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT C_ALNVALUE, C_ATTRIBUTE_NAME FROM APP_FD_WORKORDERSPEC a, APP_FD_WORKORDER b WHERE a.C_WONUM = b.C_WONUM AND a.C_ISSHARED = 1 AND b.C_PARENT IS NOT NULL AND b.C_WOCLASS = 'ACTIVITY' AND b.C_WONUM = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+                ps.setString(1, wonum);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                   //Get Attribute
+//                   if (attributeObject instanceof JSONObject) {
+//                        JSONObject attrList = new JSONObject();
+//                        attrList.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
+//                        attrList.put("Value", rs.getString("C_ALNVALUE"));   
+//                   } 
+                   //if (attributeObject instanceof JSONArray) {
+//                       for(int i = 0; i < ((JSONArray) attributeObject).size(); i++) {
+//                           JSONObject attrList = new JSONObject();
+//                            attrList.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
+//                            attrList.put("Value", rs.getString("C_ALNVALUE"));
+//                       }
+                   //}
+                   attributeObject.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
+                   attributeObject.put("Value", rs.getString("C_ALNVALUE"));
+                }
+            } catch (SQLException e) {
+                LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            } finally {
+                ds.getConnection().close();
+            }
+        return attributeObject;
+    }
     
-    private JSONObject buildTaskAttribute (String name, String sequence, String correlation, String status){
+    private JSONObject buildTaskAttribute (String wonum, String name, String sequence, String correlation, String status) throws SQLException{
         JSONObject itemObj = new JSONObject();
+//        JSONObject attrArray = new JSONObject();
         itemObj.put("Sequence", sequence);
         itemObj.put("Name", name);
         itemObj.put("Correlation", correlation);
         itemObj.put("Status", status);
+        
+        
+        // Wrapper
+        JSONObject attribute = new JSONObject();
+        attribute.put("Attribute", getListAttribute(wonum));
+        
+        JSONObject attributes = new JSONObject();
+        attributes.put("Attributes", attribute);
+        
+        JSONObject serviceDetail = new JSONObject();
+        serviceDetail.put("ServiceDetail", attributes);
+        
+        itemObj.put("ServiceDetails", serviceDetail);
         return itemObj;
     }
+    
+    
+    
 }
