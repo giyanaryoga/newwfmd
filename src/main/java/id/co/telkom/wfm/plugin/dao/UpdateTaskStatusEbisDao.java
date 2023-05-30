@@ -214,16 +214,14 @@ public class UpdateTaskStatusEbisDao {
     private JSONObject getListAttribute (String wonum) throws SQLException {
         JSONObject attributeObject = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT C_ALNVALUE, C_ATTRIBUTE_NAME FROM APP_FD_WORKORDERSPEC a, APP_FD_WORKORDER b WHERE a.C_WONUM = b.C_WONUM AND a.C_ISSHARED = 1 AND b.C_WOCLASS = 'ACTIVITY' AND a.C_WONUM = ?";
+        String query = "SELECT C_ALNVALUE, C_ATTRIBUTE_NAME FROM APP_FD_WORKORDERSPEC a, APP_FD_WORKORDER b WHERE a.C_WONUM = b.C_WONUM AND a.C_ISSHARED = 1 AND b.C_WOCLASS = 'ACTIVITY' AND b.C_WONUM = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
                 ps.setString(1, wonum);
                 ResultSet rs = ps.executeQuery();
                 while (rs.next()) {
-                    for (int i = 0; i < query.length(); i++) {
-                        attributeObject.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
-                        attributeObject.put("Value", rs.getString("C_ALNVALUE"));
-                    }
+                    attributeObject.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
+                    attributeObject.put("Value", rs.getString("C_ALNVALUE"));
                 }
             } catch (SQLException e) {
                 LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -243,8 +241,14 @@ public class UpdateTaskStatusEbisDao {
         
         
         // Wrapper
-        JSONObject attribute = new JSONObject();
-        attribute.put("Attribute", getListAttribute(wonum));
+        JSONArray attribute = new JSONArray();
+        for (int i = 0; i < attribute.size(); i++) {
+            JSONObject attrObj = (JSONObject)((JSONArray) attribute).get(i);
+            attrObj.put("Attribute", getListAttribute(wonum));
+        }
+        
+//        JSONObject attribute = new JSONObject();
+//        attribute.put("Attribute", getListAttribute(wonum));
         
         JSONObject attributes = new JSONObject();
         attributes.put("Attributes", attribute);
