@@ -255,12 +255,12 @@ public class TaskActivityDao {
     }
     
     public void GenerateTaskAttribute(String parent, ActivityTask act, ListOssItemAttribute listOssAttr, String siteid, ListClassSpec taskAttr) throws SQLException {
-        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
+//        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_siteid, c_attribute_name, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
         String wonum = parent +" - "+ (act.getTaskId()/10-1);
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec cls WHERE c_assetattrid = ?";
+        String query = "SELECT cls.c_classstructureid, cls.c_assetattrid, cls.c_classspecid, cls.c_isrequired, cls.c_isshared, cls.c_isreported, cls.c_readonly FROM app_fd_classspec cls WHERE cls.c_assetattrid = ?";
         try {
             Connection con = ds.getConnection();
             con.setAutoCommit(false); 
