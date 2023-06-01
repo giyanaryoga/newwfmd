@@ -140,7 +140,7 @@ public class UpdateTaskStatusEbisDao {
     } 
     
     public JSONObject getCompleteJson (String parent) throws SQLException {
-        JSONArray itemArray = new JSONArray();
+        JSONArray itemArrayObj = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status, c_wonum FROM app_fd_workorder WHERE c_parent = ? AND c_wosequence IN ('10', '20', '30', '40', '50', '60') AND c_wfmdoctype = 'NEW'";
         try (Connection con = ds.getConnection();
@@ -151,7 +151,7 @@ public class UpdateTaskStatusEbisDao {
                 JSONObject itemObj = buildTaskAttribute (rs.getString("c_wonum"), rs.getString("c_detailactcode"), 
                         rs.getString("c_wosequence"), rs.getString("c_correlation"), 
                         rs.getString("c_status"));
-                itemArray.add(itemObj);
+                itemArrayObj.add(itemObj);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -159,7 +159,7 @@ public class UpdateTaskStatusEbisDao {
             ds.getConnection().close();
         }
         // add the item array
-        JSONObject completeJson = buildTaskJson (parent, itemArray);
+        JSONObject completeJson = buildTaskJson (parent, itemArrayObj);
         //return complete json
         return completeJson;
     }
@@ -178,15 +178,15 @@ public class UpdateTaskStatusEbisDao {
                 milestoneInput.put("WFMWOId", wonum);
                 milestoneInput.put("WoRevisionNo", rs.getString("c_worevisionno"));
                 milestoneInput.put("WOStatus", rs.getString("c_status"));
-                if (itemArrayObj instanceof JSONObject) {
-                    milestoneInput.put("Item", itemArrayObj);
-                }
-                if (itemArrayObj instanceof JSONArray) {
-                    for (int i = 0; i < ((JSONArray) itemArrayObj).size(); i++) {
-                        JSONObject item = (JSONObject)((JSONArray) itemArrayObj).get(i);
-                        item.put("Item", itemArrayObj);
-                    }
-                }
+//                if (itemArrayObj instanceof JSONObject) {
+//                    milestoneInput.put("Item", itemArrayObj);
+//                }
+//                if (itemArrayObj instanceof JSONArray) {
+//                    for (int i = 0; i < ((JSONArray) itemArrayObj).size(); i++) {
+//                        JSONObject item = (JSONObject)((JSONArray) itemArrayObj).get(i);
+//                        item.put("Item", itemArrayObj);
+//                    }
+//                }
                 milestoneInput.put("item", itemArrayObj);
             }
         } catch (SQLException e) {
@@ -212,23 +212,30 @@ public class UpdateTaskStatusEbisDao {
         return completeJson;
     }
     private JSONObject getListAttribute (String wonum) throws SQLException {
-        JSONObject attributeObject = new JSONObject();
+//        JSONObject attributeObject = new JSONObject();
+        JSONArray listAttr = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT C_ALNVALUE, C_ATTRIBUTE_NAME FROM APP_FD_WORKORDERSPEC a, APP_FD_WORKORDER b WHERE a.C_WONUM = b.C_WONUM AND a.C_ISSHARED = 1 AND b.C_WOCLASS = 'ACTIVITY' AND b.C_WONUM = ?";
+//        String query = "SELECT C_ALNVALUE, C_ATTRIBUTE_NAME FROM APP_FD_WORKORDERSPEC a, APP_FD_WORKORDER b WHERE a.C_WONUM = b.C_WONUM AND a.C_ISSHARED = 1 AND b.C_WOCLASS = 'ACTIVITY' AND a.C_WONUM = ?";
+        String query = "SELECT C_ALNVALUE, C_ATTRIBUTE_NAME, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
                 ps.setString(1, wonum);
                 ResultSet rs = ps.executeQuery();
                 while (rs.next()) {
-                    attributeObject.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
-                    attributeObject.put("Value", rs.getString("C_ALNVALUE"));
+                        JSONObject attributeObject = new JSONObject();
+                        attributeObject.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
+                        attributeObject.put("Value", rs.getString("C_ALNVALUE"));
+                        listAttr.add(attributeObject);
                 }
             } catch (SQLException e) {
                 LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
             } finally {
                 ds.getConnection().close();
             }
-        return attributeObject;
+        JSONObject attributeObj = new JSONObject();
+        attributeObj.put("attribute", listAttr);
+        
+        return attributeObj;
     }
     
     private JSONObject buildTaskAttribute (String wonum, String name, String sequence, String correlation, String status) throws SQLException{
@@ -241,17 +248,11 @@ public class UpdateTaskStatusEbisDao {
         
         
         // Wrapper
-        JSONArray attribute = new JSONArray();
-        for (int i = 0; i < attribute.size(); i++) {
-            JSONObject attrObj = (JSONObject)((JSONArray) attribute).get(i);
-            attrObj.put("Attribute", getListAttribute(wonum));
-        }
-        
-//        JSONObject attribute = new JSONObject();
-//        attribute.put("Attribute", getListAttribute(wonum));
-        
+//        JSONArray attribute = new JSONArray();
+//        attribute.add(getListAttribute(wonum));
+//        
         JSONObject attributes = new JSONObject();
-        attributes.put("Attributes", attribute);
+        attributes.put("Attributes", getListAttribute(wonum));
         
         JSONObject serviceDetail = new JSONObject();
         serviceDetail.put("ServiceDetail", attributes);
@@ -259,7 +260,5 @@ public class UpdateTaskStatusEbisDao {
         itemObj.put("ServiceDetails", serviceDetail);
         return itemObj;
     }
-    
-    
-    
+   
 }
