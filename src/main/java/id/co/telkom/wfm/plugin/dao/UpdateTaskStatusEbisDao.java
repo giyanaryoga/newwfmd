@@ -178,15 +178,6 @@ public class UpdateTaskStatusEbisDao {
                 milestoneInput.put("WFMWOId", wonum);
                 milestoneInput.put("WoRevisionNo", rs.getString("c_worevisionno"));
                 milestoneInput.put("WOStatus", rs.getString("c_status"));
-//                if (itemArrayObj instanceof JSONObject) {
-//                    milestoneInput.put("Item", itemArrayObj);
-//                }
-//                if (itemArrayObj instanceof JSONArray) {
-//                    for (int i = 0; i < ((JSONArray) itemArrayObj).size(); i++) {
-//                        JSONObject item = (JSONObject)((JSONArray) itemArrayObj).get(i);
-//                        item.put("Item", itemArrayObj);
-//                    }
-//                }
                 milestoneInput.put("item", itemArrayObj);
             }
         } catch (SQLException e) {
@@ -240,17 +231,12 @@ public class UpdateTaskStatusEbisDao {
     
     private JSONObject buildTaskAttribute (String wonum, String name, String sequence, String correlation, String status) throws SQLException{
         JSONObject itemObj = new JSONObject();
-//        JSONObject attrArray = new JSONObject();
         itemObj.put("Sequence", sequence);
         itemObj.put("Name", name);
         itemObj.put("Correlation", correlation);
         itemObj.put("Status", status);
         
-        
         // Wrapper
-//        JSONArray attribute = new JSONArray();
-//        attribute.add(getListAttribute(wonum));
-//        
         JSONObject attributes = new JSONObject();
         attributes.put("Attributes", getListAttribute(wonum));
         
