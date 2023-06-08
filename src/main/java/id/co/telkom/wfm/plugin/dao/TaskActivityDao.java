@@ -187,25 +187,10 @@ public class TaskActivityDao {
         ps.setString(22, cpe_validation);
     }
     
-    public void generateActivityTask (String parent, String activity, ActivityTask act, String siteId, String correlationId, String ownerGroup, ListOssItemAttribute listOssAttr){
+    public void generateActivityTask (String parent, String activity, ActivityTask act, String siteId, String correlationId, String ownerGroup, String model, String vendor, String serial_number, String cpeValidate) {
         String insert = "INSERT INTO app_fd_workorder (id, c_parent, c_wonum, c_detailactcode, c_description, c_servicetype, c_wosequence, c_actplace, c_classstructureid, c_status, c_wfmdoctype, c_orgid, c_siteId, c_worktype, c_woclass, c_taskid, c_correlation, c_ownergroup, c_cpe_model, c_cpe_vendor, c_cpe_serial_number, c_cpe_validation, dateModified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
             String query = "SELECT c_description, c_sequence, c_actplace, c_classstructureid FROM app_fd_detailactivity WHERE c_activity = ? ";
-            
-            String model = null;
-            String vendor = null;
-            String serial_number = null;
-            String cpeValidate = "PASS";
-            
-            if ("NTE_MODEL".equals(listOssAttr.getAttrName())) { 
-                model = (listOssAttr.getAttrValue());
-                if ("NTE_MANUFACTUR".equals(listOssAttr.getAttrName())) {
-                    vendor = (listOssAttr.getAttrValue());
-                    if ("NTE_SERIALNUMBER".equals(listOssAttr.getAttrName())) {
-                        serial_number = (listOssAttr.getAttrValue());
-                    }
-                }
-            }
             
             try {
                 Connection con = ds.getConnection();
@@ -217,19 +202,7 @@ public class TaskActivityDao {
                         stmt.setString(1, activity);
                         ResultSet rs = stmt.executeQuery();
                         if (rs.next()){
-                            if (model != null && vendor != null && serial_number != null) {
-                                insertToWoActivity(ps, parent, act, activity, rs.getString("c_description"), "", rs.getString("c_sequence"), rs.getString("c_actplace"), rs.getString("c_classstructureid"), siteId, correlationId, ownerGroup, model, vendor, serial_number, cpeValidate);
-                            } else {
-                                String cpeValidateNull = null;
-                                insertToWoActivity(ps, parent, act, activity, rs.getString("c_description"), "", rs.getString("c_sequence"), rs.getString("c_actplace"), rs.getString("c_classstructureid"), siteId, correlationId, ownerGroup, model, vendor, serial_number, cpeValidateNull);
-//                                int exe = ps.executeUpdate();
-//                                //Checking insert status
-//                                if (exe > 0) {
-//                                    LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as task");
-//                                    act.setTaskId(act.getTaskId()+10);
-//                                }
-//                                con.commit();
-                            }
+                            insertToWoActivity(ps, parent, act, activity, rs.getString("c_description"), "", rs.getString("c_sequence"), rs.getString("c_actplace"), rs.getString("c_classstructureid"), siteId, correlationId, ownerGroup, model, vendor, serial_number, cpeValidate);
                             int exe = ps.executeUpdate();
                             //Checking insert status
                             if (exe > 0) {

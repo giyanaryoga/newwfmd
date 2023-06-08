@@ -13,6 +13,7 @@ import id.co.telkom.wfm.plugin.model.ListOssItem;
 import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
 import id.co.telkom.wfm.plugin.model.ActivityTask;
 import id.co.telkom.wfm.plugin.model.ListClassSpec;
+import id.co.telkom.wfm.plugin.model.ListCpeValidate;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -174,7 +175,12 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 ActivityTask act = new ActivityTask();
                 ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
                 ListClassSpec taskAttr = new ListClassSpec();
+                ListCpeValidate cpeValidated = new ListCpeValidate();
                 act.setTaskId(10);
+                String model = null;
+                String vendor = null;
+                String serial_number = null;
+                String cpeValidate = "PASS";
                 
                 if (ossitem_arrayObj instanceof JSONObject){
                     listOssItem.setAction(((JSONObject) ossitem_arrayObj).get("ACTION").toString());
@@ -183,7 +189,21 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //Task Dispatch
                     act.setDescriptionTask(((JSONObject) ossitem_arrayObj).get("ITEMNAME").toString());
                     act.setCorrelation(((JSONObject) ossitem_arrayObj).get("CORRELATIONID").toString());
-                    dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup, listOssItemAtt);
+                    if ("NTE_MODEL".equals(listOssItemAtt.getAttrName())) { 
+                        model = (listOssItemAtt.getAttrValue());
+                        if ("NTE_MANUFACTUR".equals(listOssItemAtt.getAttrName())) {
+                            vendor = (listOssItemAtt.getAttrValue());
+                            if ("NTE_SERIALNUMBER".equals(listOssItemAtt.getAttrName())) {
+                                serial_number = (listOssItemAtt.getAttrValue());
+                            }
+                        }
+                    }
+                    if (model != null && vendor != null && serial_number != null) {
+                        dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup, model, vendor, serial_number, cpeValidate);
+                    } else {
+                        cpeValidate = null;
+                        dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup, model, vendor, serial_number, cpeValidate);
+                    }
                     //@insertOSSItem
                     dao.insertToOssItem(wonum, listOssItem);
                         JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
@@ -206,7 +226,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         //Task Dispatch
                         act.setDescriptionTask(oss_itemObj.get("ITEMNAME").toString());
                         act.setCorrelation(oss_itemObj.get("CORRELATIONID").toString());
-                        dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId,act.getCorrelation(), ownerGroup, listOssItemAtt);
                         //Insert ossItem
                         dao.insertToOssItem(wonum, listOssItem);
                             JSONArray ossitem_attr = (JSONArray) oss_itemObj.get("OSSITEMATTRIBUTE");
@@ -219,6 +238,26 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                                 //@insert to workorderspec
                                 dao2.GenerateTaskAttribute(parent, act, listOssItemAtt, siteId, taskAttr);
                             }
+                        if ("NTE_MODEL" == listOssItemAtt.getAttrName()) { 
+                            model = cpeValidated.setModel(listOssItemAtt.getAttrValue());
+                            LogUtil.info(getClass().getName(), "'" + model + "' cpe_model");
+                        }
+                        if ("NTE_MANUFACTUR".equals(listOssItemAtt.getAttrName())) {
+                            vendor = cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+                            LogUtil.info(getClass().getName(), "'" + vendor + "' cpe_vendor");
+                        }
+                        if ("NTE_SERIALNUMBER".equalsIgnoreCase(listOssItemAtt.getAttrName())) {
+                            serial_number = cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                            LogUtil.info(getClass().getName(), "'" + serial_number + "' cpe_serial_number");
+                        }
+                        if (model != null && vendor != null && serial_number != null) {
+                            dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup, cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate);
+                            LogUtil.info(getClass().getName(), "'" + serial_number + "' is created");
+                        } else {
+                            cpeValidate = null;
+                            dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup, cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate);
+                            LogUtil.info(getClass().getName(), "'" + serial_number + "' is created");
+                        }
                     }
                 }
                 
