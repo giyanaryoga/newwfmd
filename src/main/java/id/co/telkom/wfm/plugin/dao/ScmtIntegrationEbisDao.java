@@ -71,6 +71,7 @@ public class ScmtIntegrationEbisDao {
                 .append(" parent.c_longitude,  ")
                 .append(" parent.c_latitude, ")
                 .append(" parent.c_siteid,  ")
+                .append(" parent.c_description, ")
                 .append(" child.c_laborcode,  ")
                 .append(" item.c_alnvalue ")
                 .append(" FROM app_fd_workorder parent  ")
@@ -79,7 +80,7 @@ public class ScmtIntegrationEbisDao {
                 .append(" JOIN app_fd_workorderspec item ")
                 .append(" ON child.c_wonum = item.c_wonum ")
                 .append(" WHERE ")
-                .append(" parent.c_wonum like '?%' ")
+                .append(" parent.c_wonum = ? ")
                 .append(" AND ")
                 .append(" child.c_description ")
                 .append(" IN ('Registration Suplychain', 'Registration Suplychain Wifi') ")
@@ -100,12 +101,12 @@ public class ScmtIntegrationEbisDao {
                 scmtParam.setServiceAddress((rs.getString("c_serviceaddress") == null) ? "" : rs.getString("c_serviceaddress"));
                 scmtParam.setWorkzone((rs.getString("c_workzone") == null) ? "" : rs.getString("c_workzone"));
                 scmtParam.setServiceNum((rs.getString("c_servicenum") == null) ? "" : rs.getString("c_servicenum"));
-                scmtParam.setCpeVendor((rs.getString("c_cpe_vendor") == null) ? "" : rs.getString("c_cpe_vendor"));
-                scmtParam.setCpeModel((rs.getString("c_cpe_model") == null) ? "" : rs.getString("c_cpe_model"));
+//                scmtParam.setCpeVendor((rs.getString("c_cpe_vendor") == null) ? "" : rs.getString("c_cpe_vendor"));
+//                scmtParam.setCpeModel((rs.getString("c_cpe_model") == null) ? "" : rs.getString("c_cpe_model"));
                 scmtParam.setCpeSerialNumber((rs.getString("c_alnvalue") == null) ? "" : rs.getString("c_alnvalue"));
                 scmtParam.setLongitude((rs.getString("c_longitude") == null) ? "" : rs.getString("c_longitude"));
                 scmtParam.setLatitude((rs.getString("c_latitude") == null) ? "" : rs.getString("c_latitude"));
-//                scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
+                scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
                 scmtParam.setSiteId((rs.getString("c_siteid") == null) ? "" : rs.getString("c_siteid"));
                 //Send install message to kafka
                 JSONObject installMessage = buildInstallMessage(scmtParam);
@@ -133,9 +134,8 @@ public class ScmtIntegrationEbisDao {
         //Serial number
         JSONObject serialNumber = new JSONObject();
         serialNumber.put("number", scmtParam.getCpeSerialNumber());
-        if (scmtParam.getDescription().equalsIgnoreCase("Registration Suplychain"))
-            serialNumber.put("type", "serial_number");
-        
+        serialNumber.put("type", "serial_number");
+
         //Items
         JSONArray items = new JSONArray();
         items.add(serialNumber);
