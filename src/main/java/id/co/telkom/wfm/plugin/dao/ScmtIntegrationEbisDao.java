@@ -71,19 +71,20 @@ public class ScmtIntegrationEbisDao {
                 .append(" parent.c_longitude,  ")
                 .append(" parent.c_latitude, ")
                 .append(" parent.c_siteid,  ")
-                .append(" child.c_cpe_vendor,  ")
-                .append(" child.c_cpe_model, ")
-                .append(" child.c_cpe_serial_number, ")
-                .append(" child.c_description,   ")
-                .append(" child.c_laborcode  ")
+                .append(" child.c_laborcode,  ")
+                .append(" item.c_alnvalue ")
                 .append(" FROM app_fd_workorder parent  ")
                 .append(" JOIN app_fd_workorder child  ")
                 .append(" ON parent.c_wonum = child.c_parent  ")
+                .append(" JOIN app_fd_workorderspec item ")
+                .append(" ON child.c_wonum = item.c_wonum ")
                 .append(" WHERE ")
-                .append(" parent.c_wonum = ? ")
+                .append(" parent.c_wonum like '?%' ")
                 .append(" AND ")
                 .append(" child.c_description ")
                 .append(" IN ('Registration Suplychain', 'Registration Suplychain Wifi') ")
+                .append(" AND ")
+                .append(" item.c_attribute_name = 'NTE_SERIALNUMBER' ")
                 .append(" AND ")
                 .append(" child.c_wfmdoctype = 'NEW' ");
         try(Connection con = ds.getConnection();
@@ -101,10 +102,10 @@ public class ScmtIntegrationEbisDao {
                 scmtParam.setServiceNum((rs.getString("c_servicenum") == null) ? "" : rs.getString("c_servicenum"));
                 scmtParam.setCpeVendor((rs.getString("c_cpe_vendor") == null) ? "" : rs.getString("c_cpe_vendor"));
                 scmtParam.setCpeModel((rs.getString("c_cpe_model") == null) ? "" : rs.getString("c_cpe_model"));
-                scmtParam.setCpeSerialNumber((rs.getString("c_cpe_serial_number") == null) ? "" : rs.getString("c_cpe_serial_number"));
+                scmtParam.setCpeSerialNumber((rs.getString("c_alnvalue") == null) ? "" : rs.getString("c_alnvalue"));
                 scmtParam.setLongitude((rs.getString("c_longitude") == null) ? "" : rs.getString("c_longitude"));
                 scmtParam.setLatitude((rs.getString("c_latitude") == null) ? "" : rs.getString("c_latitude"));
-                scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
+//                scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
                 scmtParam.setSiteId((rs.getString("c_siteid") == null) ? "" : rs.getString("c_siteid"));
                 //Send install message to kafka
                 JSONObject installMessage = buildInstallMessage(scmtParam);
