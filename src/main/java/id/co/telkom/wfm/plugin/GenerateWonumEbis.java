@@ -16,6 +16,8 @@ import id.co.telkom.wfm.plugin.model.ListClassSpec;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -130,7 +132,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 String prodName = (body.get("PRODUCTNAME") == null ? "" : body.get("PRODUCTNAME").toString());
                 String prodType = (body.get("PRODUCTTYPE") == null ? "" : body.get("PRODUCTTYPE").toString());
                 String reportBy = (body.get("REPORTEDBY") == null ? "" : body.get("REPORTEDBY").toString());
-                String schedStart = (body.get("SCHEDSTART") == null ? "" : body.get("SCHEDSTART").toString());
+                String sourceDate = (body.get("SCHEDSTART") == null ? "" : body.get("SCHEDSTART").toString());
+                String schedStart = (sourceDate == null ? "" : dateFormatter(sourceDate));
                 String scOrderNo = (body.get("SCORDERNO") == null ? "" : body.get("SCORDERNO").toString());
                 String custAddress = (body.get("SERVICEADDRESS") == null ? "" : body.get("SERVICEADDRESS").toString());
                 String serviceNum = (body.get("SERVICENUM") == null ? "" : body.get("SERVICENUM").toString());
@@ -169,6 +172,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 Object ossitem_arrayObj = (Object)body.get("OSSITEM");
                 ListOssItem listOssItem = new ListOssItem();
                 ActivityTask act = new ActivityTask();
+                ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
+                ListClassSpec taskAttr = new ListClassSpec();
                 act.setTaskId(10);
                 
                 if (ossitem_arrayObj instanceof JSONObject){
@@ -178,12 +183,10 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //Task Dispatch
                     act.setDescriptionTask(((JSONObject) ossitem_arrayObj).get("ITEMNAME").toString());
                     act.setCorrelation(((JSONObject) ossitem_arrayObj).get("CORRELATIONID").toString());
-                    dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup);
+                    dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup, listOssItemAtt);
                     //@insertOSSItem
                     dao.insertToOssItem(wonum, listOssItem);
                         JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
-                        ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
-                        ListClassSpec taskAttr = new ListClassSpec();
                         for (int j = 0; j < ossitem_attr.size(); j++){
                             JSONObject oss_itemObj1 = (JSONObject)ossitem_attr.get(j);
                             listOssItemAtt.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
@@ -192,6 +195,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                             dao.insertToOssAttribute(listOssItemAtt);
                             //@insert to workorderspec
                             dao2.GenerateTaskAttribute(parent, act, listOssItemAtt, siteId, taskAttr);
+                            
                         }
                 } else if (ossitem_arrayObj instanceof JSONArray) {
                     for (int i = 0 ; i < ((JSONArray) ossitem_arrayObj).size() ; i++){
@@ -202,12 +206,10 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         //Task Dispatch
                         act.setDescriptionTask(oss_itemObj.get("ITEMNAME").toString());
                         act.setCorrelation(oss_itemObj.get("CORRELATIONID").toString());
-                        dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId,act.getCorrelation(), ownerGroup);
+                        dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId,act.getCorrelation(), ownerGroup, listOssItemAtt);
                         //Insert ossItem
                         dao.insertToOssItem(wonum, listOssItem);
                             JSONArray ossitem_attr = (JSONArray) oss_itemObj.get("OSSITEMATTRIBUTE");
-                            ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
-                            ListClassSpec taskAttr = new ListClassSpec();
                             for (int j = 0; j < ossitem_attr.size(); j++){
                                 JSONObject oss_itemObj2 = (JSONObject)ossitem_attr.get(j);
                                 listOssItemAtt.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
@@ -289,5 +291,11 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         }
+    }
+    private String dateFormatter(String sourceDate){
+        DateTimeFormatter sourceFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        DateTimeFormatter targetFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String convertedDate = LocalDateTime.parse(sourceDate, sourceFormat).format(targetFormat);
+        return convertedDate;
     }
 }
