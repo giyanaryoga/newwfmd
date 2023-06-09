@@ -13,6 +13,7 @@ public class ListCpeValidate {
     private String vendor;
     private String serial_number;
     private int currentSeq;
+    private boolean updateCpeValidate;
     
     /**
      * @return the model
@@ -71,5 +72,19 @@ public class ListCpeValidate {
      */
     public void setCurrentSeq(int currentSeq) {
         this.currentSeq = currentSeq;
+    }
+
+    /**
+     * @return the updateCpeValidate
+     */
+    public boolean isUpdateCpeValidate() {
+        return updateCpeValidate;
+    }
+
+    /**
+     * @param updateCpeValidate the updateCpeValidate to set
+     */
+    public void setUpdateCpeValidate(boolean updateCpeValidate) {
+        this.updateCpeValidate = updateCpeValidate;
     }
 }

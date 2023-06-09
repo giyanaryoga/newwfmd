@@ -62,7 +62,7 @@ public class ScmtIntegrationEbisDao {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
-                .append(" child.c_wonum, ")
+                .append(" parent.c_wonum, ")
                 .append(" parent.c_scorderno, ")
                 .append(" parent.c_customer_name,  ")
                 .append(" parent.c_serviceaddress,  ")
@@ -113,6 +113,7 @@ public class ScmtIntegrationEbisDao {
                 String kafkaRes = installMessage.toJSONString();
                 KafkaProducerTool kaf = new KafkaProducerTool();
                 kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL", "");
+                LogUtil.info(getClass().getName(), " " + scmtParam + " keluar!!! ");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
