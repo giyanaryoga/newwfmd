@@ -199,9 +199,9 @@ public class TaskActivityDao {
         }
     }
 
-    public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String parent){
-        ActivityTask act = new ActivityTask();
-        String wonum = parent +" - "+ ((act.getTaskId()/10) - 1);
+    public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String parent, ActivityTask act){
+//        ActivityTask act = new ActivityTask();
+        String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
         boolean updateCpe = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
         StringBuilder update = new StringBuilder();
@@ -213,6 +213,8 @@ public class TaskActivityDao {
                 .append(" c_cpe_validation = ? ")
                 .append(" WHERE ")
                 .append(" c_wonum = ? ")
+//                .append(" AND ")
+//                .append(" c_taskid = ? ")
                 .append(" AND ")
                 .append(" c_woclass = 'ACTIVITY' ");
         // change 03
@@ -230,6 +232,7 @@ public class TaskActivityDao {
                     ps.setString(4, cpeValidasi);
                     // change 03 where clause
                     ps.setString(5, wonum);
+//                    ps.setString(6, Integer.toString(act.getTaskId()));
                     // change 03
                     int exe = ps.executeUpdate();
                     //Checking insert status
