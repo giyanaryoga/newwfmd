@@ -122,41 +122,41 @@ public class TaskActivityDao {
         return ownerGroup;
     }
 
-//    public String getCpeModel(String model) throws SQLException {
-//        String cpeModel = "";
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_model, c_vendor FROM app_fd_cpemodel WHERE c_model = ?";
-//        try (Connection con = ds.getConnection();
-//            PreparedStatement ps = con.prepareStatement(query)) {
-//            ps.setString(1, model);
-//            ResultSet rs = ps.executeQuery();
-//            if (rs.next())
-//                cpeModel = rs.getString("c_model");
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//        return cpeModel;
-//    }
+    public String getCpeModel(String model) throws SQLException {
+        String cpeModel = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_model, c_vendor FROM app_fd_cpemodel WHERE c_model = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, model);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                cpeModel = rs.getString("c_model");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return cpeModel;
+    }
     
-//    public String getCpeVendor(String vendor) throws SQLException {
-//        String cpeVendor = "";
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_vendor, c_model FROM app_fd_cpevendor WHERE c_vendor = ?";
-//        try (Connection con = ds.getConnection();
-//            PreparedStatement ps = con.prepareStatement(query)) {
-//            ps.setString(1, vendor);
-//            ResultSet rs = ps.executeQuery();
-//            if (rs.next())
-//                cpeVendor = rs.getString("c_vendor");
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//        return cpeVendor;
-//    }
+    public String getCpeVendor(String vendor) throws SQLException {
+        String cpeVendor = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_vendor, c_model FROM app_fd_cpevendor WHERE c_vendor = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, vendor);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                cpeVendor = rs.getString("c_vendor");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return cpeVendor;
+    }
     
     public void reviseTask(String parent){
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -199,9 +199,9 @@ public class TaskActivityDao {
         }
     }
 
-    public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String parent){
+    public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String parent){
         ActivityTask act = new ActivityTask();
-        String wonum = parent +" - "+ (act.getTaskId()/10);
+        String wonum = parent +" - "+ ((act.getTaskId()/10) - 1);
         boolean updateCpe = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
         StringBuilder update = new StringBuilder();
@@ -210,9 +210,9 @@ public class TaskActivityDao {
                 .append(" c_cpe_model = ?, ")
                 .append(" c_cpe_vendor = ?, ")
                 .append(" c_cpe_serial_number = ?, ")
-                .append(" c_cpe_validation = 'PASS' ")
+                .append(" c_cpe_validation = ? ")
                 .append(" WHERE ")
-                .append(" c_parent = ? ")
+                .append(" c_wonum = ? ")
                 .append(" AND ")
                 .append(" c_woclass = 'ACTIVITY' ");
         // change 03
@@ -227,16 +227,15 @@ public class TaskActivityDao {
                     ps.setString(1, cpeModel);
                     ps.setString(2, cpeVendor);
                     ps.setString(3, cpeSerialNumber);
-//                    ps.setString(4, "PASS");
+                    ps.setString(4, cpeValidasi);
                     // change 03 where clause
-                    ps.setString(4, parent);
-//                    ps.setString(6, "ACTIVITY");
+                    ps.setString(5, wonum);
                     // change 03
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
                         updateCpe = true;
-                        LogUtil.info(getClass().getName(), " CPE updated succes to " + parent);
+                        LogUtil.info(getClass().getName(), " CPE updated succes to " + wonum);
                     }   
                     if (ps != null)
                         ps.close();
@@ -343,8 +342,9 @@ public class TaskActivityDao {
             }
     }
     
-    public void insertToWoAttribute(PreparedStatement ps, String classStructureId, String classSpecId, String parent, String siteId, String attr_name, String attr_value, String isRequired, String isShared, String isReported, String readOnly ) throws SQLException{              
+    public void insertToWoAttribute(PreparedStatement ps, String classStructureId, String classSpecId, String parent, String siteId, String attr_name, String attr_value, String isRequired, String isShared, String isReported, String readOnly, ActivityTask act ) throws SQLException{              
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
+//        act.setTaskId(10);
         ps.setString(1, uuId);
         ps.setString(2, classStructureId);
         ps.setString(3, classSpecId);
@@ -357,11 +357,12 @@ public class TaskActivityDao {
         ps.setString(10, isShared);
         ps.setString(11, isReported);
         ps.setString(12, readOnly);
+        ps.setString(13, Integer.toString(act.getTaskId() - 10));
     }
     
     public void GenerateTaskAttribute(String parent, ActivityTask act, ListOssItemAttribute listOssAttr, String siteid, ListClassSpec taskAttr) throws SQLException {
-        String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_siteid, c_attribute_name, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
-        String wonum = parent +" - "+ (act.getTaskId()/10);
+        String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_siteid, c_attribute_name, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, c_displaysequence, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+        String wonum = parent +" - "+ ((act.getTaskId()/10)-1);
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT cls.c_classstructureid, cls.c_assetattrid, cls.c_classspecid, cls.c_isrequired, cls.c_isshared, cls.c_isreported, cls.c_readonly FROM app_fd_classspec cls WHERE cls.c_assetattrid = ?";
@@ -375,11 +376,12 @@ public class TaskActivityDao {
                     stmt.setString(1, listOssAttr.getAttrName());           
                     ResultSet rs = stmt.executeQuery();
                     if (rs.next()){
-                        insertToWoAttribute(ps, rs.getString("c_classstructureid"), rs.getString("c_classspecid"), wonum, siteid, rs.getString("c_assetattrid"), listOssAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"));
+                        insertToWoAttribute(ps, rs.getString("c_classstructureid"), rs.getString("c_classspecid"), wonum, siteid, rs.getString("c_assetattrid"), listOssAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"), act);
                         int exe = ps.executeUpdate();
                         //Checking insert status
                         if (exe > 0) {
                             LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " +listOssAttr.getAttrName()+ " done");
+//                            act.setTaskId(act.getTaskId()+10);
                         }
                         con.commit();
                     } else con.rollback();
