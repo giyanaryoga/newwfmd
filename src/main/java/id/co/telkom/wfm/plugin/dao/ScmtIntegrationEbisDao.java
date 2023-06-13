@@ -6,6 +6,7 @@ package id.co.telkom.wfm.plugin.dao;
 
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.model.APIConfig;
+import id.co.telkom.wfm.plugin.model.ListAttributes;
 import id.co.telkom.wfm.plugin.model.ListScmtIntegrationParam;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
 import id.co.telkom.wfm.plugin.util.RequestAPI;
@@ -50,14 +51,26 @@ public class ScmtIntegrationEbisDao {
         return token;
     }
     
-//    public JSONObject getInstallNteJson() {
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT FROM app";
-//        JSONObject data = null;
-//        return data;
-//    }
+        public JSONObject getWoAttribute(String wonum) throws SQLException {
+        JSONObject resultObj = new JSONObject();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT C_ATTR_NAME, C_ATTR_VALUE FROM APP_FD_WORKORDERATTRIBUTE WHERE C_WONUM = ? AND C_ATTR_NAME IN ('LONGITUDE', 'LATITUDE')";
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next())
+                resultObj.put(rs.getString("C_ATTR_NAME"), rs.getString("C_ATTR_VALUE"));
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return resultObj;
+    }
     
     public void sendInstall(String parent) throws SQLException {
+        JSONObject attr_obj;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder query = new StringBuilder();
         query
@@ -68,8 +81,8 @@ public class ScmtIntegrationEbisDao {
                 .append(" parent.c_serviceaddress,  ")
                 .append(" parent.c_workzone,  ")
                 .append(" parent.c_servicenum, ")
-                .append(" parent.c_longitude,  ")
-                .append(" parent.c_latitude, ")
+//                .append(" parent.c_longitude,  ")
+//                .append(" parent.c_latitude, ")
                 .append(" parent.c_siteid,  ")
                 .append(" parent.c_description, ")
                 .append(" child.c_laborcode,  ")
@@ -79,6 +92,8 @@ public class ScmtIntegrationEbisDao {
                 .append(" ON parent.c_wonum = child.c_parent  ")
                 .append(" JOIN app_fd_workorderspec item ")
                 .append(" ON child.c_wonum = item.c_wonum ")
+//                .append(" JOIN app_fd_workorderattribute attr ")
+//                .append(" ON parent.c_wonum = attr.c_wonum ")
                 .append(" WHERE ")
                 .append(" parent.c_wonum = ? ")
                 .append(" AND ")
@@ -92,8 +107,11 @@ public class ScmtIntegrationEbisDao {
             PreparedStatement ps = con.prepareStatement(query.toString())) {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
+            
             while (rs.next()) {
                 ListScmtIntegrationParam scmtParam = new ListScmtIntegrationParam();
+                
+                ListAttributes attribute = new ListAttributes();
                 scmtParam.setWonum((rs.getString("c_wonum") == null) ? "" : rs.getString("c_wonum"));
                 scmtParam.setScOrderNo((rs.getString("c_scorderno") == null) ? "" : rs.getString("c_scorderno"));
                 scmtParam.setLaborCode((rs.getString("c_laborcode") == null) ? "" : rs.getString("c_laborcode"));
@@ -104,12 +122,13 @@ public class ScmtIntegrationEbisDao {
 //                scmtParam.setCpeVendor((rs.getString("c_cpe_vendor") == null) ? "" : rs.getString("c_cpe_vendor"));
 //                scmtParam.setCpeModel((rs.getString("c_cpe_model") == null) ? "" : rs.getString("c_cpe_model"));
                 scmtParam.setCpeSerialNumber((rs.getString("c_alnvalue") == null) ? "" : rs.getString("c_alnvalue"));
-                scmtParam.setLongitude((rs.getString("c_longitude") == null) ? "" : rs.getString("c_longitude"));
-                scmtParam.setLatitude((rs.getString("c_latitude") == null) ? "" : rs.getString("c_latitude"));
+                attribute.setLongitude((getWoAttribute(parent).get("LONGITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LONGITUDE").toString());
+                attribute.setLatitude((getWoAttribute(parent).get("LATITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LATITUDE").toString());
+//                attribute.setLatitude((rs.getString("LATITUDE") == null) ? "" : rs.getString("LATITUDE"));
                 scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
                 scmtParam.setSiteId((rs.getString("c_siteid") == null) ? "" : rs.getString("c_siteid"));
                 //Send install message to kafka
-                JSONObject installMessage = buildInstallMessage(scmtParam);
+                JSONObject installMessage = buildInstallMessage(scmtParam, attribute);
                 String kafkaRes = installMessage.toJSONString();
                 KafkaProducerTool kaf = new KafkaProducerTool();
                 kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL", "");
@@ -123,7 +142,7 @@ public class ScmtIntegrationEbisDao {
         }
     }
 
-    private JSONObject buildInstallMessage(ListScmtIntegrationParam scmtParam) {
+    private JSONObject buildInstallMessage(ListScmtIntegrationParam scmtParam, ListAttributes attribute) {
         String segment = "";
         String order = scmtParam.getScOrderNo().substring(0,2);
         if (order.equalsIgnoreCase("1-"))
@@ -150,8 +169,8 @@ public class ScmtIntegrationEbisDao {
         eaiBody.put("location_segment", segment);
         eaiBody.put("workzone", scmtParam.getWorkzone());
         eaiBody.put("service_id", scmtParam.getServiceNum());
-        eaiBody.put("latitude", scmtParam.getLatitude());
-        eaiBody.put("longitude", scmtParam.getLongitude());
+        eaiBody.put("latitude", attribute.getLatitude());
+        eaiBody.put("longitude", attribute.getLongitude());
         eaiBody.put("service_ord_id", scmtParam.getScOrderNo());
         eaiBody.put("regional", Integer.valueOf(Integer.parseInt(scmtParam.getSiteId().substring(4))));
         eaiBody.put("external_order_number", scmtParam.getWonum());

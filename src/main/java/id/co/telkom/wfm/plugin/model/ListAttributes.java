@@ -18,6 +18,8 @@ public class ListAttributes {
     private String tlkwoAttrName;
     private String tlkwoAttrValue;
     private boolean tlkwoInsertAttrStatus;
+    private String longitude;
+    private String latitude;
 
     /**
      * @return the attrName
@@ -143,6 +145,22 @@ public class ListAttributes {
      */
     public void setTlkwoInsertAttrStatus(boolean tlkwoInsertAttrStatus) {
         this.tlkwoInsertAttrStatus = tlkwoInsertAttrStatus;
+    }
+    
+    public String getLongitude() {
+        return longitude;
+    }
+    
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
+    }
+    
+    public String getLatitude() {
+        return latitude;
+    }
+    
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
     }
 
 }

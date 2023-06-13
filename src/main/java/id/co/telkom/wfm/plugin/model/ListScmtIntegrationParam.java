@@ -20,8 +20,8 @@ public class ListScmtIntegrationParam {
     private String cpeVendor;
     private String cpeModel;
     private String cpeSerialNumber;
-    private String longitude;
-    private String latitude;
+//    private String longitude;
+//    private String latitude;
     private String description;
     private String siteId;
     
@@ -105,21 +105,21 @@ public class ListScmtIntegrationParam {
         this.cpeSerialNumber = cpeSerialNumber;
     }
 
-    public String getLongitude() {
-        return this.longitude;
-    }
+//    public String getLongitude() {
+//        return this.longitude;
+//    }
+//
+//    public void setLongitude(String longitude) {
+//        this.longitude = longitude;
+//    }
 
-    public void setLongitude(String longitude) {
-        this.longitude = longitude;
-    }
-
-    public String getLatitude() {
-        return this.latitude;
-    }
-
-    public void setLatitude(String latitude) {
-        this.latitude = latitude;
-    }
+//    public String getLatitude() {
+//        return this.latitude;
+//    }
+//
+//    public void setLatitude(String latitude) {
+//        this.latitude = latitude;
+//    }
 
     public String getDescription() {
         return this.description;
