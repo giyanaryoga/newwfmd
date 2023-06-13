@@ -224,24 +224,28 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         dao.insertToOssAttribute(listOssItemAtt);
                         //@insert to workorderspec
                         dao2.GenerateTaskAttribute(parent, act, listOssItemAtt, siteId, taskAttr);
-//                        if ("NTE_MODEL".equals(listOssItemAtt.getAttrName())) {
-//                            model = cpeValidated.setModel(listOssItemAtt.getAttrValue());
-//                            LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
-//                        }
-//                        if ("NTE_MANUFACTUR".equals(listOssItemAtt.getAttrName())) {
-//                            vendor = cpeValidated.setVendor(listOssItemAtt.getAttrValue());
-//                            LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
-//                        }
-//                        if ("NTE_SERIALNUMBER".equals(listOssItemAtt.getAttrName())) {
-//                            serial_number = cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
-//                            LogUtil.info(getClass().getName(), "list serialNumber " +cpeValidated.getSerial_number()+ " done");
-//                        }
-//                        LogUtil.info(getClass().getName(), "list cpe " + model + ", " + vendor + ", " + serial_number + " done");
-//                        if (model != null) {
-//                            boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent);
-////                            boolean updateCpe = dao2.updateWoCpe(model, vendor, serial_number, wonum);
-//                            cpeValidated.setUpdateCpeValidate(updateCpe);
-//                        }  
+                        
+                        if ("NTE_MODEL".equals(oss_itemObj1.get("ATTR_NAME").toString())) {
+                            model = cpeValidated.setModel(listOssItemAtt.getAttrValue());
+                            LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
+                        } else
+                        if ("NTE_MANUFACTUR".equals(oss_itemObj1.get("ATTR_NAME").toString())) {
+                            vendor = cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+                            LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
+                        } else
+                        if ("NTE_SERIALNUMBER".equals(oss_itemObj1.get("ATTR_NAME").toString())) {
+                            cpeValidate = "PASS";
+                            serial_number = cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                        } else {
+                            model = null;
+                            vendor = null;
+                            serial_number = null;
+                        }
+                    }
+                    LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + " done");
+                    if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null && cpeValidated.getSerial_number() != null) {
+                        boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                        cpeValidated.setUpdateCpeValidate(updateCpe);
                     }
                 } else if (ossitem_arrayObj instanceof JSONArray) {
                     for (int i = 0 ; i < ((JSONArray) ossitem_arrayObj).size() ; i++){
@@ -265,34 +269,19 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                             dao.insertToOssAttribute(listOssItemAtt);
                             //@insert to workorderspec
                             dao2.GenerateTaskAttribute(parent, act, listOssItemAtt, siteId, taskAttr);
-//                            listOssItemAtt.getAttrName().equalsIgnoreCase(ownerGroup)
+                            
                             if ("NTE_MODEL".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
-//                                dao2.getCpeModel(cpeValidated.setModel(listOssItemAtt.getAttrValue()));
                                 model = cpeValidated.setModel(listOssItemAtt.getAttrValue());
                                 LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
                             } else
                             if ("NTE_MANUFACTUR".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
-//                                dao2.getCpeVendor(cpeValidated.setVendor(listOssItemAtt.getAttrValue()));
                                 vendor = cpeValidated.setVendor(listOssItemAtt.getAttrValue());
                                 LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
                             } else
                             if ("NTE_SERIALNUMBER".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
-//                                if ("NTE_MODEL".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
-//    //                                dao2.getCpeModel(cpeValidated.setModel(listOssItemAtt.getAttrValue()));
-//                                    model = cpeValidated.setModel(listOssItemAtt.getAttrValue());
-//                                    LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
-//                                } 
-//                                if ("NTE_MANUFACTUR".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
-//    //                                dao2.getCpeVendor(cpeValidated.setVendor(listOssItemAtt.getAttrValue()));
-//                                    vendor = cpeValidated.setVendor(listOssItemAtt.getAttrValue());
-//                                    LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
-//                                } 
                                 cpeValidate = "PASS";
                                 serial_number = cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
                             } else {
-//                                cpeValidated.setModel(null);
-//                                cpeValidated.setVendor(null);
-//                                cpeValidated.setSerial_number(null);
                                 model = null;
                                 vendor = null;
                                 serial_number = null;
@@ -304,35 +293,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                             cpeValidated.setUpdateCpeValidate(updateCpe);
                         }
                     }
-//                    LogUtil.info(getClass().getName(), "list cpe " + model + ", " + vendor + ", " + serial_number + " done");
-//                    if (model != null && vendor != null && serial_number != null) {
-//                        boolean updateCpe = dao2.updateWoCpe(model, vendor, serial_number, cpeValidate, parent, act);
-//                        cpeValidated.setUpdateCpeValidate(updateCpe);
-//                    }
-//                    if (listOssItemAtt.getAttrName().equals("NTE_MODEL") || listOssItemAtt.getAttrName().equals("NTE_MANUFACTUR")) {
-////                                dao2.getCpeModel(cpeValidated.setModel(listOssItemAtt.getAttrValue()));
-//                        cpeValidated.setModel(listOssItemAtt.getAttrValue());
-////                                dao2.getCpeVendor(cpeValidated.setVendor(listOssItemAtt.getAttrValue()));
-//                        cpeValidated.setVendor(listOssItemAtt.getAttrValue());
-//                        if (listOssItemAtt.getAttrName().equalsIgnoreCase("NTE_SERIALNUMBER")) {
-//                            cpeValidate = "PASS";
-//                            cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
-////                                    boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, wonum);
-////                                    cpeValidated.setUpdateCpeValidate(updateCpe);
-////                                    boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, wonum);
-////                                    cpeValidated.setUpdateCpeValidate(updateCpe);
-//                        }
-////                                cpeValidated.setModel(listOssItemAtt.getAttrValue());
-////                                cpeValidated.setVendor("");
-////                                cpeValidated.setSerial_number("");
-//                        LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
-//                        boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, wonum);
-//                        cpeValidated.setUpdateCpeValidate(updateCpe);
-//                    } else {
-//                        cpeValidated.setModel("");
-//                        cpeValidated.setVendor("");
-//                        cpeValidated.setSerial_number("");
-//                    }
                 }
                 //@Work Order
                 //Insert Work Order param
