@@ -226,20 +226,20 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         dao2.GenerateTaskAttribute(parent, act, listOssItemAtt, siteId, taskAttr);
                         
                         if ("NTE_MODEL".equals(oss_itemObj1.get("ATTR_NAME").toString())) {
-                            model = cpeValidated.setModel(listOssItemAtt.getAttrValue());
+                            cpeValidated.setModel(listOssItemAtt.getAttrValue());
                             LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
                         } else
                         if ("NTE_MANUFACTUR".equals(oss_itemObj1.get("ATTR_NAME").toString())) {
-                            vendor = cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+                            cpeValidated.setVendor(listOssItemAtt.getAttrValue());
                             LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
                         } else
                         if ("NTE_SERIALNUMBER".equals(oss_itemObj1.get("ATTR_NAME").toString())) {
                             cpeValidate = "PASS";
-                            serial_number = cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                            cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
                         } else {
-                            model = null;
-                            vendor = null;
-                            serial_number = null;
+                            cpeValidated.setModel(null);
+                            cpeValidated.setVendor(null);
+                            cpeValidated.setSerial_number(null);
                         }
                     }
                     LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + " done");
@@ -271,20 +271,18 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                             dao2.GenerateTaskAttribute(parent, act, listOssItemAtt, siteId, taskAttr);
                             
                             if ("NTE_MODEL".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
-                                model = cpeValidated.setModel(listOssItemAtt.getAttrValue());
+                                cpeValidated.setModel(listOssItemAtt.getAttrValue());
                                 LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
-                            } else
-                            if ("NTE_MANUFACTUR".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
-                                vendor = cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+                            } else if ("NTE_MANUFACTUR".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
+                                cpeValidated.setVendor(listOssItemAtt.getAttrValue());
                                 LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
-                            } else
-                            if ("NTE_SERIALNUMBER".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
+                            } else if ("NTE_SERIALNUMBER".equals(oss_itemObj2.get("ATTR_NAME").toString())) {
                                 cpeValidate = "PASS";
-                                serial_number = cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
                             } else {
-                                model = null;
-                                vendor = null;
-                                serial_number = null;
+                                cpeValidated.setModel(null);
+                                cpeValidated.setVendor(null);
+                                cpeValidated.setSerial_number(null);
                             }
                         }
                         LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + " done");
