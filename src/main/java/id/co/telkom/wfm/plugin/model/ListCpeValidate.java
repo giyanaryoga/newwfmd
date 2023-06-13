@@ -12,6 +12,7 @@ public class ListCpeValidate {
     private String model;
     private String vendor;
     private String serial_number;
+    private String passedCPE;
     private int currentSeq;
     private boolean updateCpeValidate;
     
@@ -86,5 +87,19 @@ public class ListCpeValidate {
      */
     public void setUpdateCpeValidate(boolean updateCpeValidate) {
         this.updateCpeValidate = updateCpeValidate;
+    }
+
+    /**
+     * @return the passedCPE
+     */
+    public String getPassedCPE() {
+        return passedCPE;
+    }
+
+    /**
+     * @param passedCPE the passedCPE to set
+     */
+    public void setPassedCPE(String passedCPE) {
+        this.passedCPE = passedCPE;
     }
 }
