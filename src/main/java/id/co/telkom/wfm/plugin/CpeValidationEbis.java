@@ -10,6 +10,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -93,43 +95,61 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 String cpeVendor = data_obj.get("cpeVendor").toString();
                 String cpeModel = data_obj.get("cpeModel").toString();
                 String cpeSerialNumber = data_obj.get("cpeSerialNumber").toString();
-                String laborCode = data_obj.get("laborCode").toString();
+//                String laborCode = data_obj.get("laborCode").toString();
                 //Get EAI Token for access scmt
                 ScmtIntegrationEbisDao scmtIntegrationDao = new ScmtIntegrationEbisDao();
                 String eaiToken = scmtIntegrationDao.getScmtToken();
                 LogUtil.info(getClassName(), "Token: " + eaiToken);
                 //Get Query NTE
                 CpeValidationEbisDao dao = new CpeValidationEbisDao();
-                JSONObject data = (JSONObject) dao.getQueryNte(cpeSerialNumber, eaiToken);
+                JSONObject data = null;
+                try {
+                    data = (JSONObject) dao.getQueryNte(cpeSerialNumber, eaiToken);
+                } catch (SQLException ex) {
+                    Logger.getLogger(CpeValidationEbis.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 JSONObject apiItem = (JSONObject)data.get("apiItemResponse");
                 JSONObject eaiStatus = (JSONObject)apiItem.get("eaiStatus");
                 String statusCode = eaiStatus.get("srcResponseCode").toString();
-                if (statusCode.equals("200")) {
-                    JSONArray item_array = (JSONArray)apiItem.get("eaiBody");
-                    String locationCode = "";
-                    for (Object object : item_array){
-                        JSONObject obj = (JSONObject)object;
-                        locationCode = (obj.get("location_code") == null ? "" : obj.get("location_code").toString());
-                    }
-                    //Validate CPE
-                    if (locationCode.equals(laborCode)){
+                switch (statusCode) {
+                    case "200":
+                        //                    JSONArray item_array = (JSONArray)apiItem.get("eaiBody");
+//                    String locationCode = "";
+//                    for (Object object : item_array){
+//                        JSONObject obj = (JSONObject)object;
+//                        locationCode = (obj.get("location_code") == null ? "" : obj.get("location_code").toString());
+//                    }
+                        //Validate CPE
+//                    if (locationCode.equals(laborCode)){
                         boolean updateValidation = dao.updateCpeValidation(wonum, cpeVendor, cpeModel, cpeSerialNumber);
                         if (updateValidation){
+                            JSONObject res = new JSONObject();
+                            res.put("message", "validasi berhasil!");
+                            res.writeJSONString(hsr1.getWriter());
                             LogUtil.info(getClassName(), "CPE validation success for " + wonum);
                             hsr1.setStatus(200);
+                        } else {
+                            JSONObject res = new JSONObject();
+                            res.put("message", "validasi gagal!");
+                            res.writeJSONString(hsr1.getWriter());
+                            LogUtil.info(getClassName(), "CPE validation error for " + wonum);
+                            hsr1.setStatus(422);
                         }
-                    } else {
-                        hsr1.setStatus(265);
-                        JSONObject res = new JSONObject();
-                        res.put("message", "validasi gagal, perangkat ini terdaftar di lokasi: " + locationCode);
-                        res.writeJSONString(hsr1.getWriter());
-                    } 
-                } else if (statusCode.equals("404")) {
-                    hsr1.sendError(404, "serial number tidak ditemukan");
-                } else {
-                    hsr1.sendError(465, "error, silahkan kontak administrator");
+//                    } else {
+//                        hsr1.setStatus(265);
+//                        JSONObject res = new JSONObject();
+//                        res.put("message", "validasi gagal, perangkat ini terdaftar di lokasi: ");
+//                        res.writeJSONString(hsr1.getWriter());
+//                    } 
+                        break;
+                    case "404":
+                        hsr1.sendError(404, "serial number tidak ditemukan");
+                        break;
+                    default:
+                        hsr1.sendError(465, "error, silahkan kontak administrator");
+                        break;
                 }
-            } catch (ParseException |SQLException e){
+            } catch (ParseException e){
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         } else if (!"POST".equals(hsr.getMethod())){

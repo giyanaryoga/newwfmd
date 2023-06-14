@@ -53,7 +53,6 @@ public class CpeValidationEbisDao {
     public boolean updateCpeValidation(String wonum, String cpeVendor, String cpeModel, String cpeSerialNumber){
         boolean updateStatus = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        //String update = "UPDATE app_fd_woactivity SET c_cpe_validation = 'PASS', c_cpe_vendor = ?, c_cpe_model = ?, c_cpe_serial_number = ? WHERE c_wonum = ? AND c_wfmdoctype = 'NEW'";
         // change 22
         String update = "UPDATE app_fd_workorder SET c_cpe_validation = 'PASS', c_cpe_vendor = ?, c_cpe_model = ?, c_cpe_serial_number = ? WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         // change 22
