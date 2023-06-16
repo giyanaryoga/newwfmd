@@ -185,9 +185,10 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //Store attribute
                     listAttr.setTlkwoAttrName(attr_arrayObj.get("ATTR_NAME").toString());
                     listAttr.setTlkwoAttrValue(attr_arrayObj.get("ATTR_VALUE").toString());
-                    String sequence = (body.get("SEQUENCE") == null ? "" : body.get("SEQUENCE").toString());
+                    String sequence = (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString());
+                    listAttr.setSequence(sequence);
                     //Insert attribute
-                    boolean insertAttrStatus = dao.insertToWoAttrTable(wonum, listAttr, sequence);
+                    boolean insertAttrStatus = dao.insertToWoAttrTable(wonum, listAttr);
                     listAttr.setTlkwoInsertAttrStatus(insertAttrStatus);
                 }
                 

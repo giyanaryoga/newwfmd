@@ -20,6 +20,7 @@ public class ListAttributes {
     private boolean tlkwoInsertAttrStatus;
     private String longitude;
     private String latitude;
+    private String sequence;
 
     /**
      * @return the attrName
@@ -161,6 +162,20 @@ public class ListAttributes {
     
     public void setLatitude(String latitude) {
         this.latitude = latitude;
+    }
+
+    /**
+     * @return the sequence
+     */
+    public String getSequence() {
+        return sequence;
+    }
+
+    /**
+     * @param sequence the sequence to set
+     */
+    public void setSequence(String sequence) {
+        this.sequence = sequence;
     }
 
 }
