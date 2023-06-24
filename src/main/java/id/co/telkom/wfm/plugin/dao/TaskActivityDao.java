@@ -286,29 +286,30 @@ public class TaskActivityDao {
         return updateCpe;
     }
 
-    public void insertToWoActivity(PreparedStatement ps, String parent, ActivityTask act, String detailActCode, String description, String serviceType, String sequence, String actplace, String classstructureid, String siteId, String correlationId, String ownerGroup) throws SQLException{              
+    public void insertToWoActivity(PreparedStatement ps, String parent, ActivityTask act, String detailActCode, String description, String sequence, String actplace, String classstructureid, String siteId, String correlationId, String ownerGroup) throws SQLException{              
         ps.setString(1, UuidGenerator.getInstance().getUuid());
         ps.setString(2, parent);
         ps.setString(3, parent + " - " + act.getTaskId()/10);
         ps.setString(4, detailActCode);
         ps.setString(5, description);
-        ps.setString(6, serviceType);
-        ps.setString(7, sequence);
-        ps.setString(8, actplace);
-        ps.setString(9, classstructureid);
-        ps.setString(10, assignStatus(act));
-        ps.setString(11, "NEW");
-        ps.setString(12, "TELKOM");     
-        ps.setString(13, siteId);
-        ps.setString(14, "WFM");
-        ps.setString(15, "ACTIVITY");       
-        ps.setString(16, Integer.toString(act.getTaskId()));  
-        ps.setString(17, correlationId);       
-        ps.setString(18, ownerGroup);
+//        ps.setString(6, serviceType);
+        ps.setString(6, sequence);
+        ps.setString(7, actplace);
+        ps.setString(8, classstructureid);
+        ps.setString(9, assignStatus(act));
+        ps.setString(10, "NEW");
+        ps.setString(11, "TELKOM");     
+        ps.setString(12, siteId);
+        ps.setString(13, "WFM");
+        ps.setString(14, "ACTIVITY");       
+        ps.setString(15, Integer.toString(act.getTaskId()));  
+        ps.setString(16, correlationId);       
+        ps.setString(17, ownerGroup);
     }
     
     public void generateActivityTask(String parent, String activity, ActivityTask act, String siteId, String correlationId, String ownerGroup) {
-        String insert = "INSERT INTO app_fd_workorder (id, c_parent, c_wonum, c_detailactcode, c_description, c_servicetype, c_wosequence, c_actplace, c_classstructureid, c_status, c_wfmdoctype, c_orgid, c_siteId, c_worktype, c_woclass, c_taskid, c_correlation, c_ownergroup, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+        String insert = "INSERT INTO app_fd_workorder (id, c_parent, c_wonum, c_detailactcode, c_description, c_wosequence, c_actplace, c_classstructureid, c_status, c_wfmdoctype, c_orgid, c_siteId, c_worktype, c_woclass, c_taskid, c_correlation, c_ownergroup, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
             String query = "SELECT c_description, c_sequence, c_actplace, c_classstructureid FROM app_fd_detailactivity WHERE c_activity = ? ";
             
@@ -322,7 +323,7 @@ public class TaskActivityDao {
                         stmt.setString(1, activity);
                         ResultSet rs = stmt.executeQuery();
                         if (rs.next()){
-                            insertToWoActivity(ps, parent, act, activity, rs.getString("c_description"), "", rs.getString("c_sequence"), rs.getString("c_actplace"), rs.getString("c_classstructureid"), siteId, correlationId, ownerGroup);
+                            insertToWoActivity(ps, parent, act, activity, rs.getString("c_description"), rs.getString("c_sequence"), rs.getString("c_actplace"), rs.getString("c_classstructureid"), siteId, correlationId, ownerGroup);
                             int exe = ps.executeUpdate();
                             //Checking insert status
                             if (exe > 0) {

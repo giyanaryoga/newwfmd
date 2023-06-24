@@ -207,15 +207,15 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         JSONObject oss_itemObj1 = (JSONObject)ossitem_attr.get(j);
                         listOssItemAtt.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
                         listOssItemAtt.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString());
+                        taskAttr.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
+                        taskAttr.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString());
+//                        if (!taskAttr.getAttrName().equals(listOssItemAtt.getAttrName())) {
+//                            taskAttr.setAttrValue("");
+//                            //@insert to workorderspec
+//                           dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
+//                        }
 //                        taskAttr.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString());
-                        if (!taskAttr.getAttrName().equals(listOssItemAtt.getAttrName())) {
-                            taskAttr.setAttrValue("");
-                            //@insert to workorderspec
-                           dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
-                        } else {
-                            taskAttr.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString());
-                            dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
-                        }
+                        dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
                         //@insert Oss Item Attribute
                         dao.insertToOssAttribute(listOssItemAtt);
                         
@@ -274,16 +274,16 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                             JSONObject oss_itemObj2 = (JSONObject)ossitem_attr.get(j);
                             listOssItemAtt.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
                             listOssItemAtt.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString());
+                            taskAttr.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
+                            taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString());
+//                            if (!taskAttr.getAttrName().equals(listOssItemAtt.getAttrName())) {
+//                                taskAttr.setAttrValue("");
+//                                //@insert to workorderspec
+//                               dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
+//                            }
 //                            taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString());
-                            if (!taskAttr.getAttrName().equals(listOssItemAtt.getAttrName())) {
-                                taskAttr.setAttrValue("");
-                                //@insert to workorderspec
-                               dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
-                            } else {
-                                taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString());
-                                //@insert to workorderspec
-                                dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
-                            }
+                            //@insert to workorderspec
+                            dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
                             //@insert Oss Item Attribute
                             dao.insertToOssAttribute(listOssItemAtt);
                             

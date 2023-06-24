@@ -11,6 +11,7 @@ package id.co.telkom.wfm.plugin.model;
 public class ListLabor {
     private String laborid;
     private String laborcode;
+    private String laborname;
     private String personid;
     private String supervisor;
     private String statusLabor;
@@ -98,5 +99,19 @@ public class ListLabor {
      */
     public void setLaborWorkzone(String laborWorkzone) {
         this.laborWorkzone = laborWorkzone;
+    }
+
+    /**
+     * @return the laborname
+     */
+    public String getLaborname() {
+        return laborname;
+    }
+
+    /**
+     * @param laborname the laborname to set
+     */
+    public void setLaborname(String laborname) {
+        this.laborname = laborname;
     }
 }
