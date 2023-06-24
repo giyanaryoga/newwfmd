@@ -21,6 +21,10 @@ public class ListAttributes {
     private String longitude;
     private String latitude;
     private String sequence;
+    private String classStructureId;
+    private int isRequired;
+    private int readOnly;
+    private int isShared; 
 
     /**
      * @return the attrName
@@ -176,6 +180,62 @@ public class ListAttributes {
      */
     public void setSequence(String sequence) {
         this.sequence = sequence;
+    }
+
+    /**
+     * @return the classStructureId
+     */
+    public String getClassStructureId() {
+        return classStructureId;
+    }
+
+    /**
+     * @param classStructureId the classStructureId to set
+     */
+    public void setClassStructureId(String classStructureId) {
+        this.classStructureId = classStructureId;
+    }
+
+    /**
+     * @return the isRequired
+     */
+    public int getIsRequired() {
+        return isRequired;
+    }
+
+    /**
+     * @param isRequired the isRequired to set
+     */
+    public void setIsRequired(int isRequired) {
+        this.isRequired = isRequired;
+    }
+
+    /**
+     * @return the readOnly
+     */
+    public int getReadOnly() {
+        return readOnly;
+    }
+
+    /**
+     * @param readOnly the readOnly to set
+     */
+    public void setReadOnly(int readOnly) {
+        this.readOnly = readOnly;
+    }
+
+    /**
+     * @return the isShared
+     */
+    public int getIsShared() {
+        return isShared;
+    }
+
+    /**
+     * @param isShared the isShared to set
+     */
+    public void setIsShared(int isShared) {
+        this.isShared = isShared;
     }
 
 }

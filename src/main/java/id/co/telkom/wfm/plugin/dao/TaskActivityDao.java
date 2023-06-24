@@ -9,7 +9,7 @@ package id.co.telkom.wfm.plugin.dao;
 //import id.co.telkom.wfm.plugin.model.ListOssItem;
 import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
 import id.co.telkom.wfm.plugin.model.ActivityTask;
-import id.co.telkom.wfm.plugin.model.ListClassStructure;
+import id.co.telkom.wfm.plugin.model.ListLabor;
 import id.co.telkom.wfm.plugin.model.ListClassSpec;
 import id.co.telkom.wfm.plugin.model.ListCpeValidate;
 import java.sql.Connection;
@@ -156,6 +156,24 @@ public class TaskActivityDao {
             ds.getConnection().close();
         }
         return cpeVendor;
+    }
+    
+    public String getClassStructure(String wonum) throws SQLException {
+        String classStructure = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_classstructureid FROM app_fd_workder WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                classStructure = rs.getString("c_classstructureid");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return classStructure;
     }
     
     public void reviseTask(String parent){
@@ -363,36 +381,46 @@ public class TaskActivityDao {
         ps.setString(13, Integer.toString(act.getTaskId() - 10));
     }
     
-    public void GenerateTaskAttribute(String parent, ActivityTask act, ListOssItemAttribute listOssAttr, String siteid, ListClassSpec taskAttr) throws SQLException {
+    public void GenerateTaskAttribute(String parent, ActivityTask act, String siteid, ListClassSpec taskAttr) throws SQLException {
         String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_siteid, c_attribute_name, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, c_displaysequence, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
         String wonum = parent +" - "+ ((act.getTaskId()/10)-1);
+        String getClassStructureId = "SELECT c_classstructureid FROM app_fd_workorder WHERE c_wonum = ?";
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT cls.c_classstructureid, cls.c_assetattrid, cls.c_classspecid, cls.c_isrequired, cls.c_isshared, cls.c_isreported, cls.c_readonly FROM app_fd_classspec cls WHERE cls.c_assetattrid = ?";
+        String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec WHERE c_classstructureid = ?";
         try {
             Connection con = ds.getConnection();
             con.setAutoCommit(false);
             try {
                 PreparedStatement ps = con.prepareStatement(insert);
                 PreparedStatement stmt = con.prepareStatement(query);
+                PreparedStatement getClassStructure = con.prepareStatement(getClassStructureId);
                 try {
-                    stmt.setString(1, listOssAttr.getAttrName());           
-                    ResultSet rs = stmt.executeQuery();
-                    if (rs.next()){
-                        insertToWoAttribute(ps, rs.getString("c_classstructureid"), rs.getString("c_classspecid"), wonum, siteid, rs.getString("c_assetattrid"), listOssAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"), act);
-                        int exe = ps.executeUpdate();
-                        //Checking insert status
-                        if (exe > 0) {
-                            LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " +listOssAttr.getAttrName()+ " done");
-//                            act.setTaskId(act.getTaskId()+10);
-                        }
-                        con.commit();
+                    getClassStructure.setString(1, wonum);
+                    ResultSet rs1 = getClassStructure.executeQuery();
+                    if (rs1.next()){
+                        taskAttr.setClassStructureId(rs1.getString("c_classstructureid"));
+//                        stmt.setString(1, listOssAttr.getAttrName()); 
+                        stmt.setString(1, taskAttr.getClassStructureId()); 
+                        ResultSet rs = stmt.executeQuery();
+                        if (rs.next()){
+                            taskAttr.setAttrName(rs.getString("c_assetattrid"));
+                            insertToWoAttribute(ps, taskAttr.getClassStructureId(), rs.getString("c_classspecid"), wonum, siteid, taskAttr.getAttrName(), taskAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"), act);
+                            int exe = ps.executeUpdate();
+                            //Checking insert status
+                            if (exe > 0) {
+                                LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " +taskAttr.getAttrName()+ " done");
+                            }
+                            con.commit();
+                        } else con.rollback();
                     } else con.rollback();
-                    con.setAutoCommit(true);
-                    if (ps != null)
-                        ps.close();
-                    if (stmt != null)
-                        stmt.close();
+                        con.setAutoCommit(true);
+                        if (ps != null)
+                            ps.close();
+                        if (stmt != null)
+                            stmt.close();
+                        if (getClassStructure != null)
+                            getClassStructure.close();
                     }
                 catch (SQLException throwable) {
                     try {
@@ -421,5 +449,36 @@ public class TaskActivityDao {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
     }
-
+    
+    public String getLabor(String laborcode, ListLabor listLabor) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_laborid, c_laborcode, c_status, c_supervisor FROM app_fd_labor WHERE c_laborcode = ? ";
+        // change 04
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, laborcode);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()){
+                listLabor.setLaborid(rs.getString("c_laborid"));
+                listLabor.setLaborcode(laborcode);
+                listLabor.setStatusLabor(rs.getString("c_status"));
+                listLabor.setSupervisor(rs.getString("c_supervisor"));
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return laborcode;
+    }
+    
+    public void insertToAssignment(PreparedStatement ps, String wonum, String status, String parent, String siteId, String attr_name, String attr_value ) throws SQLException{              
+        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
+        ps.setString(1, uuId);
+        ps.setString(2, wonum);
+        ps.setString(3, status);
+        ps.setString(4, "TELKOM");
+        ps.setString(5, parent);
+        ps.setString(6, siteId);
+    }
 }

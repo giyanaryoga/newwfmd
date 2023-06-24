@@ -67,6 +67,13 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
     public String getPropertyOptions() {
         return "";
     }
+    
+//    private String dateFormatter(String sourceDate){
+//        DateTimeFormatter sourceFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+//        DateTimeFormatter targetFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+//        String convertedDate = LocalDateTime.parse(sourceDate, sourceFormat).format(targetFormat);
+//        return convertedDate;
+//    }
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
@@ -100,7 +107,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 String woSequence = data_obj.get("woSequence").toString();
                 String woStatus = data_obj.get("woStatus").toString();
                 String description = (data_obj.get("description") == null ? "" : data_obj.get("description").toString());
-                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                 String currentDate = LocalDateTime.now().format(currentDateFormat);
                 int nextTaskId = Integer.parseInt(taskId) + 10;
                 if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) { 
