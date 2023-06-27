@@ -117,27 +117,23 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                         if (updateTask) 
                             hsr1.setStatus(200);
+                            JSONObject res = new JSONObject();
+                            res.put("code", "200");
+                            res.put("message", "Successfully update status");
+                            res.writeJSONString(hsr1.getWriter());
                     } else if ("COMPWA".equals(data_obj.get("status"))){
-                        final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
+                        // update task status
+                        updateTaskStatusEbisDao.updateTask(wonum, status);
                         if (description.equals("Registration Suplychain")) {
-                            // Create Response
-//                            JSONObject data = new JSONObject();
-//                            data.put("wonum", parent);
-//                            data.put("milestone status", data);
+                            
+                            // Start of 'Install NTE'
+                            ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
+                            scmtIntegrationEbisDao.sendInstall(parent);
+                            
                             JSONObject res = new JSONObject();
                             res.put("code", "200");
                             res.put("message", "Success");
-                            
-                            
-                            // update task status
-                            updateTaskStatusEbisDao.updateTask(wonum, status);
-                                
-                            // res.put("data", data);
                             res.writeJSONString(hsr1.getWriter());
-                            // Start of 'Install NTE'
-                            ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
-
-                            scmtIntegrationEbisDao.sendInstall(parent);
                             
                             final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                             if (nextAssign)
@@ -145,6 +141,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 updateTaskStatusEbisDao.updateTask(wonum, status);
                         } else {
                             // Define the next move
+                            final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
                             
                             if("COMPLETE".equals(nextMove)) {                           
                                 // Update parent status

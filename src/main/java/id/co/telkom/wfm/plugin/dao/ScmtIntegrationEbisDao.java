@@ -70,7 +70,6 @@ public class ScmtIntegrationEbisDao {
     }
     
     public void sendInstall(String parent) throws SQLException {
-        JSONObject attr_obj;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder query = new StringBuilder();
         query
@@ -81,8 +80,6 @@ public class ScmtIntegrationEbisDao {
                 .append(" parent.c_serviceaddress,  ")
                 .append(" parent.c_workzone,  ")
                 .append(" parent.c_servicenum, ")
-//                .append(" parent.c_longitude,  ")
-//                .append(" parent.c_latitude, ")
                 .append(" parent.c_siteid,  ")
                 .append(" parent.c_description, ")
                 .append(" child.c_laborcode,  ")
@@ -92,8 +89,6 @@ public class ScmtIntegrationEbisDao {
                 .append(" ON parent.c_wonum = child.c_parent  ")
                 .append(" JOIN app_fd_workorderspec item ")
                 .append(" ON child.c_wonum = item.c_wonum ")
-//                .append(" JOIN app_fd_workorderattribute attr ")
-//                .append(" ON parent.c_wonum = attr.c_wonum ")
                 .append(" WHERE ")
                 .append(" parent.c_wonum = ? ")
                 .append(" AND ")
@@ -124,6 +119,7 @@ public class ScmtIntegrationEbisDao {
                 attribute.setLatitude((getWoAttribute(parent).get("LATITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LATITUDE").toString());
                 scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
                 scmtParam.setSiteId((rs.getString("c_siteid") == null) ? "" : rs.getString("c_siteid"));
+                
                 //Send install message to kafka
                 JSONObject installMessage = buildInstallMessage(scmtParam, attribute);
                 String kafkaRes = installMessage.toJSONString();
