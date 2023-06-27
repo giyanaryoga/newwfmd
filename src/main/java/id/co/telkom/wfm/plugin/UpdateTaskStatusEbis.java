@@ -67,6 +67,13 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
     public String getPropertyOptions() {
         return "";
     }
+    
+//    private String dateFormatter(String sourceDate){
+//        DateTimeFormatter sourceFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+//        DateTimeFormatter targetFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+//        String convertedDate = LocalDateTime.parse(sourceDate, sourceFormat).format(targetFormat);
+//        return convertedDate;
+//    }
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {

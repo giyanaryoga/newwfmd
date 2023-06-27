@@ -18,6 +18,8 @@ public class ListClassSpec {
     private String isShared;
     private String isReported;
     private String isReadOnly;
+    private String attrName;
+    private String attrValue;
 
     /**
      * @return the classStructureId
@@ -143,5 +145,33 @@ public class ListClassSpec {
      */
     public void setIsReadOnly(String isReadOnly) {
         this.isReadOnly = isReadOnly;
+    }
+
+    /**
+     * @return the attrValue
+     */
+    public String getAttrValue() {
+        return attrValue;
+    }
+
+    /**
+     * @param attrValue the attrValue to set
+     */
+    public void setAttrValue(String attrValue) {
+        this.attrValue = attrValue;
+    }
+
+    /**
+     * @return the attrName
+     */
+    public String getAttrName() {
+        return attrName;
+    }
+
+    /**
+     * @param attrName the attrName to set
+     */
+    public void setAttrName(String attrName) {
+        this.attrName = attrName;
     }
 }
