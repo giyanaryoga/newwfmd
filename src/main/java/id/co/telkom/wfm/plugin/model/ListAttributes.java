@@ -163,4 +163,12 @@ public class ListAttributes {
         this.latitude = latitude;
     }
 
+    public String getLatitude(String latitude) {
+        return latitude;
+    }
+
+    public String getLongitude(String longitude) {
+        return longitude;
+    }
+
 }

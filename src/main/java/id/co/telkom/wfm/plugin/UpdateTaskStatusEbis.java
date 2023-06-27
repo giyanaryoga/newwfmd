@@ -99,7 +99,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 String siteId = (data_obj.get("siteId") == null ? "" : data_obj.get("siteId").toString());
                 String woSequence = data_obj.get("woSequence").toString();
                 String woStatus = data_obj.get("woStatus").toString();
-                String description = (data_obj.get("description") == null ? "" : data_obj.get("description").toString());
+                String description = data_obj.get("description").toString();
                 DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                 String currentDate = LocalDateTime.now().format(currentDateFormat);
                 int nextTaskId = Integer.parseInt(taskId) + 10;

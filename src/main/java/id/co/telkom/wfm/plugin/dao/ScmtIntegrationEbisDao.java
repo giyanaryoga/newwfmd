@@ -119,12 +119,9 @@ public class ScmtIntegrationEbisDao {
                 scmtParam.setServiceAddress((rs.getString("c_serviceaddress") == null) ? "" : rs.getString("c_serviceaddress"));
                 scmtParam.setWorkzone((rs.getString("c_workzone") == null) ? "" : rs.getString("c_workzone"));
                 scmtParam.setServiceNum((rs.getString("c_servicenum") == null) ? "" : rs.getString("c_servicenum"));
-//                scmtParam.setCpeVendor((rs.getString("c_cpe_vendor") == null) ? "" : rs.getString("c_cpe_vendor"));
-//                scmtParam.setCpeModel((rs.getString("c_cpe_model") == null) ? "" : rs.getString("c_cpe_model"));
                 scmtParam.setCpeSerialNumber((rs.getString("c_alnvalue") == null) ? "" : rs.getString("c_alnvalue"));
                 attribute.setLongitude((getWoAttribute(parent).get("LONGITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LONGITUDE").toString());
                 attribute.setLatitude((getWoAttribute(parent).get("LATITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LATITUDE").toString());
-//                attribute.setLatitude((rs.getString("LATITUDE") == null) ? "" : rs.getString("LATITUDE"));
                 scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
                 scmtParam.setSiteId((rs.getString("c_siteid") == null) ? "" : rs.getString("c_siteid"));
                 //Send install message to kafka
