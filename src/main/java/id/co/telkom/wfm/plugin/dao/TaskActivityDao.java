@@ -158,10 +158,10 @@ public class TaskActivityDao {
         return cpeVendor;
     }
     
-    public String getClassStructure(String wonum) throws SQLException {
+    public String getTaskAttrName(String wonum) throws SQLException {
         String classStructure = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_classstructureid FROM app_fd_workder WHERE c_wonum = ?";
+        String query = "SELECT c_classstructureid FROM app_fd_workorder WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -383,9 +383,9 @@ public class TaskActivityDao {
     }
     
     public void GenerateTaskAttribute(String parent, ActivityTask act, String siteid, ListClassSpec taskAttr) throws SQLException {
-        String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_siteid, c_attribute_name, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, c_displaysequence, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+        String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_siteid, c_attribute_name, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, c_displaysequence, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
         String wonum = parent +" - "+ ((act.getTaskId()/10)-1);
-        String getClassStructureId = "SELECT c_classstructureid FROM app_fd_workorder WHERE c_wonum = ?";
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec WHERE c_classstructureid = ?";
@@ -395,35 +395,26 @@ public class TaskActivityDao {
             try {
                 PreparedStatement ps = con.prepareStatement(insert);
                 PreparedStatement stmt = con.prepareStatement(query);
-                PreparedStatement getClassStructure = con.prepareStatement(getClassStructureId);
                 try {
-                    getClassStructure.setString(1, wonum);
-                    ResultSet rs1 = getClassStructure.executeQuery();
-                    if (rs1.next()){
-                        taskAttr.setClassStructureId(rs1.getString("c_classstructureid"));
-//                        stmt.setString(1, listOssAttr.getAttrName()); 
-                        stmt.setString(1, taskAttr.getClassStructureId()); 
-                        ResultSet rs = stmt.executeQuery();
-                        if (rs.next()){
-                            taskAttr.setAttrName(rs.getString("c_assetattrid"));
-                            insertToWoAttribute(ps, taskAttr.getClassStructureId(), rs.getString("c_classspecid"), wonum, siteid, taskAttr.getAttrName(), taskAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"), act);
-                            int exe = ps.executeUpdate();
-                            //Checking insert status
-                            if (exe > 0) {
-                                LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " +taskAttr.getAttrName()+ " done");
-                            }
-                            con.commit();
-                        } else con.rollback();
+                    stmt.setString(1, getTaskAttrName(wonum));
+                    ResultSet rs = stmt.executeQuery();
+                    if (rs.next()){
+                        taskAttr.setClassStructureId(rs.getString("c_classstructureid"));
+                        taskAttr.setAttrName(rs.getString("c_assetattrid"));
+                        insertToWoAttribute(ps, taskAttr.getClassStructureId(), rs.getString("c_classspecid"), wonum, siteid, taskAttr.getAttrName(), taskAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"), act);
+                        int exe = ps.executeUpdate();
+                        //Checking insert status
+                        if (exe > 0) {
+                            LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " +taskAttr.getAttrName()+ " done");
+                        }
+                        con.commit();
                     } else con.rollback();
-                        con.setAutoCommit(true);
-                        if (ps != null)
-                            ps.close();
-                        if (stmt != null)
-                            stmt.close();
-                        if (getClassStructure != null)
-                            getClassStructure.close();
-                    }
-                catch (SQLException throwable) {
+                    con.setAutoCommit(true);
+                    if (ps != null)
+                        ps.close();
+                    if (stmt != null)
+                        stmt.close();
+                } catch (SQLException throwable) {
                     try {
                         if (ps != null)
                             ps.close();
@@ -453,18 +444,20 @@ public class TaskActivityDao {
     
     public String getLabor(String laborcode, ListLabor listLabor) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_laborid, c_laborcode, c_status, c_supervisor FROM app_fd_labor WHERE c_laborcode = ? ";
+        String query = "SELECT l.c_laborid, l.c_laborcode, l.c_status, l.c_supervisor, p.c_displayname "
+                + "FROM app_fd_labor l, app_fd_person2 p WHERE l.c_personid = p.c_personid and c_laborcode = ? ";
         // change 04
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, laborcode);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()){
+            if (rs.next()){
                 listLabor.setLaborid(rs.getString("c_laborid"));
                 listLabor.setLaborcode(laborcode);
                 listLabor.setStatusLabor(rs.getString("c_status"));
                 listLabor.setSupervisor(rs.getString("c_supervisor"));
-            }
+                listLabor.setLaborname("c_displayname");
+            } else con.rollback();
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -473,13 +466,73 @@ public class TaskActivityDao {
         return laborcode;
     }
     
-    public void insertToAssignment(PreparedStatement ps, String wonum, String status, String parent, String siteId, String attr_name, String attr_value ) throws SQLException{              
-        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
-        ps.setString(1, uuId);
-        ps.setString(2, wonum);
-        ps.setString(3, status);
-        ps.setString(4, "TELKOM");
-        ps.setString(5, parent);
-        ps.setString(6, siteId);
+    public void insertToAssignment(PreparedStatement ps, String parent, ActivityTask act, String status, String description, String scheduledate) throws SQLException{              
+        ps.setString(1, UuidGenerator.getInstance().getUuid());
+        ps.setString(2, parent);
+        ps.setString(3, parent + " - " + ((act.getTaskId()/10)-1));
+        ps.setString(4, status);
+        ps.setString(5, description);
+        ps.setString(6, "WFM");
+        ps.setString(7, "ACTIVITY");
+        ps.setString(8, Integer.toString(act.getTaskId()));
+        ps.setString(9, scheduledate);
+    }
+    
+    public void generateAssignment(String parent, ActivityTask act, String scheduledate) {
+        String insert = "INSERT INTO app_fd_assignment "
+                + "(id, c_parent, c_wonum, c_status, c_description, c_wfmdoctype, c_woclass, c_taskid, c_scheduledate, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+            DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+            String query = "SELECT c_description, c_taskid FROM app_fd_workorder WHERE c_parent = ? AND c_actplace = 'OUTSIDE'";
+            
+            try {
+                Connection con = ds.getConnection();
+                con.setAutoCommit(false); 
+                try {               
+                    PreparedStatement ps = con.prepareStatement(insert);
+                    PreparedStatement stmt = con.prepareStatement(query);
+                    try {       
+                        stmt.setString(1, parent);
+                        ResultSet rs = stmt.executeQuery();
+                        if (rs.next()){
+                            insertToAssignment(ps, parent, act, "ASSIGNED", rs.getString("c_description"), scheduledate);
+                            int exe = ps.executeUpdate();
+                            //Checking insert status
+                            if (exe > 0) {
+                                LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
+                                act.setTaskId(act.getTaskId()+10);
+                            }
+                            con.commit();
+                        } else con.rollback();
+                        con.setAutoCommit(true);
+                        if (ps != null)
+                            ps.close();
+                        if (stmt != null)
+                            stmt.close();
+                    } catch (Throwable throwable) {
+                            try {
+                                if (ps != null)
+                                    ps.close();
+                                if (stmt != null)
+                                    stmt.close();
+                            } catch (Throwable throwable1) {
+                                throwable.addSuppressed(throwable1);
+                            }    
+                        throw throwable;
+                    }
+                    if (con !=null)
+                        con.close();    
+                } catch (Throwable throwable) {
+                    if (con !=null)
+                        try {
+                            con.close();
+                        }catch(Throwable throwable1){
+                            throwable.addSuppressed(throwable1);
+                        }
+                    throw throwable;
+                }  
+            } catch (SQLException e) {
+                LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            }
     }
 }
