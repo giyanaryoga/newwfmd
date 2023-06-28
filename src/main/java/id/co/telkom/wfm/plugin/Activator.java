@@ -16,6 +16,7 @@ public class Activator implements BundleActivator {
         //Register plugin here
         registrationList.add(context.registerService(GenerateWonumEbis.class.getName(), new GenerateWonumEbis(), null));
         registrationList.add(context.registerService(UpdateTaskStatusEbis.class.getName(), new UpdateTaskStatusEbis(), null));
+        registrationList.add(context.registerService(GenerateStpNetLoc.class.getName(), new GenerateStpNetLoc(), null));
         registrationList.add(context.registerService(CpeValidationEbis.class.getName(), new CpeValidationEbis(), null));
         registrationList.add(context.registerService(GetTaskAttribute.class.getName(), new GetTaskAttribute(), null));
     }

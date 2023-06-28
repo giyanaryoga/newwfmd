@@ -114,7 +114,12 @@
             <artifactId>javax.xml.soap-api</artifactId>
             <version>1.4.0</version>
         </dependency>
-        <!-- End change plugin specific dependencies here -->
+        <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+    <!-- End change plugin specific dependencies here -->
     </dependencies>
     <distributionManagement>
         <repository>

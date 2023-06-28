@@ -106,8 +106,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 String siteId = (data_obj.get("siteId") == null ? "" : data_obj.get("siteId").toString());
                 String woSequence = data_obj.get("woSequence").toString();
                 String woStatus = data_obj.get("woStatus").toString();
-                String description = (data_obj.get("description") == null ? "" : data_obj.get("description").toString());
-                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                String description = data_obj.get("description").toString();
+                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                 String currentDate = LocalDateTime.now().format(currentDateFormat);
                 int nextTaskId = Integer.parseInt(taskId) + 10;
                 if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) { 
@@ -117,27 +117,23 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                         if (updateTask) 
                             hsr1.setStatus(200);
+                            JSONObject res = new JSONObject();
+                            res.put("code", "200");
+                            res.put("message", "Successfully update status");
+                            res.writeJSONString(hsr1.getWriter());
                     } else if ("COMPWA".equals(data_obj.get("status"))){
-                        final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
+                        // update task status
+                        updateTaskStatusEbisDao.updateTask(wonum, status);
                         if (description.equals("Registration Suplychain")) {
-                            // Create Response
-//                            JSONObject data = new JSONObject();
-//                            data.put("wonum", parent);
-//                            data.put("milestone status", data);
+                            
+                            // Start of 'Install NTE'
+                            ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
+                            scmtIntegrationEbisDao.sendInstall(parent);
+                            
                             JSONObject res = new JSONObject();
                             res.put("code", "200");
                             res.put("message", "Success");
-                            
-                            
-                            // update task status
-                            updateTaskStatusEbisDao.updateTask(wonum, status);
-                                
-                            // res.put("data", data);
                             res.writeJSONString(hsr1.getWriter());
-                            // Start of 'Install NTE'
-                            ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
-
-                            scmtIntegrationEbisDao.sendInstall(parent);
                             
                             final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                             if (nextAssign)
@@ -145,6 +141,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 updateTaskStatusEbisDao.updateTask(wonum, status);
                         } else {
                             // Define the next move
+                            final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
                             
                             if("COMPLETE".equals(nextMove)) {                           
                                 // Update parent status
