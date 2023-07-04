@@ -46,7 +46,62 @@ public class UpdateAssignmentEbisDao {
         return laborcode;
     }
     
-    public void updateLabor() throws SQLException {
-        
+    public void updateLaborTemp(String wonum, String laborcodetemp, String craft, String amcrewtype, String amcrew) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_assignment SET ")
+            .append("c_craft = ?, ")
+            .append("c_amcrewtype = ?, ")
+            .append("c_amcrew = ?, ")
+            .append("c_laborcodetemp = ?, ")
+            .append("c_datemodified = sysdate ")
+            .append("WHERE ")
+            .append("c_wonum = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, craft);
+            ps.setString(2, amcrewtype);
+            ps.setString(3, amcrew);
+            ps.setString(4, laborcodetemp);
+            ps.setString(5, wonum);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Laborcode update temp:  " + laborcodetemp);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateLaborTemp(String laborcode, String laborname, String wonum) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_assignment SET ")
+            .append("c_laborcode = ?, ")
+            .append("c_displayname = ?, ")
+            .append("c_status = ?, ")
+            .append("c_laborcodetemp = NULL, ")
+            .append("c_datemodified = sysdate ")
+            .append("WHERE ")
+            .append("c_wonum = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, laborcode);
+            ps.setString(2, laborname);
+            ps.setString(3, "ASSIGNED");
+            ps.setString(4, wonum);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Laborcode update :  " + laborcode);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
     }
 }

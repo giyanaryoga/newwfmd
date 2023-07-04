@@ -394,7 +394,7 @@ public class TaskActivityDao {
         String wonum = parent +" - "+ ((act.getTaskId()/10)-1);
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec WHERE c_classstructureid = ?";
+        String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec WHERE c_assetattrid = ?";
         try {
             Connection con = ds.getConnection();
             con.setAutoCommit(false);
@@ -402,11 +402,12 @@ public class TaskActivityDao {
                 PreparedStatement ps = con.prepareStatement(insert);
                 PreparedStatement stmt = con.prepareStatement(query);
                 try {
-                    stmt.setString(1, getTaskAttrName(wonum));
+//                    stmt.setString(1, getTaskAttrName(wonum));
+                    stmt.setString(1, taskAttr.getAttrName());
                     ResultSet rs = stmt.executeQuery();
                     if (rs.next()){
                         taskAttr.setClassStructureId(rs.getString("c_classstructureid"));
-                        taskAttr.setAttrName(rs.getString("c_assetattrid"));
+//                        taskAttr.setAttrName(rs.getString("c_assetattrid"));
                         insertToWoAttribute(ps, taskAttr.getClassStructureId(), rs.getString("c_classspecid"), wonum, siteid, taskAttr.getAttrName(), taskAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"), act);
                         int exe = ps.executeUpdate();
                         //Checking insert status

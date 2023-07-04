@@ -78,14 +78,14 @@ public class UpdateAssignmentEbis  extends Element implements PluginWebSupport {
             try {
                 //@Parsing message
                 //HttpServletRequest get JSON Post data
-                StringBuffer jb = new StringBuffer();
-                String line = null;
+                StringBuilder jb = new StringBuilder();
+                String line;
                 try {//read the response JSON to string buffer
                     BufferedReader reader = hsr.getReader();
                     while ((line = reader.readLine()) != null) {
                         jb.append(line);
                     }
-                } catch (Exception e) {
+                } catch (IOException e) {
                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
@@ -104,7 +104,6 @@ public class UpdateAssignmentEbis  extends Element implements PluginWebSupport {
                 String laborcode = (body.get("laborcode") == null ? "" : body.get("laborcode").toString());
                 DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                 String currentDate = LocalDateTime.now().format(currentDateFormat);
-//                int nextTaskId = Integer.parseInt(taskId) + 10;
                 UpdateAssignmentEbisDao dao = new UpdateAssignmentEbisDao();
                 ListLabor listLabor = new ListLabor();
 
@@ -114,7 +113,7 @@ public class UpdateAssignmentEbis  extends Element implements PluginWebSupport {
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
-            } catch (Exception e) {
+            } catch (IOException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         }
