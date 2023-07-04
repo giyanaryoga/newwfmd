@@ -483,7 +483,7 @@ public class TaskActivityDao {
                 + "(id, c_parent, c_wonum, c_taskid, c_status, c_description, c_wfmdoctype, c_woclass, c_scheduledate, dateCreated) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-            String query = "SELECT c_description, c_taskid, c_wonum FROM app_fd_workorder WHERE c_detailactcode = ? AND c_actplace = 'OUTSIDE'";
+            String query = "SELECT c_description, c_taskid, c_wonum FROM app_fd_workorder WHERE c_detailactcode = ? AND c_parent = ? AND c_actplace = 'OUTSIDE'";
             
             try {
                 Connection con = ds.getConnection();
@@ -493,6 +493,7 @@ public class TaskActivityDao {
                     PreparedStatement stmt = con.prepareStatement(query);
                     try {       
                         stmt.setString(1, detailtask);
+                        stmt.setString(2, parent);
                         ResultSet rs = stmt.executeQuery();
                         if (rs.next()){
                             insertToAssignment(ps, parent, rs.getString("c_wonum"), rs.getString("c_taskid"), "DRAFT", rs.getString("c_description"), scheduledate);

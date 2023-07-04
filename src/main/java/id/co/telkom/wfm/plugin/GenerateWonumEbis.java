@@ -356,9 +356,9 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         res1.put("data", data);
                         res1.writeJSONString(hsr1.getWriter());
                         //Response to Kafka
-                        String kafkaRes = outer3.toJSONString();
-                        KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
-                        kafkaProducerTool.generateMessage(kafkaRes, "WFM_WONUM", "");
+//                        String kafkaRes = outer3.toJSONString();
+//                        KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
+//                        kafkaProducerTool.generateMessage(kafkaRes, "WFM_WONUM", "");
                     } catch (IOException e) {
                         LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                     }  
