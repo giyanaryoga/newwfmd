@@ -71,10 +71,12 @@ public class GenerateWonumEbisDao {
                         throwable.addSuppressed(throwable1);
                     }
                 throw throwable;
-            }  
+            } finally {
+                ds.getConnection().close();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        }    
+        }
     }
     
     public String lookupSiteId (String workZone){
@@ -116,7 +118,9 @@ public class GenerateWonumEbisDao {
                         throwable.addSuppressed(throwable1);
                     }
                 throw throwable;
-            }  
+            } finally {
+                ds.getConnection().close();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
@@ -162,7 +166,9 @@ public class GenerateWonumEbisDao {
                         throwable.addSuppressed(throwable1);
                     }
                 throw throwable;
-            }  
+            } finally {
+                ds.getConnection().close();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
@@ -228,6 +234,8 @@ public class GenerateWonumEbisDao {
                     throwable.addSuppressed(throwable1);
                 }
                 throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -277,6 +285,8 @@ public class GenerateWonumEbisDao {
                     throwable.addSuppressed(throwable1);
                 }
                 throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -325,6 +335,8 @@ public class GenerateWonumEbisDao {
                     throwable.addSuppressed(throwable1);
                 }
                 throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -332,21 +344,21 @@ public class GenerateWonumEbisDao {
         return insertStatus;
     }
     
-        public void ossItemAttributeLoop (Object attrObj, ListOssItemAttribute listOssItemAtt){
-            //Attribute level
-            if (attrObj instanceof JSONObject){
-                listOssItemAtt.setAttrName(((JSONObject) attrObj).get("ATTR_NAME").toString());
-                listOssItemAtt.setAttrValue(((JSONObject) attrObj).get("ATTR_VALUE").toString());
+    public void ossItemAttributeLoop (Object attrObj, ListOssItemAttribute listOssItemAtt){
+        //Attribute level
+        if (attrObj instanceof JSONObject){
+            listOssItemAtt.setAttrName(((JSONObject) attrObj).get("ATTR_NAME").toString());
+            listOssItemAtt.setAttrValue(((JSONObject) attrObj).get("ATTR_VALUE").toString());
+            insertToOssAttribute(listOssItemAtt);
+        } else if (attrObj instanceof JSONArray){
+            for (int j = 0 ; j < ((JSONArray) attrObj).size() ; j++ ){
+                JSONObject deviceAttr = (JSONObject)((JSONArray) attrObj).get(j);
+                listOssItemAtt.setAttrName(deviceAttr.get("ATTR_NAME").toString());
+                listOssItemAtt.setAttrValue(deviceAttr.get("ATTR_VALUE").toString());
                 insertToOssAttribute(listOssItemAtt);
-            } else if (attrObj instanceof JSONArray){
-                for (int j = 0 ; j < ((JSONArray) attrObj).size() ; j++ ){
-                    JSONObject deviceAttr = (JSONObject)((JSONArray) attrObj).get(j);
-                    listOssItemAtt.setAttrName(deviceAttr.get("ATTR_NAME").toString());
-                    listOssItemAtt.setAttrValue(deviceAttr.get("ATTR_VALUE").toString());
-                    insertToOssAttribute(listOssItemAtt);
-                }
             }
         }
+    }
     
     public boolean insertToWoAttrTable(String wonum, ListAttributes listAttr){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
@@ -390,6 +402,8 @@ public class GenerateWonumEbisDao {
                     throwable.addSuppressed(throwable1);
                 }
                 throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());

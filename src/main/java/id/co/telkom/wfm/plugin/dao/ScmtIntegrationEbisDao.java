@@ -51,7 +51,7 @@ public class ScmtIntegrationEbisDao {
         return token;
     }
     
-        public JSONObject getWoAttribute(String wonum) throws SQLException {
+    public JSONObject getWoAttribute(String wonum) throws SQLException {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT C_ATTR_NAME, C_ATTR_VALUE FROM APP_FD_WORKORDERATTRIBUTE WHERE C_WONUM = ? AND C_ATTR_NAME IN ('LONGITUDE', 'LATITUDE')";

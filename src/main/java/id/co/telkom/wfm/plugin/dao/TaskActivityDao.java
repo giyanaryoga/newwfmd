@@ -70,7 +70,9 @@ public class TaskActivityDao {
                         throwable.addSuppressed(throwable1);
                     }
                 throw throwable;
-            }  
+            } finally {
+                ds.getConnection().close();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }    
@@ -211,6 +213,8 @@ public class TaskActivityDao {
                     throwable.addSuppressed(throwable1);
                 }
                 throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -279,6 +283,8 @@ public class TaskActivityDao {
                     throwable.addSuppressed(throwable1);
                 }
                 throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -357,7 +363,9 @@ public class TaskActivityDao {
                             throwable.addSuppressed(throwable1);
                         }
                     throw throwable;
-                }  
+                } finally {
+                    ds.getConnection().close();
+                }
             } catch (SQLException e) {
                 LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
             }
@@ -435,34 +443,12 @@ public class TaskActivityDao {
                     throwable.addSuppressed(throwable1);
                 }
                 throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
-    }
-    
-    public String getLabor(String laborcode, ListLabor listLabor) throws SQLException {
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT l.c_laborid, l.c_laborcode, l.c_status, l.c_supervisor, p.c_displayname "
-                + "FROM app_fd_labor l, app_fd_person2 p WHERE l.c_personid = p.c_personid and c_laborcode = ? ";
-        // change 04
-        try(Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, laborcode);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()){
-                listLabor.setLaborid(rs.getString("c_laborid"));
-                listLabor.setLaborcode(laborcode);
-                listLabor.setStatusLabor(rs.getString("c_status"));
-                listLabor.setSupervisor(rs.getString("c_supervisor"));
-                listLabor.setLaborname("c_displayname");
-            } else con.rollback();
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return laborcode;
     }
     
     public void insertToAssignment(PreparedStatement ps, String parent, String wonum, String taskid, String status, String description, String scheduledate) throws SQLException{              
@@ -530,7 +516,9 @@ public class TaskActivityDao {
                             throwable.addSuppressed(throwable1);
                         }
                     throw throwable;
-                }  
+                } finally {
+                    ds.getConnection().close();
+                }
             } catch (SQLException e) {
                 LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
             }
