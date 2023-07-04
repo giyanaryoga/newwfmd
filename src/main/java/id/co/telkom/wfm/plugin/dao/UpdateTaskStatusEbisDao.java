@@ -80,7 +80,6 @@ public class UpdateTaskStatusEbisDao {
     public boolean nextAssign(String parent, String nextTaskId) throws SQLException{
         boolean nextAssign = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String update = "UPDATE app_fd_woactivity SET c_status = 'LABASSIGN' WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW'";
         String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = sysdate WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try(Connection con = ds.getConnection(); 
             PreparedStatement ps = con.prepareStatement(update)) {
