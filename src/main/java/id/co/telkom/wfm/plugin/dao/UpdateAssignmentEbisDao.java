@@ -21,7 +21,7 @@ import org.json.simple.JSONObject;
  *
  * @author User
  */
-public class UpdateAssignmentDao {
+public class UpdateAssignmentEbisDao {
     public String getLabor(String laborcode, ListLabor listLabor) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT l.c_laborid, l.c_laborcode, l.c_status, l.c_supervisor, p.c_displayname "

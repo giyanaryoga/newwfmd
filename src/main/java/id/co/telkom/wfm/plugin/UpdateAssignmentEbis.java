@@ -7,8 +7,8 @@ package id.co.telkom.wfm.plugin;
 import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.model.ListLabor;
-import id.co.telkom.wfm.plugin.dao.UpdateAssignmentDao;
-import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
+import id.co.telkom.wfm.plugin.dao.UpdateAssignmentEbisDao;
+//import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -72,7 +72,7 @@ public class UpdateAssignmentEbis  extends Element implements PluginWebSupport {
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         //@@Start..
-        LogUtil.info(getClass().getName(), "Start Process: Update Task Status");
+        LogUtil.info(getClass().getName(), "Start Process: Update Labor");
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
             try {
@@ -93,18 +93,20 @@ public class UpdateAssignmentEbis  extends Element implements PluginWebSupport {
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
-                JSONObject body = (JSONObject) data_obj.get("UpdateMXTELKOWO");
+                JSONObject body = (JSONObject) data_obj.get("Request");
 
                 //Store param
                 String wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
-                String parent = wonum.substring(0, 11);
                 String taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
-                String status = (body.get("status") == null ? "" : body.get("status").toString());
-                String siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
-                String description = (body.get("description") == null ? "" : body.get("description").toString());
+                String craft = (body.get("craft") == null ? "" : body.get("craft").toString());
+                String crewType = (body.get("amcrewtype") == null ? "" : body.get("amcrewtype").toString());
+                String crew = (body.get("amcrew") == null ? "" : body.get("amcrew").toString());
+                String laborcode = (body.get("laborcode") == null ? "" : body.get("laborcode").toString());
                 DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                 String currentDate = LocalDateTime.now().format(currentDateFormat);
-                int nextTaskId = Integer.parseInt(taskId) + 10;
+//                int nextTaskId = Integer.parseInt(taskId) + 10;
+                UpdateAssignmentEbisDao dao = new UpdateAssignmentEbisDao();
+                ListLabor listLabor = new ListLabor();
 
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
