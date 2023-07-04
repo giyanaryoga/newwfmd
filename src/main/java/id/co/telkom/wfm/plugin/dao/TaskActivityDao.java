@@ -9,7 +9,6 @@ package id.co.telkom.wfm.plugin.dao;
 //import id.co.telkom.wfm.plugin.model.ListOssItem;
 import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
 import id.co.telkom.wfm.plugin.model.ActivityTask;
-import id.co.telkom.wfm.plugin.model.ListLabor;
 import id.co.telkom.wfm.plugin.model.ListClassSpec;
 import id.co.telkom.wfm.plugin.model.ListCpeValidate;
 import java.sql.Connection;
@@ -482,7 +481,7 @@ public class TaskActivityDao {
                         stmt.setString(2, parent);
                         ResultSet rs = stmt.executeQuery();
                         if (rs.next()){
-                            insertToAssignment(ps, parent, rs.getString("c_wonum"), rs.getString("c_taskid"), "DRAFT", rs.getString("c_description"), scheduledate);
+                            insertToAssignment(ps, parent, rs.getString("c_wonum"), rs.getString("c_taskid"), "WAITASSIGN", rs.getString("c_description"), scheduledate);
                             int exe = ps.executeUpdate();
                             //Checking insert status
                             if (exe > 0) {

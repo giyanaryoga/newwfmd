@@ -26,7 +26,6 @@ public class UpdateTaskStatusEbisDao {
     public boolean updateTask(String wonum, String status) throws SQLException{
         boolean updateTask = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String update = "UPDATE app_fd_woactivity SET c_status = ? WHERE c_wonum = ? AND c_wfmdoctype = 'NEW'";
         String update = "UPDATE app_fd_workorder SET c_status = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try(Connection con = ds.getConnection(); 
             PreparedStatement ps = con.prepareStatement(update)) {

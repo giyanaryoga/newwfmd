@@ -4,25 +4,18 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-//import id.co.telkom.wfm.plugin.model.ListAttributes;
-//import id.co.telkom.wfm.plugin.model.ListDevice;
-//import id.co.telkom.wfm.plugin.model.ListOssItem;
-import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
-import id.co.telkom.wfm.plugin.model.ActivityTask;
 import id.co.telkom.wfm.plugin.model.ListLabor;
-import id.co.telkom.wfm.plugin.model.ListClassSpec;
-import id.co.telkom.wfm.plugin.model.ListCpeValidate;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-import org.joget.commons.util.UuidGenerator;
-import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -51,5 +44,9 @@ public class UpdateAssignmentDao {
             ds.getConnection().close();
         }
         return laborcode;
+    }
+    
+    public void updateLabor() throws SQLException {
+        
     }
 }
