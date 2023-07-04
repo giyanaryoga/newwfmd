@@ -201,7 +201,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //@insertOSSItem
                     dao.insertToOssItem(wonum, listOssItem);
                     dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup);
-                    dao2.generateAssignment(parent, act, schedStart);
+                    dao2.generateAssignment(act.getDescriptionTask(), schedStart, parent);
                     
                     JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
                     for (int j = 0; j < ossitem_attr.size(); j++){
@@ -269,7 +269,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         //Insert ossItem
                         dao.insertToOssItem(wonum, listOssItem);
                         dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup);
-                        dao2.generateAssignment(parent, act, schedStart);
+                        dao2.generateAssignment(act.getDescriptionTask(), schedStart, parent);
                         
                         JSONArray ossitem_attr = (JSONArray) oss_itemObj.get("OSSITEMATTRIBUTE");
                         for (int j = 0; j < ossitem_attr.size(); j++){

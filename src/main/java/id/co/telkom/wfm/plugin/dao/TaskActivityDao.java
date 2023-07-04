@@ -292,7 +292,6 @@ public class TaskActivityDao {
         ps.setString(3, parent + " - " + act.getTaskId()/10);
         ps.setString(4, detailActCode);
         ps.setString(5, description);
-//        ps.setString(6, serviceType);
         ps.setString(6, sequence);
         ps.setString(7, actplace);
         ps.setString(8, classstructureid);
@@ -466,24 +465,25 @@ public class TaskActivityDao {
         return laborcode;
     }
     
-    public void insertToAssignment(PreparedStatement ps, String parent, ActivityTask act, String status, String description, String scheduledate) throws SQLException{              
+    public void insertToAssignment(PreparedStatement ps, String parent, String wonum, String taskid, String status, String description, String scheduledate) throws SQLException{              
         ps.setString(1, UuidGenerator.getInstance().getUuid());
         ps.setString(2, parent);
-        ps.setString(3, parent + " - " + ((act.getTaskId()/10)-1));
-        ps.setString(4, status);
-        ps.setString(5, description);
-        ps.setString(6, "WFM");
-        ps.setString(7, "ACTIVITY");
-        ps.setString(8, Integer.toString(act.getTaskId()));
+        ps.setString(3, wonum);
+        ps.setString(4, taskid);
+        ps.setString(5, status);
+        ps.setString(6, description);
+        ps.setString(7, "WFM");
+        ps.setString(8, "ACTIVITY");
         ps.setString(9, scheduledate);
+        
     }
     
-    public void generateAssignment(String parent, ActivityTask act, String scheduledate) {
+    public void generateAssignment(String detailtask, String scheduledate, String parent) {
         String insert = "INSERT INTO app_fd_assignment "
-                + "(id, c_parent, c_wonum, c_status, c_description, c_wfmdoctype, c_woclass, c_taskid, c_scheduledate, dateCreated) "
+                + "(id, c_parent, c_wonum, c_taskid, c_status, c_description, c_wfmdoctype, c_woclass, c_scheduledate, dateCreated) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-            String query = "SELECT c_description, c_taskid FROM app_fd_workorder WHERE c_parent = ? AND c_actplace = 'OUTSIDE'";
+            String query = "SELECT c_description, c_taskid, c_wonum FROM app_fd_workorder WHERE c_detailactcode = ? AND c_actplace = 'OUTSIDE'";
             
             try {
                 Connection con = ds.getConnection();
@@ -492,15 +492,14 @@ public class TaskActivityDao {
                     PreparedStatement ps = con.prepareStatement(insert);
                     PreparedStatement stmt = con.prepareStatement(query);
                     try {       
-                        stmt.setString(1, parent);
+                        stmt.setString(1, detailtask);
                         ResultSet rs = stmt.executeQuery();
                         if (rs.next()){
-                            insertToAssignment(ps, parent, act, "ASSIGNED", rs.getString("c_description"), scheduledate);
+                            insertToAssignment(ps, parent, rs.getString("c_wonum"), rs.getString("c_taskid"), "DRAFT", rs.getString("c_description"), scheduledate);
                             int exe = ps.executeUpdate();
                             //Checking insert status
                             if (exe > 0) {
                                 LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
-                                act.setTaskId(act.getTaskId()+10);
                             }
                             con.commit();
                         } else con.rollback();
