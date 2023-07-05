@@ -15,6 +15,8 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,9 +32,9 @@ import org.json.simple.parser.ParseException;
  *
  * @author User
  */
-public class UpdateAssignmentEbis  extends Element implements PluginWebSupport {
+public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
 
-    String pluginName = "Telkom New WFM - Update Task Status Ebis - Web Service";
+    String pluginName = "Telkom New WFM - Update Assignment Labor Ebis - Web Service";
 
     @Override
     public String renderTemplate(FormData fd, Map map) {
@@ -102,10 +104,57 @@ public class UpdateAssignmentEbis  extends Element implements PluginWebSupport {
                 String crewType = (body.get("amcrewtype") == null ? "" : body.get("amcrewtype").toString());
                 String crew = (body.get("amcrew") == null ? "" : body.get("amcrew").toString());
                 String laborcode = (body.get("laborcode") == null ? "" : body.get("laborcode").toString());
-                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-                String currentDate = LocalDateTime.now().format(currentDateFormat);
+//                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+//                String currentDate = LocalDateTime.now().format(currentDateFormat);
                 UpdateAssignmentEbisDao dao = new UpdateAssignmentEbisDao();
                 ListLabor listLabor = new ListLabor();
+                try {
+                    boolean updatedTemp = dao.updateLaborTemp(wonum, laborcode, craft, crewType, crew);
+//                    dao.getLabor(laborcode, listLabor);
+                    String laborname = listLabor.getLaborname();
+                    boolean validateLabor = dao.getLabor(laborcode, listLabor);
+                    if (validateLabor) {
+                        LogUtil.info(getClass().getName(), "Laborcode: " + listLabor.getLaborcode() + ", Laborname: " + listLabor.getLaborname());
+                    /**
+                     * laborcode ada di table labor 
+                     */
+                        if (updatedTemp) {
+                            dao.updateLabor(laborcode, laborname, wonum);
+                        /**
+                         * update c_laborcode dan c_laborname di table app_fd_workorder
+                         */
+                            dao.updateLaborWorkOrder(laborcode, laborname, wonum);
+                        }
+
+                        String statusHeaders = "200";
+                        String statusRequest = "Success";
+                        JSONObject response = new JSONObject();
+                        JSONObject data = new JSONObject();
+                        response.put("status", statusHeaders);
+                        response.put("message", statusRequest);
+                        response.put("response", data);
+                        data.put("WONUM", wonum);
+                        data.put("LABORCODE", laborcode);
+                        data.put("LABORNAME", laborname);
+                        response.writeJSONString(hsr1.getWriter());
+                    } else {
+                        LogUtil.info(getClass().getName(), "Laborcode and laborname is not found!");
+                    /**
+                     * laborcode tidak ada di table labor
+                     */
+                        String statusHeaders = "422";
+                        String statusRequest = "Failed";
+                        JSONObject response = new JSONObject();
+                        JSONObject data = new JSONObject();
+                        response.put("status", statusHeaders);
+                        response.put("message", statusRequest);
+                        response.put("response", data);
+                        data.put("message", "Laborcode and laborname is not found!");
+                        response.writeJSONString(hsr1.getWriter());
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(UpdateAssignmentEbis.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());

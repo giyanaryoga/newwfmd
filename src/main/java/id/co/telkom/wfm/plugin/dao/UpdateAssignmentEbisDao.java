@@ -22,7 +22,8 @@ import org.json.simple.JSONObject;
  * @author User
  */
 public class UpdateAssignmentEbisDao {
-    public String getLabor(String laborcode, ListLabor listLabor) throws SQLException {
+    public boolean getLabor(String laborcode, ListLabor listLabor) throws SQLException {
+        boolean validateLabor = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT l.c_laborid, l.c_laborcode, l.c_status, l.c_supervisor, p.c_displayname "
                 + "FROM app_fd_labor l, app_fd_person2 p WHERE l.c_personid = p.c_personid and c_laborcode = ? ";
@@ -36,17 +37,18 @@ public class UpdateAssignmentEbisDao {
                 listLabor.setLaborcode(laborcode);
                 listLabor.setStatusLabor(rs.getString("c_status"));
                 listLabor.setSupervisor(rs.getString("c_supervisor"));
-                listLabor.setLaborname("c_displayname");
+                listLabor.setLaborname(rs.getString("c_displayname"));
             } else con.rollback();
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close();
         }
-        return laborcode;
+        return validateLabor;
     }
     
-    public void updateLaborTemp(String wonum, String laborcodetemp, String craft, String amcrewtype, String amcrew) throws SQLException {
+    public boolean updateLaborTemp(String wonum, String laborcodetemp, String craft, String amcrewtype, String amcrew) throws SQLException {
+        boolean updateLabor = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
         update
@@ -67,6 +69,7 @@ public class UpdateAssignmentEbisDao {
             ps.setString(5, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
+                updateLabor = true;
                 LogUtil.info(getClass().getName(), wonum + " | Laborcode update temp:  " + laborcodetemp);
             }
         } catch (SQLException e) {
@@ -74,9 +77,10 @@ public class UpdateAssignmentEbisDao {
         } finally {
             ds.getConnection().close();
         }
+        return updateLabor;
     }
     
-    public void updateLaborTemp(String laborcode, String laborname, String wonum) throws SQLException {
+    public void updateLabor(String laborcode, String laborname, String wonum) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
         update
@@ -97,6 +101,34 @@ public class UpdateAssignmentEbisDao {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Laborcode update :  " + laborcode);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateLaborWorkOrder(String laborcode, String laborname, String wonum) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_workorder SET ")
+            .append("c_laborcode = ?, ")
+            .append("c_laborname = ?, ")
+            .append("c_datemodified = sysdate ")
+            .append("WHERE ")
+            .append("c_wonum = ?")
+            .append("AND c_woclass = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, laborcode);
+            ps.setString(2, laborname);
+            ps.setString(3, wonum);
+            ps.setString(4, "ACTIVITY");
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Updated Workorder Laborcode :  " + laborcode);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
