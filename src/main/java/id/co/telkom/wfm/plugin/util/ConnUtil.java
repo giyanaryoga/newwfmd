@@ -78,7 +78,9 @@ public class ConnUtil {
                         throwable.addSuppressed(throwable1);
                     }
                 throw throwable;
-            }  
+            } finally {
+                ds.getConnection().close();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }    

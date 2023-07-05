@@ -6,6 +6,7 @@ package id.co.telkom.wfm.plugin.kafka;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -32,7 +33,7 @@ public class ProducerRunnable implements Runnable {
         this.key = key;
         this.message = message;
         //Create a kafka producer from client config
-        kafkaProducer = new KafkaProducer<String, String> (producerProperties);
+        kafkaProducer = new KafkaProducer<> (producerProperties);
         try {
             // Checking for topic existence.
             // If the topic does not exist, the kafkaProducer will retry for about 60 secs
@@ -54,7 +55,7 @@ public class ProducerRunnable implements Runnable {
             while(!closing){
                 try{
                     //If a partition is not specified, the client will use the default partitioner to choose one.
-                    ProducerRecord<String, String> record = new ProducerRecord<String, String>(topic, key, message);
+                    ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, message);
                     //Send record asynchronously
                     Future<RecordMetadata> future = kafkaProducer.send(record);
                     // Synchronously wait for a response from Event Streams / Kafka on every message produced.
@@ -64,7 +65,7 @@ public class ProducerRunnable implements Runnable {
                     shutdown();
                 } catch (final InterruptedException e) {
                     LogUtil.warn(getClass().getName(), "Producer closing - caught exception: " + e);
-                } catch (final Exception e) {
+                } catch (final ExecutionException | java.util.concurrent.TimeoutException e) {
                     LogUtil.error(getClass().getName(), e, "Sleeping for 5s - Producer has caught : " + e);
                     try {
                         Thread.sleep(5000); // Longer sleep before retrying
