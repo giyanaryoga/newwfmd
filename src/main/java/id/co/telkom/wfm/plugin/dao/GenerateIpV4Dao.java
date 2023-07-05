@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import javax.sql.DataSource;
@@ -32,21 +33,21 @@ public class GenerateIpV4Dao {
     // ==========================
     // Insert Integration History
     //===========================
-    public void insertIntegrationHistory(String wonum, String apiType, String request, String response) throws SQLException {
-        // Generate UUID
-        String uuId = UuidGenerator.getInstance().getUuid();
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String integrationHistorySet = "INSERT INTO INTEGRATION_HISTORY (WFMWOID, INTEGRATION_TYPE, PARAM1, REQUEST, RESPONSE, EXEC_DATE) VALUES (?, ?, ?, ?, ?, ?)";
-        
-        try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement(integrationHistorySet.toString())) {
-            ps.setString(1, uuId);
-            ps.setString(2, wonum);
-            ps.setString(3, "RESRVIP4PE");
-            ps.setString(4, apiType);
-            ps.setString(5, request);
-            ps.setString(6, response);
-        }
-    }
+//    public void insertIntegrationHistory(String wonum, String apiType, String request, String response) throws SQLException {
+//        // Generate UUID
+//        String uuId = UuidGenerator.getInstance().getUuid();
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String integrationHistorySet = "INSERT INTO INTEGRATION_HISTORY (WFMWOID, INTEGRATION_TYPE, PARAM1, REQUEST, RESPONSE, EXEC_DATE) VALUES (?, ?, ?, ?, ?, ?)";
+//        
+//        try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement(integrationHistorySet.toString())) {
+//            ps.setString(1, uuId);
+//            ps.setString(2, wonum);
+//            ps.setString(3, "RESRVIP4PE");
+//            ps.setString(4, apiType);
+//            ps.setString(5, request);
+//            ps.setString(6, response);
+//        }
+//    }
     
     // ==========================================
     // Call API Surrounding Generate STP Net Loc
@@ -68,7 +69,7 @@ public class GenerateIpV4Dao {
                 + "        </ent:reserveServiceIpSubnetRequest>\n"
                 + "    </soapenv:Body>\n"
                 + "</soapenv:Envelope>";
-        String urlres = "http://10.60.170.55:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
+        String urlres = "http://10.6.28.132:7001/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
         URL url = new URL(urlres);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoOutput(true);
@@ -103,46 +104,48 @@ public class GenerateIpV4Dao {
         
         JSONObject envelope = temp.getJSONObject("env:Envelope").getJSONObject("env:Body");
         JSONObject subnetReserved = envelope.getJSONObject("ent:reserveServiceIpSubnetResponse").getJSONObject("SubnetReserved");
-        String gateawayAddress = subnetReserved.getString("GateawayAddress");
+        String gateawayAddress = subnetReserved.getString("GatewayAddress");
         String serviceIp = subnetReserved.getString("ServiceIp");
-        String ipdDomain = subnetReserved.getString("IpDomain");
+        String ipDomain = subnetReserved.getString("IpDomain");
         String networkAddress = subnetReserved.getString("NetworkAddress");
         String reservationID = subnetReserved.getString("reservationID");
         String vrf = subnetReserved.getString("VRF");
-        String subnetMasks = subnetReserved.getString("SubnetMask");
+        String subnetMask = subnetReserved.getString("SubnetMask");
         String netMask = subnetReserved.getString("NetMask");
+        
+        LogUtil.info(this.getClass().getName(), "DATA : " + gateawayAddress + serviceIp + ipDomain + networkAddress + reservationID + vrf + subnetMask + netMask );
 
         // Checking if attr_name != null
-        String uuId = UuidGenerator.getInstance().getUuid();
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String getWan = "SELECT C_ATTRIBUTE_NAME FROM APP_FD_WORKORDERSPEC afw where C_WONUM = '?' AND C_ATTRIBUTE_NAME IN ('WAN-GATEWAYADDRESS', 'WAN-IPDOMAIN', 'WAN-NETWORKADDRESS', 'WAN-RESERVATIONID', 'WAN-SERVICEIP', 'WAN-SUBNETMASK')";
-        
-        HashMap<String, String> data = new HashMap<String, String>();
-        if (getWan != null) {
-            if("C_ATTRIBUTE" == "WAN-GATEAWAYADDRESS") {
-//                data.put("", vrf)
-            }
-            if("C_ATTRIBUTE" == "WAN-IPDOMAIN") {
-                
-            }
-            if("C_ATTRIBUTE" == "WAN-NETWORKADDRESS") {
-                
-            }
-            if("C_ATTRIBUTE" == "WAN-RESERVATIONID") {
-                
-            }
-            if("C_ATTRIBUTE" == "WAN-SERVICEIP") {
-                
-            }
-            if("C_ATTRIBUTE" == "WAN-SUBNETMASK") {
-                
-            }
-        }
-//            data.put("description", name);
-//            data.put("attrName", "STP_NETWORKLOCATION");
-//            data.put("attrType", type);
-//
-//            LogUtil.info(getClass().getName(), "get response data: " + data);
+//        JSONObject resultObj = new JSONObject();
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String query = "SELECT C_ATTRIBUTE_NAME FROM APP_FD_WORKORDERSPEC afw where C_WONUM = '?' AND C_ATTRIBUTE_NAME IN ('WAN-GATEWAYADDRESS', 'WAN-IPDOMAIN', 'WAN-NETWORKADDRESS', 'WAN-RESERVATIONID', 'WAN-SERVICEIP', 'WAN-SUBNETMASK')";
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(query)) {
+//            ps.setString(1, wonum);
+//            ResultSet rs = ps.executeQuery();
+//            while (rs.next()) {
+//                resultObj.put(rs.getString("C_ATTRIBUTE_NAME"), rs.getString(""));
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//        
+//        HashMap<String, String> data = new HashMap<String, String>();
+//        if (query != null) {
+//            if("C_ATTRIBUTE" == "WAN-GATEAWAYADDRESS")
+//                data.put("C_ALNVALUE", gateawayAddress);
+//            if("C_ATTRIBUTE" == "WAN-IPDOMAIN")
+//                data.put("C_ALNVALUE", ipDomain);
+//            if("C_ATTRIBUTE" == "WAN-NETWORKADDRESS") 
+//                data.put("C_ALNVALUE", networkAddress);
+//            if("C_ATTRIBUTE" == "WAN-RESERVATIONID") 
+//                data.put("C_ALNVALUE", reservationID);
+//            if("C_ATTRIBUTE" == "WAN-SERVICEIP") 
+//                data.put("C_ALNVALUE", serviceIp);
+//            if("C_ATTRIBUTE" == "WAN-SUBNETMASK") 
+//                data.put("C_ALNVALUE", subnetMask);
 //        }
 //        return data;
     }
@@ -176,7 +179,7 @@ public class GenerateIpV4Dao {
         }
         String RequestAll = request + request1 + request2 + request3;
 
-        String urlres = "http://10.60.170.55:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
+        String urlres = "http://10.6.28.132:7001/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
         URL url = new URL(urlres);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoOutput(true);

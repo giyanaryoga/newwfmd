@@ -59,7 +59,7 @@ public class GenerateStpNetLocDao {
                 + "      </ent:findDeviceByCriteriaRequest>\n"
                 + "   </soapenv:Body>\n"
                 + "</soapenv:Envelope>";
-        String urlres = "http://10.60.170.55:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
+        String urlres = "http://10.6.28.132:7001/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
         URL url = new URL(urlres);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoOutput(true);

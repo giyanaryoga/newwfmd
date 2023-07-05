@@ -140,7 +140,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             if (nextAssign) {
                                 hsr1.setStatus(200);
                             }
-                            updateTaskStatusEbisDao.updateTask(wonum, status);
+//                            updateTaskStatusEbisDao.updateTask(wonum, status);
                         } else {
                             // Define the next move
                             final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
