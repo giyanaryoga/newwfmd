@@ -95,36 +95,35 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
-                JSONObject body = (JSONObject) data_obj.get("Request");
+//                JSONObject body = (JSONObject) data_obj.get("Request");
 
                 //Store param
-                String wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
-                String taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
-                String craft = (body.get("craft") == null ? "" : body.get("craft").toString());
-                String crewType = (body.get("amcrewtype") == null ? "" : body.get("amcrewtype").toString());
-                String crew = (body.get("amcrew") == null ? "" : body.get("amcrew").toString());
-                String laborcode = (body.get("laborcode") == null ? "" : body.get("laborcode").toString());
+                String wonum = (data_obj.get("wonum") == null ? "" : data_obj.get("wonum").toString());
+                String taskId = (data_obj.get("taskId") == null ? "" : data_obj.get("taskId").toString());
+//                String craft = (body.get("craft") == null ? "" : body.get("craft").toString());
+//                String crewType = (body.get("amcrewtype") == null ? "" : body.get("amcrewtype").toString());
+//                String crew = (body.get("amcrew") == null ? "" : body.get("amcrew").toString());
+                String laborcode = (data_obj.get("laborcode") == null ? "" : data_obj.get("laborcode").toString());
 //                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 //                String currentDate = LocalDateTime.now().format(currentDateFormat);
                 UpdateAssignmentEbisDao dao = new UpdateAssignmentEbisDao();
-                ListLabor listLabor = new ListLabor();
+//                ListLabor listLabor = new ListLabor();
                 try {
-                    boolean updatedTemp = dao.updateLaborTemp(wonum, laborcode, craft, crewType, crew);
+//                    boolean updatedTemp = dao.updateLaborTemp(wonum, laborcode);
 //                    dao.getLabor(laborcode, listLabor);
-                    String laborname = listLabor.getLaborname();
-                    boolean validateLabor = dao.getLabor(laborcode, listLabor);
-                    if (validateLabor) {
-                        LogUtil.info(getClass().getName(), "Laborcode: " + listLabor.getLaborcode() + ", Laborname: " + listLabor.getLaborname());
-                    /**
-                     * laborcode ada di table labor 
-                     */
-                        if (updatedTemp) {
-                            dao.updateLabor(laborcode, laborname, wonum);
+                    boolean validLabor = dao.validateLabor(laborcode);
+                    if (validLabor) {
+                        dao.getLaborName(laborcode);
+                        String laborname = dao.getLaborName(laborcode);
+                        LogUtil.info(getClass().getName(), "Laborcode: " + laborcode + ", Laborname: " + laborname);
+                        /**
+                         * laborcode ada di table labor 
+                         */
+                        dao.updateLabor(laborcode, laborname, wonum);
                         /**
                          * update c_laborcode dan c_laborname di table app_fd_workorder
                          */
-                            dao.updateLaborWorkOrder(laborcode, laborname, wonum);
-                        }
+                        dao.updateLaborWorkOrder(laborcode, laborname, wonum);
 
                         String statusHeaders = "200";
                         String statusRequest = "Success";
@@ -136,7 +135,7 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                         data.put("WONUM", wonum);
                         data.put("LABORCODE", laborcode);
                         data.put("LABORNAME", laborname);
-                        response.writeJSONString(hsr1.getWriter());
+                        response.writeJSONString(hsr1.getWriter());             
                     } else {
                         LogUtil.info(getClass().getName(), "Laborcode and laborname is not found!");
                     /**
