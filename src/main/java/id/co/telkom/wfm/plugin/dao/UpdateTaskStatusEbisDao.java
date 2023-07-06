@@ -9,8 +9,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -22,37 +20,36 @@ import org.json.simple.JSONObject;
  * @author ASUS
  */
 public class UpdateTaskStatusEbisDao {
-    
-    public boolean updateTask(String wonum, String status) throws SQLException{
+
+    public boolean updateTask(String wonum, String status) throws SQLException {
         boolean updateTask = false;
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_workorder SET c_status = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
-        try(Connection con = ds.getConnection(); 
-            PreparedStatement ps = con.prepareStatement(update)) {
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, status);
             ps.setString(2, wonum);
             int exe = ps.executeUpdate();
-            if (exe > 0){
+            if (exe > 0) {
                 LogUtil.info(getClass().getName(), "update task berhasil");
                 updateTask = true;
             } else {
                 LogUtil.info(getClass().getName(), "update task gagal");
             }
         } catch (Exception e) {
-          LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
-          ds.getConnection().close();
+            ds.getConnection().close();
         }
         return updateTask;
     }
-    
+
     public String nextMove(String parent, String nextTaskId) throws SQLException {
         String nextMove = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_wosequence FROM APP_FD_WOACTIVITY WHERE c_parent = ? AND c_taskId = ? AND c_wfmdoctype = 'NEW' AND C_WOSEQUENCE IN ('10','20','30','40','50','60')";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wosequence IN ('10','20','30','40','50','60') AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
-        try(Connection con = ds.getConnection(); 
-            PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
             ps.setString(2, nextTaskId);
             ResultSet rs = ps.executeQuery();
@@ -69,41 +66,41 @@ public class UpdateTaskStatusEbisDao {
                 LogUtil.info(getClass().getName(), "next move: " + nextMove);
             }
         } catch (SQLException e) {
-          LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
-          ds.getConnection().close();
+            ds.getConnection().close();
         }
         return nextMove;
     }
-    
-    public boolean nextAssign(String parent, String nextTaskId) throws SQLException{
+
+    public boolean nextAssign(String parent, String nextTaskId) throws SQLException {
         boolean nextAssign = false;
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = sysdate WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
-        try(Connection con = ds.getConnection(); 
-            PreparedStatement ps = con.prepareStatement(update)) {
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, parent);
             ps.setString(2, nextTaskId);
             int exe = ps.executeUpdate();
-            if (exe > 0){
+            if (exe > 0) {
                 LogUtil.info(getClass().getName(), "next assign berhasil");
                 nextAssign = true;
             } else {
-              LogUtil.info(getClass().getName(), "next assign gagal");
+                LogUtil.info(getClass().getName(), "next assign gagal");
             }
-        } catch(Exception e){
+        } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
-          ds.getConnection().close();
+            ds.getConnection().close();
         }
         return nextAssign;
     }
-    
+
     public void updateParentStatus(String wonum, String status, String statusDate) throws SQLException {
         String update = "UPDATE app_fd_workorder SET c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        try(Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(update.toString())) {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
             int index = 0;
             ps.setString(1 + index, status);
             ps.setString(2 + index, statusDate);
@@ -117,20 +114,19 @@ public class UpdateTaskStatusEbisDao {
         } finally {
             ds.getConnection().close();
         }
-        
-    } 
-    
-    public JSONObject getCompleteJson (String parent) throws SQLException {
+    }
+
+    public JSONObject getCompleteJson(String parent) throws SQLException {
         JSONArray itemArrayObj = new JSONArray();
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status, c_wonum FROM app_fd_workorder WHERE c_parent = ? AND c_wosequence IN ('10', '20', '30', '40', '50', '60') AND c_wfmdoctype = 'NEW'";
         try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                JSONObject itemObj = buildTaskAttribute (rs.getString("c_wonum"), rs.getString("c_detailactcode"), 
-                        rs.getString("c_wosequence"), rs.getString("c_correlation"), 
+                JSONObject itemObj = buildTaskAttribute(rs.getString("c_wonum"), rs.getString("c_detailactcode"),
+                        rs.getString("c_wosequence"), rs.getString("c_correlation"),
                         rs.getString("c_status"));
                 itemArrayObj.add(itemObj);
             }
@@ -140,21 +136,21 @@ public class UpdateTaskStatusEbisDao {
             ds.getConnection().close();
         }
         // add the item array
-        JSONObject completeJson = buildTaskJson (parent, itemArrayObj);
+        JSONObject completeJson = buildTaskJson(parent, itemArrayObj);
         //return complete json
         return completeJson;
     }
-    
-    private JSONObject buildTaskJson (String wonum, Object itemArrayObj) throws SQLException {
+
+    private JSONObject buildTaskJson(String wonum, Object itemArrayObj) throws SQLException {
         JSONObject milestoneInput = new JSONObject();
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_jmscorrelationid, c_worevisionno, c_status  FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-               //Milestone input
+                //Milestone input
                 milestoneInput.put("JMSCorrelationID", rs.getString("c_jmscorrelationid"));
                 milestoneInput.put("WFMWOId", wonum);
                 milestoneInput.put("WoRevisionNo", rs.getString("c_worevisionno"));
@@ -166,66 +162,75 @@ public class UpdateTaskStatusEbisDao {
         } finally {
             ds.getConnection().close();
         }
-        
-       // Wrapper
+
+        // XML Wrapper Configuration
+        JSONObject attrs = new JSONObject();
+        attrs.put("xmlns:soapenv", "http://schemas.xmlsoap.org/soap/envelope/");
+        attrs.put("xmlns:mil", "http://eaiprdis1/telkom/bie/newoss/integration/ws/milestoneWorkForce");
+        JSONObject header = new JSONObject();
+        header.put("@ns", "soapenv");
+        //Wrapper
         JSONObject milestoneWorkForce = new JSONObject();
         milestoneWorkForce.put("MilestoneInput", milestoneInput);
-        
+        milestoneWorkForce.put("@ns", "mil");
+        //
         JSONObject body = new JSONObject();
         body.put("milestoneWorkForce", milestoneWorkForce);
-        
+        body.put("@ns", "soapenv");
+        //
         JSONObject envelope = new JSONObject();
-        envelope.put("Header", "");
+        envelope.put("Header", header);
         envelope.put("Body", body);
-        
+        envelope.put("@ns", "soapenv");
+        envelope.put("attrs", attrs);
+        //
         JSONObject completeJson = new JSONObject();
         completeJson.put("Envelope", envelope);
-        
+        //End of wrapper
         return completeJson;
     }
-    private JSONObject getListAttribute (String wonum) throws SQLException {
-//        JSONObject attributeObject = new JSONObject();
+
+    private JSONObject getListAttribute(String wonum) throws SQLException {
         JSONArray listAttr = new JSONArray();
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT C_ALNVALUE, C_ATTRIBUTE_NAME FROM APP_FD_WORKORDERSPEC a, APP_FD_WORKORDER b WHERE a.C_WONUM = b.C_WONUM AND a.C_ISSHARED = 1 AND b.C_WOCLASS = 'ACTIVITY' AND a.C_WONUM = ?";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT C_ALNVALUE, C_ATTRIBUTE_NAME, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
         try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-                ps.setString(1, wonum);
-                ResultSet rs = ps.executeQuery();
-                while (rs.next()) {
-                        JSONObject attributeObject = new JSONObject();
-                        attributeObject.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
-                        attributeObject.put("Value", rs.getString("C_ALNVALUE"));
-                        listAttr.add(attributeObject);
-                }
-            } catch (SQLException e) {
-                LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-            } finally {
-                ds.getConnection().close();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject attributeObject = new JSONObject();
+                attributeObject.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
+                attributeObject.put("Value", rs.getString("C_ALNVALUE"));
+                listAttr.add(attributeObject);
             }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
         JSONObject attributeObj = new JSONObject();
         attributeObj.put("attribute", listAttr);
-        
+
         return attributeObj;
     }
-    
-    private JSONObject buildTaskAttribute (String wonum, String name, String sequence, String correlation, String status) throws SQLException{
+
+    private JSONObject buildTaskAttribute(String wonum, String name, String sequence, String correlation, String status) throws SQLException {
         JSONObject itemObj = new JSONObject();
         itemObj.put("Sequence", sequence);
         itemObj.put("Name", name);
         itemObj.put("Correlation", correlation);
         itemObj.put("Status", status);
-        
+
         // Wrapper
         JSONObject attributes = new JSONObject();
         attributes.put("Attributes", getListAttribute(wonum));
-        
+
         JSONObject serviceDetail = new JSONObject();
         serviceDetail.put("ServiceDetail", attributes);
-        
+
         itemObj.put("ServiceDetails", serviceDetail);
         return itemObj;
     }
-   
+
 }

@@ -155,7 +155,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                                     if (updateTask) {
                                         hsr1.setStatus(200);
-                                    }
+                                    }   
                                     //Create response
                                     JSONObject dataRes = new JSONObject();
                                     dataRes.put("wonum", parent);
