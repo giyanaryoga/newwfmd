@@ -41,72 +41,80 @@ public class GenerateStpNetLocDao {
     //===========================================
     public HashMap<String, String> callGenerateStpNetLoc(String latitude, String longitude) throws JSONException, IOException, MalformedURLException, Exception {
         // Request Structure
-        String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
-                + "   <soapenv:Header/>\n"
-                + "   <soapenv:Body>\n"
-                + "      <ent:findDeviceByCriteriaRequest>\n"
-                + "       <!--Optional:-->\n"
-                + "         <ServiceLocation>\n"
-                + "            <!--Optional:-->\n"
-                + "            <latitude>" + latitude + "</latitude>\n"
-                + "            <longitude>" + longitude + "</longitude>\n"
-                + "         </ServiceLocation>\n"
-                + "         <DeviceInfo>\n"
-                + "            <role>STP</role>\n"
-                + "            <!--Optional:-->\n"
-                + "            <detail>false</detail>\n"
-                + "         </DeviceInfo>\n"
-                + "      </ent:findDeviceByCriteriaRequest>\n"
-                + "   </soapenv:Body>\n"
-                + "</soapenv:Envelope>";
-        String urlres = "http://10.6.28.132:7001/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
-        URL url = new URL(urlres);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setDoOutput(true);
-        connection.setRequestMethod("POST");
-        // Set Headers
-        connection.setRequestProperty("Accept", "application/xml");
-        connection.setRequestProperty("Content-Type", "text/xml; charset=UTF-8");
-        try ( // Write XML
-                OutputStream outputStream = connection.getOutputStream()) {
-            byte[] b = request.getBytes("UTF-8");
-            outputStream.write(b);
-            outputStream.flush();
-        }
-
-        StringBuilder response;
-        try ( // Read XML
-                InputStream inputStream = connection.getInputStream()) {
-            byte[] res = new byte[2048];
-            int i = 0;
-            response = new StringBuilder();
-            while ((i = inputStream.read(res)) != -1) {
-                response.append(new String(res, 0, i));
+        try {
+            String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
+                    + "   <soapenv:Header/>\n"
+                    + "   <soapenv:Body>\n"
+                    + "      <ent:findDeviceByCriteriaRequest>\n"
+                    + "       <!--Optional:-->\n"
+                    + "         <ServiceLocation>\n"
+                    + "            <!--Optional:-->\n"
+                    + "            <latitude>" + latitude + "</latitude>\n"
+                    + "            <longitude>" + longitude + "</longitude>\n"
+                    + "         </ServiceLocation>\n"
+                    + "         <DeviceInfo>\n"
+                    + "            <role>STP</role>\n"
+                    + "            <!--Optional:-->\n"
+                    + "            <detail>false</detail>\n"
+                    + "         </DeviceInfo>\n"
+                    + "      </ent:findDeviceByCriteriaRequest>\n"
+                    + "   </soapenv:Body>\n"
+                    + "</soapenv:Envelope>";
+            String urlres = "http://10.6.28.132:7001/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
+            URL url = new URL(urlres);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            // Set Headers
+            connection.setRequestProperty("Accept", "application/xml");
+            connection.setRequestProperty("Content-Type", "text/xml; charset=UTF-8");
+            try ( // Write XML
+                    OutputStream outputStream = connection.getOutputStream()) {
+                byte[] b = request.getBytes("UTF-8");
+                outputStream.write(b);
+                outputStream.flush();
             }
-        }
-        StringBuilder result = response;
-        JSONObject temp = XML.toJSONObject(result.toString());
-        System.out.println("temp " + temp.toString());
-        LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
 
-        // Parsing data response
-        LogUtil.info(this.getClass().getName(), "############ Parsing Data Response ##############");
+            StringBuilder response;
+            try ( // Read XML
+                    InputStream inputStream = connection.getInputStream()) {
+                byte[] res = new byte[2048];
+                int i = 0;
+                response = new StringBuilder();
+                while ((i = inputStream.read(res)) != -1) {
+                    response.append(new String(res, 0, i));
+                }
+            }
+            StringBuilder result = response;
+            JSONObject temp = XML.toJSONObject(result.toString());
+            System.out.println("temp " + temp.toString());
+            LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
+
+            // Parsing data response
+            LogUtil.info(this.getClass().getName(), "############ Parsing Data Response ##############");
 
 //            String envelope = temp.getJSONObject("env:Envelope").getString("env:Body");
-        JSONObject envelope = temp.getJSONObject("env:Envelope").getJSONObject("env:Body");
-        JSONObject device = envelope.getJSONObject("ent:findDeviceByCriteriaResponse").getJSONObject("DeviceInfo");
-        String name = device.getString("name");
-        String type = device.getString("networkLocation");
-        
-        HashMap<String, String> data = new HashMap<String, String>();
-        if (device != null) {
-            data.put("description", name);
-            data.put("attrName", "STP_NETWORKLOCATION");
-            data.put("attrType", type);
-
-            LogUtil.info(getClass().getName(), "get response data: " + data);
+            JSONObject envelope = temp.getJSONObject("env:Envelope").getJSONObject("env:Body");
+            JSONObject device = envelope.getJSONObject("ent:findDeviceByCriteriaResponse");
+            if (device.equals("")) {
+                LogUtil.info(getClass().getName(), "No Network Location found.");
+            } else {
+                JSONObject deviceInfo = device.getJSONObject("DeviceInfo");
+                String name = deviceInfo.getString("name");
+                String type = deviceInfo.getString("networkLocation");
+                HashMap<String, String> data = new HashMap<String, String>();
+                if (device != null) {
+                    data.put("description", name);
+                    data.put("attrName", "STP_NETWORKLOCATION");
+                    data.put("attrType", type);
+                    LogUtil.info(getClass().getName(), "get response data: " + data);
+                }
+                return data;
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Call Failed." + e);
         }
-        return data;
+        return null;
     }
 
     //==========================================
@@ -133,9 +141,12 @@ public class GenerateStpNetLocDao {
 
     public String moveFirst(String wonum) throws SQLException {
         String moveFirst = "";
+//        String insert = "INSERT INTO app_fd_tk_deviceattribute (id, c_ref_num, c_attr_name, c_attr_type, description) VALUES (?, ?, ?, ?, ?)";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ? AND c_attr_name in ('STP_NETWORKLOCATION')";
-        try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection con = ds.getConnection();
+                //                PreparedStatement stmt = con.prepareStatement(insert);
+                PreparedStatement ps = con.prepareStatement(query);) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs != null) {
@@ -154,6 +165,13 @@ public class GenerateStpNetLocDao {
         return moveFirst;
     }
 
+//    public void datas(PreparedStatement ps, String refNum, String attrName, String type, String description) throws SQLException {
+//        ps.setString(1, UuidGenerator.getInstance().getUuid());
+//        ps.setString(2, refNum);
+//        ps.setString(2, attrName);
+//        ps.setString(2, type);
+//        ps.setString(2, "STP_NETWORKLOCATION");
+//    }
     public void insertToDeviceTable(String wonum, HashMap<String, String> data) throws Throwable {
         // Generate UUID
         String uuId = UuidGenerator.getInstance().getUuid();
@@ -162,6 +180,7 @@ public class GenerateStpNetLocDao {
         insert
                 .append("INSERT INTO app_fd_tk_deviceattribute")
                 .append("(")
+                .append("id,")
                 .append("c_ref_num,")
                 .append("c_attr_name,")
                 .append("c_attr_type,")
@@ -172,7 +191,8 @@ public class GenerateStpNetLocDao {
                 .append("?,")
                 .append("?,")
                 .append("?,")
-                .append("STP_NETWORKLOCATION");
+                .append("?,")
+                .append("?");
 
         try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement(insert.toString())) {
             ps.setString(1, uuId);

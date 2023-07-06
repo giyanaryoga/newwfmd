@@ -114,22 +114,22 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                 HashMap<String, String> data = new HashMap<String, String>();
                 
                 try {
-//                    data = dao.callGenerateStpNetLoc(latitude, longitude);
+//                      dao.callGenerateStpNetLoc(latitude, longitude);
                       dao.callGenerateStpNetLoc(latitude, longitude);
                       dao.moveFirst(wonum);
-//                    dao.insertToDeviceTable(wonum, data);
-                    if(data == null) {
-                        JSONObject res1 = new JSONObject();
-                        res1.put("code", 404);
-                        res1.put("message", "No Device with the locations");
-                        res1.writeJSONString(hsr1.getWriter());
-                    } else {
-                        JSONObject res1 = new JSONObject();
-                        res1.put("code", 200);
-                        res1.put("message", "update data successfully");
-                        res1.put("data", data);
-                        res1.writeJSONString(hsr1.getWriter());
-                    }
+                      dao.insertToDeviceTable(wonum, data);
+//                    if(data == null) {
+//                        JSONObject res1 = new JSONObject();
+//                        res1.put("code", 404);
+//                        res1.put("message", "No Device with the locations");
+//                        res1.writeJSONString(hsr1.getWriter());
+//                    } else {
+//                        JSONObject res1 = new JSONObject();
+//                        res1.put("code", 200);
+//                        res1.put("message", "update data successfully");
+//                        res1.put("data", data);
+//                        res1.writeJSONString(hsr1.getWriter());
+//                    }
                 } catch (Exception ex) {
                     Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (Throwable ex) {

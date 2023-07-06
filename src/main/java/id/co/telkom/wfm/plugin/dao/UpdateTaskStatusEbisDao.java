@@ -26,7 +26,7 @@ public class UpdateTaskStatusEbisDao {
     public boolean updateTask(String wonum, String status) throws SQLException{
         boolean updateTask = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_status = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_status = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try(Connection con = ds.getConnection(); 
             PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, status);
@@ -37,7 +37,6 @@ public class UpdateTaskStatusEbisDao {
                 updateTask = true;
             } else {
                 LogUtil.info(getClass().getName(), "update task gagal");
-                updateTask = false;
             }
         } catch (Exception e) {
           LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -47,10 +46,11 @@ public class UpdateTaskStatusEbisDao {
         return updateTask;
     }
     
-    public boolean nextMove(String parent, String nextTaskId) throws SQLException {
-        boolean nextMove = false;
+    public String nextMove(String parent, String nextTaskId) throws SQLException {
+        String nextMove = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wosequence IN ('10','20','30','40','50','60') AND c_woclass = 'ACTIVITY'";
+//        String query = "SELECT c_wosequence FROM APP_FD_WOACTIVITY WHERE c_parent = ? AND c_taskId = ? AND c_wfmdoctype = 'NEW' AND C_WOSEQUENCE IN ('10','20','30','40','50','60')";
+        String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wosequence IN ('10','20','30','40','50','60') AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try(Connection con = ds.getConnection(); 
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
@@ -58,10 +58,14 @@ public class UpdateTaskStatusEbisDao {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 final String result = rs.getString("c_wosequence");
-                nextMove = !(result.equals("10") || result.equals("20") || result.equals("30") || result.equals("40") || result.equals("50") || result.equals("60"));
+                if (result.equals("10") || result.equals("20") || result.equals("30") || result.equals("40") || result.equals("50") || result.equals("60")) {
+                    nextMove = "ASSIGNTASK";
+                } else {
+                    nextMove = "COMPLETE";
+                }
                 LogUtil.info(getClass().getName(), "next move: " + nextMove);
             } else {
-                nextMove = true;
+                nextMove = "COMPLETE";
                 LogUtil.info(getClass().getName(), "next move: " + nextMove);
             }
         } catch (SQLException e) {
@@ -95,29 +99,12 @@ public class UpdateTaskStatusEbisDao {
         return nextAssign;
     }
     
-    public void updateParentStatus(String wonum, String status, String statusDate, String jmsCorr) throws SQLException {
-        StringBuilder update = new StringBuilder();
-        update
-            .append("UPDATE ")
-            .append("app_fd_workorder ")
-            .append("SET ");
-        if (!jmsCorr.equals("")) {
-            update.append("c_jmscorrelationid = ?, ");
-        }
-        update
-            .append("c_status = ?, ")
-            .append("c_statusdate = ?, ")
-            .append("dateModified = sysdate ")
-            .append("WHERE ")
-            .append("c_wonum = ?");
+    public void updateParentStatus(String wonum, String status, String statusDate) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             int index = 0;
-            if(!jmsCorr.equals("")){
-                index++;
-                ps.setString(index, jmsCorr);
-            }
             ps.setString(1 + index, status);
             ps.setString(2 + index, statusDate);
             ps.setString(3 + index, wonum);
