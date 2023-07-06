@@ -110,21 +110,29 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 int nextTaskId = Integer.parseInt(taskId) + 10;
                 if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) {
                     //Update status
-                    UpdateTaskStatusEbisDao updateTaskStatusEbisDao = new UpdateTaskStatusEbisDao();
+                    UpdateTaskStatusEbisDao updateTaskStatus = new UpdateTaskStatusEbisDao();
                     if ("STARTWA".equals(body.get("status"))) {
-                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                        final boolean updateTask = updateTaskStatus.updateTask(wonum, status);
                         if (updateTask) {
                             hsr1.setStatus(200);
+                            JSONObject res = new JSONObject();
+                            res.put("code", "200");
+                            res.put("status", status);
+                            res.put("wonum", wonum);
+                            res.put("message", "Successfully update status");
+                            res.writeJSONString(hsr1.getWriter());
+                        } else {
+                            hsr1.setStatus(422);
+                            JSONObject res = new JSONObject();
+                            res.put("code", "422");
+                            res.put("status", status);
+                            res.put("wonum", wonum);
+                            res.put("message", "Failed update status");
+                            res.writeJSONString(hsr1.getWriter());
                         }
-                        JSONObject res = new JSONObject();
-                        res.put("code", "200");
-                        res.put("status", status);
-                        res.put("wonum", wonum);
-                        res.put("message", "Successfully update status");
-                        res.writeJSONString(hsr1.getWriter());
                     } else if ("COMPWA".equals(body.get("status"))) {
                         // update task status
-                        updateTaskStatusEbisDao.updateTask(wonum, status);
+//                        updateTaskStatus.updateTask(wonum, status);
                         if (description.equals("Registration Suplychain")) {
 
                             // Start of 'Install NTE'
@@ -136,23 +144,26 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             res.put("message", "Success");
                             res.writeJSONString(hsr1.getWriter());
                             
-                            final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
+                            final boolean nextAssign = updateTaskStatus.nextAssign(parent, Integer.toString(nextTaskId));
+                            final boolean updateStatus = updateTaskStatus.updateTask(wonum, status);
                             if (nextAssign) {
-                                hsr1.setStatus(200);
-                            }
-//                            updateTaskStatusEbisDao.updateTask(wonum, status);
-                        } else {
-                            // Define the next move
-                            final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
-
-                            if ("COMPLETE".equals(nextMove)) {
-                                try {
+                                if (updateStatus) {
                                     // Update parent status
-                                    updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate, "");
+                                    updateTaskStatus.updateParentStatus(parent, "COMPLETE", currentDate, "");
+                                    hsr1.setStatus(200);
+                                }
+                            }
+                        }
+                        // Define the next move
+                        final boolean nextMove = updateTaskStatus.nextMove(parent, Integer.toString(nextTaskId));
 
-                                    // update task status
-                                    updateTaskStatusEbisDao.updateTask(wonum, status);
-
+                        if (!nextMove) {
+                            try {
+                                // Update parent status
+                                updateTaskStatus.updateParentStatus(parent, "COMPLETE", currentDate, "");
+                                // update task status
+                                final boolean updateStatus = updateTaskStatus.updateTask(wonum, status);
+                                if (updateStatus) {
                                     //Create response
                                     JSONObject dataRes = new JSONObject();
                                     dataRes.put("wonum", parent);
@@ -164,26 +175,108 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     res.writeJSONString(hsr1.getWriter());
 
                                     //Build Response
-                                    JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
+                                    JSONObject data = updateTaskStatus.getCompleteJson(parent);
 
                                     // Response to Kafka
                                     String kafkaRes = data.toJSONString();
                                     KafkaProducerTool kaf = new KafkaProducerTool();
                                     kaf.generateMessage(kafkaRes, "WFM_MILESTONE", "");
-                                } catch (Exception e) {
-                                    LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
+                                } else {
+                                    //Create response
+                                    JSONObject dataRes = new JSONObject();
+                                    dataRes.put("wonum", parent);
+                                    dataRes.put("milestone", "STARTWORK");
+                                    JSONObject res = new JSONObject();
+                                    res.put("code", "422");
+                                    res.put("message", "Failed");
+                                    res.put("data", dataRes);
+                                    res.writeJSONString(hsr1.getWriter());
                                 }
-                            } else {
-                                //Give LABASSIGN to next task
-                                final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
-                                if (nextAssign) {
-                                    hsr1.setStatus(200);
-                                }
-                                updateTaskStatusEbisDao.updateTask(wonum, status);
+                            } catch (Exception e) {
+                                LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                             }
                         }
-
+                    } else {
+                        //Give LABASSIGN to next task
+                        final boolean nextAssign = updateTaskStatus.nextAssign(parent, Integer.toString(nextTaskId));
+                        if (nextAssign) {
+                            hsr1.setStatus(200);
+                        }
+                        updateTaskStatus.updateTask(wonum, status);
                     }
+                    
+//                    if ("STARTWA".equals(body.get("status"))) {
+//                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+//                        if (updateTask) {
+//                            hsr1.setStatus(200);
+//                        }
+//                        JSONObject res = new JSONObject();
+//                        res.put("code", "200");
+//                        res.put("status", status);
+//                        res.put("wonum", wonum);
+//                        res.put("message", "Successfully update status");
+//                        res.writeJSONString(hsr1.getWriter());
+//                    } else if ("COMPWA".equals(body.get("status"))) {
+//                        // update task status
+//                        updateTaskStatusEbisDao.updateTask(wonum, status);
+//                        if (description.equals("Registration Suplychain")) {
+//
+//                            // Start of 'Install NTE'
+//                            ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
+//                            scmtIntegrationEbisDao.sendInstall(parent);
+//
+//                            JSONObject res = new JSONObject();
+//                            res.put("code", "255");
+//                            res.put("message", "Success");
+//                            res.writeJSONString(hsr1.getWriter());
+//                            
+//                            final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
+//                            if (nextAssign) {
+//                                hsr1.setStatus(200);
+//                            }
+//                            updateTaskStatusEbisDao.updateTask(wonum, status);
+//                        } else {
+//                            // Define the next move
+//                            final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
+//
+//                            if ("COMPLETE".equals(nextMove)) {
+//                                try {
+//                                    // Update parent status
+//                                    updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate, "");
+//
+//                                    // update task status
+//                                    updateTaskStatusEbisDao.updateTask(wonum, status);
+//
+//                                    //Create response
+//                                    JSONObject dataRes = new JSONObject();
+//                                    dataRes.put("wonum", parent);
+//                                    dataRes.put("milestone", "COMPLETE");
+//                                    JSONObject res = new JSONObject();
+//                                    res.put("code", "200");
+//                                    res.put("message", "Success");
+//                                    res.put("data", dataRes);
+//                                    res.writeJSONString(hsr1.getWriter());
+//
+//                                    //Build Response
+//                                    JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
+//
+//                                    // Response to Kafka
+//                                    String kafkaRes = data.toJSONString();
+//                                    KafkaProducerTool kaf = new KafkaProducerTool();
+//                                    kaf.generateMessage(kafkaRes, "WFM_MILESTONE", "");
+//                                } catch (Exception e) {
+//                                    LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
+//                                }
+//                            } else {
+//                                //Give LABASSIGN to next task
+//                                final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
+//                                if (nextAssign) {
+//                                    hsr1.setStatus(200);
+//                                }
+//                                updateTaskStatusEbisDao.updateTask(wonum, status);
+//                            }
+//                        }
+//                    }
                 }
             } catch (ParseException | SQLException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
