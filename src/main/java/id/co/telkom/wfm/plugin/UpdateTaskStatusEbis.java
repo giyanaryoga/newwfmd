@@ -79,14 +79,14 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
             try {
                 //@Parsing message
                 //HttpServletRequest get JSON Post data
-                StringBuffer jb = new StringBuffer();
+                StringBuilder jb = new StringBuilder();
                 String line = null;
                 try {//read the response JSON to string buffer
                     BufferedReader reader = hsr.getReader();
                     while ((line = reader.readLine()) != null) {
                         jb.append(line);
                     }
-                } catch (Exception e) {
+                } catch (IOException e) {
                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
@@ -171,7 +171,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     String kafkaRes = data.toJSONString();
                                     KafkaProducerTool kaf = new KafkaProducerTool();
                                     kaf.generateMessage(kafkaRes, "WFM_MILESTONE_ENTERPRISE", "");
-                                } catch (Exception e) {
+                                } catch (IOException | SQLException e) {
                                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                                 }
                             } else {
@@ -192,7 +192,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
-            } catch (Exception e) {
+            } catch (IOException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         }
