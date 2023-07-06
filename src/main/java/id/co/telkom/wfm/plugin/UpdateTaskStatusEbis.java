@@ -136,11 +136,11 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             res.put("code", "255");
                             res.put("message", "Success");
                             res.writeJSONString(hsr1.getWriter());
-                            
+
                             final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                             if (nextAssign) {
                                 hsr1.setStatus(200);
-                            } 
+                            }
                             updateTaskStatusEbisDao.updateTask(wonum, status);
                         } else {
                             // Define the next move
@@ -152,8 +152,10 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
                                     LogUtil.info(getClass().getName(), "Update COMPLETE" + woStatus);
                                     // update task status
-                                    updateTaskStatusEbisDao.updateTask(wonum, status);
-
+                                    final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                                    if (updateTask) {
+                                        hsr1.setStatus(200);
+                                    }
                                     //Create response
                                     JSONObject dataRes = new JSONObject();
                                     dataRes.put("wonum", parent);
@@ -183,6 +185,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 updateTaskStatusEbisDao.updateTask(wonum, status);
                             }
                         }
+                              
 
                     }
                 }
