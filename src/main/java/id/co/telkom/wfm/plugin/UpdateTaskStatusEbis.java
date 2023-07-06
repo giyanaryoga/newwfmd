@@ -12,6 +12,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -106,7 +108,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 String woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
                 String description = (body.get("description") == null ? "" : body.get("description").toString());
                 DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-                String currentDate = LocalDateTime.now().format(currentDateFormat);
+                String currentDate = ZonedDateTime.now(ZoneId.of("Asia/Jakarta")).format(currentDateFormat);
                 int nextTaskId = Integer.parseInt(taskId) + 10;
                 if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) {
                     //Update status
@@ -126,7 +128,6 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         // update task status
                         updateTaskStatusEbisDao.updateTask(wonum, status);
                         if (description.equals("Registration Suplychain")) {
-
                             // Start of 'Install NTE'
                             ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
                             scmtIntegrationEbisDao.sendInstall(parent);
@@ -139,8 +140,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                             if (nextAssign) {
                                 hsr1.setStatus(200);
-                            }
-//                            updateTaskStatusEbisDao.updateTask(wonum, status);
+                            } 
+                            updateTaskStatusEbisDao.updateTask(wonum, status);
                         } else {
                             // Define the next move
                             final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
@@ -148,15 +149,15 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             if ("COMPLETE".equals(nextMove)) {
                                 try {
                                     // Update parent status
-                                    updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate, "");
-
+                                    updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
+                                    LogUtil.info(getClass().getName(), "Update COMPLETE" + woStatus);
                                     // update task status
                                     updateTaskStatusEbisDao.updateTask(wonum, status);
 
                                     //Create response
                                     JSONObject dataRes = new JSONObject();
                                     dataRes.put("wonum", parent);
-                                    dataRes.put("milestone", "COMPLETE");
+                                    dataRes.put("milestone", woStatus);
                                     JSONObject res = new JSONObject();
                                     res.put("code", "200");
                                     res.put("message", "Success");
@@ -169,7 +170,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     // Response to Kafka
                                     String kafkaRes = data.toJSONString();
                                     KafkaProducerTool kaf = new KafkaProducerTool();
-                                    kaf.generateMessage(kafkaRes, "WFM_MILESTONE", "");
+                                    kaf.generateMessage(kafkaRes, "WFM_MILESTONE_ENTERPRISE", "");
                                 } catch (Exception e) {
                                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                                 }

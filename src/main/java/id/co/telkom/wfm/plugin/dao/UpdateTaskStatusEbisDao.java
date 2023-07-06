@@ -99,29 +99,12 @@ public class UpdateTaskStatusEbisDao {
         return nextAssign;
     }
     
-    public void updateParentStatus(String wonum, String status, String statusDate, String jmsCorr) throws SQLException {
-        StringBuilder update = new StringBuilder();
-        update
-            .append("UPDATE ")
-            .append("app_fd_workorder ")
-            .append("SET ");
-        if (!jmsCorr.equals("")) {
-            update.append("c_jmscorrelationid = ?, ");
-        }
-        update
-            .append("c_status = ?, ")
-            .append("c_statusdate = ?, ")
-            .append("dateModified = sysdate ")
-            .append("WHERE ")
-            .append("c_wonum = ?");
+    public void updateParentStatus(String wonum, String status, String statusDate) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             int index = 0;
-            if(!jmsCorr.equals("")){
-                index++;
-                ps.setString(index, jmsCorr);
-            }
             ps.setString(1 + index, status);
             ps.setString(2 + index, statusDate);
             ps.setString(3 + index, wonum);
