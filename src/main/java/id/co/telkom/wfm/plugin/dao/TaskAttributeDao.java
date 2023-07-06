@@ -21,7 +21,47 @@ import org.json.simple.JSONArray;
  *
  * @author User
  */
-public class getTaskAttributeDao {
+public class TaskAttributeDao {
+    public String getAttrName(String wonum, String AttrName) throws SQLException {
+        String attrName = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_wonum, c_attribute_name FROM app_fd_workorderspec WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                attrName = rs.getString("c_attribute_name");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return attrName;
+    }
+    
+    public String getAttrValue(String wonum, String AttrName) throws SQLException {
+        String attrValue = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_wonum, c_attribute_name, c_alnvalue FROM app_fd_workorderspec WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                attrValue = rs.getString("c_attribute_name");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return attrValue;
+    }
+    
+
+    
     public JSONArray getAttribute(String wonum, String classStructureId) throws SQLException {
         JSONArray listAttribute = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");

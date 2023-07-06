@@ -18,7 +18,7 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(UpdateTaskStatusEbis.class.getName(), new UpdateTaskStatusEbis(), null));
         registrationList.add(context.registerService(GenerateStpNetLoc.class.getName(), new GenerateStpNetLoc(), null));
         registrationList.add(context.registerService(CpeValidationEbis.class.getName(), new CpeValidationEbis(), null));
-        registrationList.add(context.registerService(GetTaskAttribute.class.getName(), new GetTaskAttribute(), null));
+        registrationList.add(context.registerService(TaskAttributeEbis.class.getName(), new TaskAttributeEbis(), null));
         registrationList.add(context.registerService(GenerateIpV4.class.getName(), new GenerateIpV4(), null));
         registrationList.add(context.registerService(UpdateAssignmentEbis.class.getName(), new UpdateAssignmentEbis(), null));
     }

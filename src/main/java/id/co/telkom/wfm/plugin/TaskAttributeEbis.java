@@ -4,7 +4,7 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.getTaskAttributeDao;
+import id.co.telkom.wfm.plugin.dao.TaskAttributeDao;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -25,7 +25,7 @@ import org.json.simple.parser.ParseException;
  *
  * @author User
  */
-public class GetTaskAttribute extends Element implements PluginWebSupport {
+public class TaskAttributeEbis extends Element implements PluginWebSupport {
     String pluginName = "Telkom New WFM - Update Task Status Ebis - Web Service";
 
     @Override
@@ -77,7 +77,7 @@ public class GetTaskAttribute extends Element implements PluginWebSupport {
                 BufferedReader reader = hsr.getReader();
                 while((line = reader.readLine()) !=null)
                     jb.append(line);
-                getTaskAttributeDao dao = new getTaskAttributeDao();
+                TaskAttributeDao dao = new TaskAttributeDao();
                 JSONArray response = new JSONArray();
                 
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());

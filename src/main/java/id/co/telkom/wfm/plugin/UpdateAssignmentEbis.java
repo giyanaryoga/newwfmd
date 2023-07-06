@@ -124,7 +124,8 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                          * update c_laborcode dan c_laborname di table app_fd_workorder
                          */
                         dao.updateLaborWorkOrder(laborcode, laborname, wonum);
-
+                        
+                        hsr1.setStatus(200);
                         String statusHeaders = "200";
                         String statusRequest = "Success";
                         JSONObject response = new JSONObject();
@@ -141,14 +142,15 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                     /**
                      * laborcode tidak ada di table labor
                      */
+                        hsr1.setStatus(422);
                         String statusHeaders = "422";
                         String statusRequest = "Failed";
                         JSONObject response = new JSONObject();
                         JSONObject data = new JSONObject();
                         response.put("status", statusHeaders);
-                        response.put("message", statusRequest);
+                        response.put("message", "Laborcode and laborname is not found!");
                         response.put("response", data);
-                        data.put("message", "Laborcode and laborname is not found!");
+//                        data.put("message", "Laborcode and laborname is not found!");
                         response.writeJSONString(hsr1.getWriter());
                     }
                 } catch (SQLException ex) {
