@@ -17,6 +17,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.logging.Level;
@@ -152,6 +154,9 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 String woRevisionNo = (body.get("WOREVISIONNO") == null ? "" : body.get("WOREVISIONNO").toString());
                 String workType = (body.get("WORKTYPE") == null ? "" : body.get("WORKTYPE").toString());
                 String woClass = "WORKORDER"; //Hardcoded variable
+                
+                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+                String currentDate = ZonedDateTime.now(ZoneId.of("Asia/Jakarta")).format(currentDateFormat);
                           
                 //@Main process start..
                 //Generate wonum with counter function from DB
@@ -164,7 +169,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
 //                String workzone = dao2.getWorkzone(parent);
                 //Getting Owner group from tkmapping
                 String ownerGroup = dao2.getOwnerGroup(workZone);
-                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, description, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup);
+                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, description, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, currentDate);
                 
                 //@Work Order attribute
                 JSONArray attr_array = (JSONArray)body.get("WORKORDERATTRIBUTE");

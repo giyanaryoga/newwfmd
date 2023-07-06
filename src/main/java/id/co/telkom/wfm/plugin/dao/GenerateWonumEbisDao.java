@@ -175,10 +175,10 @@ public class GenerateWonumEbisDao {
         return wonum;
     }
     
-     public boolean insertToWoTable(String id, String wonum, String crmOrderType, String custName, String custAddress, String description, String prodName, String prodType, String scOrderNo, String workZone, String siteId, String workType, String schedStart, String reportBy,  String woClass, String woRevisionNo, String jmsCorrelationId, String status, String serviceNum, String tkWo4, String ownerGroup){
+     public boolean insertToWoTable(String id, String wonum, String crmOrderType, String custName, String custAddress, String description, String prodName, String prodType, String scOrderNo, String workZone, String siteId, String workType, String schedStart, String reportBy,  String woClass, String woRevisionNo, String jmsCorrelationId, String status, String serviceNum, String tkWo4, String ownerGroup, String statusDate){
         boolean insertStatus = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+        String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -205,6 +205,7 @@ public class GenerateWonumEbisDao {
                     ps.setString(19, serviceNum);
                     ps.setString(20, tkWo4);
                     ps.setString(21, ownerGroup);
+                    ps.setString(22, statusDate);
 //                    ps.setString(20, listAttr.getTechCode());
 //                    ps.setString(21, listAttr.getTechName());
                     int exe = ps.executeUpdate();
