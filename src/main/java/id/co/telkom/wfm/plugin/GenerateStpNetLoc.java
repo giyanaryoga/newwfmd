@@ -111,13 +111,13 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                 String wonum = data_obj.get("wonum").toString();
                 String latitude = attribute.getLatitude(dao.getDeviceLocation(wonum).get("LATITUDE").toString());
                 String longitude = attribute.getLongitude(dao.getDeviceLocation(wonum).get("LONGITUDE").toString());
-                HashMap<String, String> data = new HashMap<String, String>();
+//                HashMap<String, String> data = new HashMap<String, String>();
                 
                 try {
 //                      dao.callGenerateStpNetLoc(latitude, longitude);
                       dao.callGenerateStpNetLoc(latitude, longitude);
-                      dao.moveFirst(wonum);
-                      dao.insertToDeviceTable(wonum, data);
+//                      dao.moveFirst(wonum);
+//                      dao.insertToDeviceTable(wonum, data);
 //                    if(data == null) {
 //                        JSONObject res1 = new JSONObject();
 //                        res1.put("code", 404);

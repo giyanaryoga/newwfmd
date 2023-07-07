@@ -5,15 +5,11 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.GenerateIpV4Dao;
-import id.co.telkom.wfm.plugin.model.ListAttributes;
+import id.co.telkom.wfm.plugin.dao.FalloutIncidentDao;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,7 +17,6 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -30,9 +25,9 @@ import org.json.simple.parser.ParseException;
  *
  * @author ASUS
  */
-public class GenerateIpV4 extends Element implements PluginWebSupport {
+public class FalloutIncident extends Element implements PluginWebSupport {
 
-    String pluginName = "Telkom New WFM - Generate IPv4 - Web Service";
+    String pluginName = "Telkom New WFM - Fallout Incident - Web Service";
 
     @Override
     public String renderTemplate(FormData fd, Map map) {
@@ -46,7 +41,7 @@ public class GenerateIpV4 extends Element implements PluginWebSupport {
 
     @Override
     public String getVersion() {
-        return "7.0.0";
+        return "7.00";
     }
 
     @Override
@@ -71,56 +66,46 @@ public class GenerateIpV4 extends Element implements PluginWebSupport {
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
-        GenerateIpV4Dao dao = new GenerateIpV4Dao();
-
         //@@Start..
-        LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE IPv4 ###############");
-
+        LogUtil.info(getClass().getName(), "Start Process: Update Task Status");
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
             try {
                 //@Parsing message
                 //HttpServletRequest get JSON Post data
-                StringBuffer jb = new StringBuffer();
+                StringBuilder jb = new StringBuilder();
                 String line = null;
                 try {//read the response JSON to string buffer
                     BufferedReader reader = hsr.getReader();
                     while ((line = reader.readLine()) != null) {
                         jb.append(line);
                     }
-                } catch (Exception e) {
+                } catch (IOException e) {
                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
-                
                 //Parse JSON String to JSON Object
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
-                JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
+                JSONObject body = (JSONObject) parser.parse(bodyParam);
+
                 //Store param
-                String route = data_obj.get("route").toString();
-                String rtImport = data_obj.get("rtImport").toString();
-                String rtExport = data_obj.get("rtExport").toString();
-                String serviceType = data_obj.get("serviceType").toString();
-                String vrf = data_obj.get("ipType").toString();
-                String ipType = data_obj.get("ipArea").toString();
-                String ipArea = data_obj.get("ipVersion").toString();
-                String ipVersion = data_obj.get("ipVersion").toString();
-                String packageType = data_obj.get("packageType").toString();
-                
-                try {
-                    dao.request(serviceType, vrf, ipType, ipArea, ipVersion, packageType);
-//                    dao.requestVpn(route, rtImport, rtExport);
-                } catch (Exception e) {
-                    Logger.getLogger(GenerateIpV4.class.getName()).log(Level.SEVERE, null, e);
+                String statusCode = (body.get("statusCode") == null ? "" : body.get("statusCode").toString());
+                String ticketId = (body.get("ticketId") == null ? "" : body.get("ticketId").toString());
+
+                FalloutIncidentDao dao = new FalloutIncidentDao();
+                final boolean updateTask = dao.updateStatus(statusCode, ticketId);
+                if (updateTask) {
+                    hsr1.setStatus(200);
                 }
-            } catch (ParseException ex) {
-                Logger.getLogger(GenerateIpV4.class.getName()).log(Level.SEVERE, null, ex);
+                
+            } catch (ParseException | SQLException e) {
+                LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
-            } catch (Exception e) {
+            } catch (IOException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         }

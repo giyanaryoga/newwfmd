@@ -21,6 +21,7 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(TaskAttributeEbis.class.getName(), new TaskAttributeEbis(), null));
         registrationList.add(context.registerService(GenerateIpV4.class.getName(), new GenerateIpV4(), null));
         registrationList.add(context.registerService(UpdateAssignmentEbis.class.getName(), new UpdateAssignmentEbis(), null));
+        registrationList.add(context.registerService(FalloutIncident.class.getName(), new FalloutIncident(), null));
     }
 
     @Override

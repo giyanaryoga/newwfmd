@@ -39,7 +39,7 @@ public class GenerateStpNetLocDao {
     // ==========================================
     // Call API Surrounding Generate STP Net Loc
     //===========================================
-    public HashMap<String, String> callGenerateStpNetLoc(String latitude, String longitude) throws JSONException, IOException, MalformedURLException, Exception {
+    public String callGenerateStpNetLoc(String latitude, String longitude) throws JSONException, IOException, MalformedURLException, Exception {
         // Request Structure
         try {
             String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
@@ -93,23 +93,20 @@ public class GenerateStpNetLocDao {
             // Parsing data response
             LogUtil.info(this.getClass().getName(), "############ Parsing Data Response ##############");
 
-//            String envelope = temp.getJSONObject("env:Envelope").getString("env:Body");
             JSONObject envelope = temp.getJSONObject("env:Envelope").getJSONObject("env:Body");
             JSONObject device = envelope.getJSONObject("ent:findDeviceByCriteriaResponse");
-            if (device.equals("")) {
-                LogUtil.info(getClass().getName(), "No Network Location found.");
-            } else {
+            int statusCode = device.getInt("statusCode");
+            
+            LogUtil.info(this.getClass().getName(), "Response Status : " + statusCode);
+
+
+            if (statusCode != 4000) {
+                LogUtil.info(this.getClass().getName(), "No Device found.");
+            } else if (statusCode != 4001) {
                 JSONObject deviceInfo = device.getJSONObject("DeviceInfo");
                 String name = deviceInfo.getString("name");
                 String type = deviceInfo.getString("networkLocation");
-                HashMap<String, String> data = new HashMap<String, String>();
-                if (device != null) {
-                    data.put("description", name);
-                    data.put("attrName", "STP_NETWORKLOCATION");
-                    data.put("attrType", type);
-                    LogUtil.info(getClass().getName(), "get response data: " + data);
-                }
-                return data;
+                LogUtil.info(this.getClass().getName(), "Device : " + name + type);
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Call Failed." + e);
