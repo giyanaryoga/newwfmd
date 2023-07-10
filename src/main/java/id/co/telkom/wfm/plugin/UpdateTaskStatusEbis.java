@@ -151,11 +151,16 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     // Update parent status
                                     updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
                                     LogUtil.info(getClass().getName(), "Update COMPLETE" + woStatus);
+                                    
                                     // update task status
                                     final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                                     if (updateTask) {
                                         hsr1.setStatus(200);
-                                    }   
+                                    }
+                                    
+                                    // Insert data to table WFMMILESTONE
+                                    updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, woStatus, currentDate);
+                                    
                                     //Create response
                                     JSONObject dataRes = new JSONObject();
                                     dataRes.put("wonum", parent);
@@ -165,7 +170,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     res.put("message", "Success");
                                     res.put("data", dataRes);
                                     res.writeJSONString(hsr1.getWriter());
-
+                                    
                                     //Build Response
                                     JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
 
@@ -185,8 +190,6 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 updateTaskStatusEbisDao.updateTask(wonum, status);
                             }
                         }
-                              
-
                     }
                 }
             } catch (ParseException | SQLException e) {

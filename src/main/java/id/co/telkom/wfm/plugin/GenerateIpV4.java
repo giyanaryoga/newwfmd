@@ -6,11 +6,8 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.GenerateIpV4Dao;
-import id.co.telkom.wfm.plugin.model.ListAttributes;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,7 +18,6 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -101,16 +97,16 @@ public class GenerateIpV4 extends Element implements PluginWebSupport {
                 String route = data_obj.get("route").toString();
                 String rtImport = data_obj.get("rtImport").toString();
                 String rtExport = data_obj.get("rtExport").toString();
-                String serviceType = data_obj.get("serviceType").toString();
-                String vrf = data_obj.get("ipType").toString();
-                String ipType = data_obj.get("ipArea").toString();
-                String ipArea = data_obj.get("ipVersion").toString();
-                String ipVersion = data_obj.get("ipVersion").toString();
-                String packageType = data_obj.get("packageType").toString();
+//                String serviceType = data_obj.get("serviceType").toString();
+//                String vrf = data_obj.get("ipType").toString();
+//                String ipType = data_obj.get("ipArea").toString();
+//                String ipArea = data_obj.get("ipVersion").toString();
+//                String ipVersion = data_obj.get("ipVersion").toString();
+//                String packageType = data_obj.get("packageType").toString();
                 
                 try {
-                    dao.request(serviceType, vrf, ipType, ipArea, ipVersion, packageType);
-//                    dao.requestVpn(route, rtImport, rtExport);
+//                    dao.request(serviceType, vrf, ipType, ipArea, ipVersion, packageType);
+                    dao.requestVpn(route, rtImport, rtExport);
                 } catch (Exception e) {
                     Logger.getLogger(GenerateIpV4.class.getName()).log(Level.SEVERE, null, e);
                 }

@@ -5,13 +5,10 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.GenerateStpNetLocDao;
-import id.co.telkom.wfm.plugin.model.ListAttributes;
+import id.co.telkom.wfm.plugin.dao.GenerateSidConnectivityDao;
 import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +19,6 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -31,10 +27,10 @@ import org.json.simple.parser.ParseException;
  *
  * @author ASUS
  */
-public class GenerateStpNetLoc extends Element implements PluginWebSupport {
-
-    String pluginName = "Telkom New WFM - Generate STP Network Location - Web Service";
-
+public class GenerateSidConnectivity extends Element implements PluginWebSupport {
+    
+    String pluginName = "Telkom New WFM - Generate SID Connectivity - Web Service";
+    
     @Override
     public String renderTemplate(FormData fd, Map map) {
         return "";
@@ -71,11 +67,11 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
     }
 
     @Override
-    public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException, MalformedURLException {
-        GenerateStpNetLocDao dao = new GenerateStpNetLocDao();
-
-        //@@Start..
-        LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE STP NETWORK LOCATION ###############");
+    public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
+        GenerateSidConnectivityDao dao = new GenerateSidConnectivityDao();
+        
+         //@@Start..
+        LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE SID CONNECTION FOR SDWAN ###############");
 
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
@@ -94,28 +90,31 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
 
-                ListAttributes attribute = new ListAttributes();
+//                ListAttributes attribute = new ListAttributes();
                 //Parse JSON String to JSON Object
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-                String latitude = attribute.getLatitude(dao.getDeviceLocation(wonum).get("LATITUDE").toString());
-                String longitude = attribute.getLongitude(dao.getDeviceLocation(wonum).get("LONGITUDE").toString());
-
+                String orderId = data_obj.get("orderId").toString();
+                ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                 try {
-                    dao.callGenerateStpNetLoc(latitude, longitude);
+                    dao.callGenerateConnectivity(orderId, listAttribute);
 
-                    ListGenerateAttributes listAttribute = new ListGenerateAttributes();
-                    if (listAttribute.getStatusCode() != 4001) {
+//                    ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+                    LogUtil.info(this.getClassName(), "get data: " + listAttribute.getStatusCode3());
+                    
+                    if (listAttribute.getStatusCode3() == 404) {
                         JSONObject res1 = new JSONObject();
-                        res1.put("code", 204);
-                        res1.put("message", "No Device found!.");
+                        res1.put("code", 404);
+                        res1.put("message", "No Service found!.");
                         res1.writeJSONString(hsr1.getWriter());
+//                        dao.insertIntegrationHistory(wonum, line, wonum, wonum, orderId);
                     } else {
                         dao.moveFirst(wonum);
-                        dao.insertToDeviceTable(wonum);
+                        dao.insertIntoDeviceTable(wonum, listAttribute);
+//                        dao.insertIntegrationHistory(wonum, line, wonum, wonum, orderId);
                         JSONObject res = new JSONObject();
                         res.put("code", 200);
                         res.put("message", "update data successfully");
@@ -128,10 +127,6 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                 }
             } catch (ParseException ex) {
                 Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException ex) {
-                Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (JSONException ex) {
-                Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
@@ -141,4 +136,5 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
             }
         }
     }
+    
 }

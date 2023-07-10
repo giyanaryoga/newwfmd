@@ -9,9 +9,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.UuidGenerator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -233,4 +238,94 @@ public class UpdateTaskStatusEbisDao {
         return itemObj;
     }
 
+    
+    public void insertToWfmMilestone(String wonum, String siteId, String status, String statusDate) {
+        // Generate UUID
+        String uuId = UuidGenerator.getInstance().getUuid();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder insert = new StringBuilder();
+        insert
+                .append(" INSERT INTO app_fd_wfmmilestone ")
+                .append(" ( ")
+                .append(" c_wfmmilestoneid, ")
+                .append(" id, ")
+                .append(" dateCreated, ")
+                .append(" dateModified, ")
+                .append(" c_scorderno, ")
+                .append(" c_wonum, ")
+                .append(" c_siteid, ")
+                .append(" c_wostatus, ")
+                .append(" c_milestonedate ")
+                .append(" ) ")
+                .append(" VALUES ")
+                .append(" ( ")
+                .append(" WFMDBDEV01.WFMMILESTONEIDSEQ.NEXTVAL, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ( ")
+                .append(" SELECT ")
+                .append(" c_scorderno ")
+                .append(" FROM app_fd_workorder WHERE ")
+                .append(" c_wonum = ? ")
+                .append(" AND ")
+                .append(" c_woclass = 'WORKORDER' ")
+                .append(" ), ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ? ")
+                .append(" ) ");
+        
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(insert.toString());
+                try {
+                    ps.setString(1, uuId);
+                    ps.setTimestamp(2, getTimeStamp());
+                    ps.setTimestamp(3, getTimeStamp());
+                    ps.setString(4, wonum);
+                    ps.setString(5, wonum);
+                    ps.setString(6, siteId);
+                    ps.setString(7, status);
+                    ps.setString(8, statusDate);
+                    
+                    int exe = ps.executeUpdate();
+                    if (exe > 0) {
+                        LogUtil.info(getClass().getName(), wonum + " inserted to WFM milestone log table with status: " + status);
+                    }   
+                    if (ps != null)
+                        ps.close();
+                } catch (Throwable throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (Throwable throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (Throwable throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+    
+    private Timestamp getTimeStamp() {
+        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+        Timestamp ts = Timestamp.valueOf(zdt.toLocalDateTime().format(format));
+        return ts;
+    }
 }

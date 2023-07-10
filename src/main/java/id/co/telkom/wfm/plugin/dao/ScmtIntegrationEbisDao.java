@@ -23,6 +23,7 @@ import okhttp3.FormBody;
 import okhttp3.RequestBody;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.UuidGenerator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -32,35 +33,37 @@ import org.json.simple.parser.JSONParser;
  * @author User
  */
 public class ScmtIntegrationEbisDao {
+
     public String getScmtToken() {
         String token = "";
         RequestAPI api = new RequestAPI();
         ConnUtil connUtil = new ConnUtil();
         try {
-          APIConfig apiConfig = new APIConfig();
-          apiConfig = connUtil.getApiParam("get_eai_token_scmt");
-          FormBody formBody = (new FormBody.Builder()).add("grant_type", apiConfig.getGrantType()).add("client_id", apiConfig.getClientId()).add("client_secret", apiConfig.getClientSecret()).build();
-          String response = "";
-          response = api.sendPostEaiToken(apiConfig, (RequestBody)formBody);
-          JSONParser parse = new JSONParser();
-          JSONObject data_obj = (JSONObject)parse.parse(response);
-          token = data_obj.get("access_token").toString();
+            APIConfig apiConfig = new APIConfig();
+            apiConfig = connUtil.getApiParam("get_eai_token_scmt");
+            FormBody formBody = (new FormBody.Builder()).add("grant_type", apiConfig.getGrantType()).add("client_id", apiConfig.getClientId()).add("client_secret", apiConfig.getClientSecret()).build();
+            String response = "";
+            response = api.sendPostEaiToken(apiConfig, (RequestBody) formBody);
+            JSONParser parse = new JSONParser();
+            JSONObject data_obj = (JSONObject) parse.parse(response);
+            token = data_obj.get("access_token").toString();
         } catch (Exception e) {
-          LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        } 
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
         return token;
     }
-    
+
     public JSONObject getWoAttribute(String wonum) throws SQLException {
         JSONObject resultObj = new JSONObject();
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT C_ATTR_NAME, C_ATTR_VALUE FROM APP_FD_WORKORDERATTRIBUTE WHERE C_WONUM = ? AND C_ATTR_NAME IN ('LONGITUDE', 'LATITUDE')";
-        try(Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
-            while (rs.next())
+            while (rs.next()) {
                 resultObj.put(rs.getString("C_ATTR_NAME"), rs.getString("C_ATTR_VALUE"));
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -68,9 +71,9 @@ public class ScmtIntegrationEbisDao {
         }
         return resultObj;
     }
-    
+
     public void sendInstall(String parent) throws SQLException {
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
@@ -98,14 +101,14 @@ public class ScmtIntegrationEbisDao {
                 .append(" item.c_attribute_name = 'NTE_SERIALNUMBER' ")
                 .append(" AND ")
                 .append(" child.c_wfmdoctype = 'NEW' ");
-        try(Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query.toString())) {
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query.toString())) {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
-            
+
             while (rs.next()) {
                 ListScmtIntegrationParam scmtParam = new ListScmtIntegrationParam();
-                
+
                 ListAttributes attribute = new ListAttributes();
                 scmtParam.setWonum((rs.getString("c_wonum") == null) ? "" : rs.getString("c_wonum"));
                 scmtParam.setScOrderNo((rs.getString("c_scorderno") == null) ? "" : rs.getString("c_scorderno"));
@@ -119,31 +122,35 @@ public class ScmtIntegrationEbisDao {
                 attribute.setLatitude((getWoAttribute(parent).get("LATITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LATITUDE").toString());
                 scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
                 scmtParam.setSiteId((rs.getString("c_siteid") == null) ? "" : rs.getString("c_siteid"));
-                
+
                 //Send install message to kafka
                 JSONObject installMessage = buildInstallMessage(scmtParam, attribute);
                 String kafkaRes = installMessage.toJSONString();
                 KafkaProducerTool kaf = new KafkaProducerTool();
-                kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL", "");
+                kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL_ENTERPRISE", "");
                 LogUtil.info(getClass().getName(), " " + scmtParam + " keluar!!! ");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
-            if (ds.getConnection() != null)
+            if (ds.getConnection() != null) {
                 ds.getConnection().close();
+            }
         }
     }
 
     private JSONObject buildInstallMessage(ListScmtIntegrationParam scmtParam, ListAttributes attribute) {
         String segment = "";
-        String order = scmtParam.getScOrderNo().substring(0,2);
-        if (order.equalsIgnoreCase("1-"))
+        String order = scmtParam.getScOrderNo().substring(0, 2);
+        if (order.equalsIgnoreCase("1-")) {
             segment = "DES";
-        if (order.equalsIgnoreCase("2-"))
+        }
+        if (order.equalsIgnoreCase("2-")) {
             segment = "DWS";
-        if (order.equalsIgnoreCase("SC") || scmtParam.getScOrderNo().substring(0, 3).equalsIgnoreCase("MYI"))
+        }
+        if (order.equalsIgnoreCase("SC") || scmtParam.getScOrderNo().substring(0, 3).equalsIgnoreCase("MYI")) {
             segment = "DCS";
+        }
         //Serial number
         JSONObject serialNumber = new JSONObject();
         serialNumber.put("number", scmtParam.getCpeSerialNumber());
@@ -184,7 +191,7 @@ public class ScmtIntegrationEbisDao {
         installMessage.put("apiAssetRequest", apiAssetRequest);
         return installMessage;
     }
-    
+
     private Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
