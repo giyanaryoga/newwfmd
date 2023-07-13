@@ -23,6 +23,8 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(UpdateAssignmentEbis.class.getName(), new UpdateAssignmentEbis(), null));
         registrationList.add(context.registerService(FalloutIncident.class.getName(), new FalloutIncident(), null));
         registrationList.add(context.registerService(GenerateSidConnectivity.class.getName(), new GenerateSidConnectivity(), null));
+        //Test Generate Ebis
+        registrationList.add(context.registerService(TestGenerateEbis.class.getName(), new TestGenerateEbis(), null));
     }
 
     @Override
