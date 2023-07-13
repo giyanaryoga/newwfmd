@@ -19,6 +19,7 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.joget.apps.datalist.service.JsonUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
@@ -99,16 +100,43 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 JSONObject body = (JSONObject) envelope2.get("WORKORDER");
 
                 //Store param
-                String wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
-                String parent = wonum.substring(0, 11);
-                String taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
                 String status = (body.get("status") == null ? "" : body.get("status").toString());
-                String siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
-                String woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
-                String woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
-                String description = (body.get("description") == null ? "" : body.get("description").toString());
-                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-                String currentDate = ZonedDateTime.now(ZoneId.of("Asia/Jakarta")).format(currentDateFormat);
+                String wonum = null;
+                String parent = null;
+                String taskId = null;
+                String siteId = null;
+                String woSequence = null;
+                String woStatus = null;
+                String description = null;
+//                String error = null;
+                String errorCode = null;
+                String engineerMemo = null;
+                String currentDate = null;
+
+                if ("FAILWA".equals(status)) {
+                    wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
+                    parent = wonum.substring(0, 11);
+                    taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
+                    siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
+                    woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
+                    woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
+                    description = (body.get("description") == null ? "" : body.get("description").toString());
+                    errorCode = (body.get("errorCode") == null ? "" : body.get("errorCode").toString());
+                    engineerMemo = (body.get("engineerMemo") == null ? "" : body.get("engineerMemo").toString());
+                    DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+                    currentDate = ZonedDateTime.now(ZoneId.of("Asia/Jakarta")).format(currentDateFormat);
+                } else {
+                    wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
+                    parent = wonum.substring(0, 11);
+                    taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
+                    siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
+                    woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
+                    woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
+                    description = (body.get("description") == null ? "" : body.get("description").toString());
+                    DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+                    currentDate = ZonedDateTime.now(ZoneId.of("Asia/Jakarta")).format(currentDateFormat);
+                }
+
                 int nextTaskId = Integer.parseInt(taskId) + 10;
                 if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) {
                     //Update status
@@ -141,7 +169,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             if (nextAssign) {
                                 hsr1.setStatus(200);
                             }
-                            updateTaskStatusEbisDao.updateTask(wonum, status);
+//                            updateTaskStatusEbisDao.updateTask(wonum, status);
                         } else {
                             // Define the next move
                             final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
@@ -150,17 +178,17 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 try {
                                     // Update parent status
                                     updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
-                                    LogUtil.info(getClass().getName(), "Update COMPLETE" + woStatus);
-                                    
+                                    LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
+
                                     // update task status
                                     final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                                     if (updateTask) {
                                         hsr1.setStatus(200);
                                     }
-                                    
+
                                     // Insert data to table WFMMILESTONE
-                                    updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, woStatus, currentDate);
-                                    
+                                    updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, currentDate);
+
                                     //Create response
                                     JSONObject dataRes = new JSONObject();
                                     dataRes.put("wonum", parent);
@@ -175,9 +203,11 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
 
                                     // Response to Kafka
+                                    String topic = "WFM_MILESTONE_ENTERPRISE_" + siteId.replaceAll("\\s+", "");
                                     String kafkaRes = data.toJSONString();
                                     KafkaProducerTool kaf = new KafkaProducerTool();
-                                    kaf.generateMessage(kafkaRes, "WFM_MILESTONE_ENTERPRISE", "");
+                                    kaf.generateMessage(kafkaRes, topic, "");
+                                    hsr1.setStatus(256);
                                 } catch (IOException | SQLException e) {
                                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                                 }
@@ -190,6 +220,34 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 updateTaskStatusEbisDao.updateTask(wonum, status);
                             }
                         }
+                    } else if ("FAILWA".equals(body.get("status"))) {
+                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                        if (updateTask) {
+                            hsr1.setStatus(200);
+                        }
+                        // Update parent status
+                        updateTaskStatusEbisDao.updateWorkFail(parent, "WORKFAIL", errorCode, engineerMemo, currentDate);
+                        LogUtil.info(getClass().getName(), "Update WORKFAIL Successfully!");
+
+                        // Insert data to table WFMMILESTONE
+                        updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, currentDate);
+
+                        //Create response
+                        JSONObject dataRes = new JSONObject();
+                        dataRes.put("wonum", parent);
+                        dataRes.put("milestone", woStatus);
+                        JSONObject res = new JSONObject();
+                        res.put("code", "200");
+                        res.put("message", "Success");
+                        res.put("data", dataRes);
+                        res.writeJSONString(hsr1.getWriter());
+
+                        //Build Response
+                        JSONObject data = updateTaskStatusEbisDao.getFailWorkJson(parent);
+                        // Response to Kafka
+                        String kafkaRes = data.toJSONString();
+                        KafkaProducerTool kaf = new KafkaProducerTool();
+                        kaf.generateMessage(kafkaRes, "WFM_MILESTONE_ENTERPRISE", "");
                     }
                 }
             } catch (ParseException | SQLException e) {

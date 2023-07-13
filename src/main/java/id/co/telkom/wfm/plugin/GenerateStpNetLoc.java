@@ -108,16 +108,16 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                     dao.callGenerateStpNetLoc(latitude, longitude);
 
                     ListGenerateAttributes listAttribute = new ListGenerateAttributes();
-                    if (listAttribute.getStatusCode() != 4001) {
+                    if (listAttribute.getStatusCode() == 4001) {
                         JSONObject res1 = new JSONObject();
-                        res1.put("code", 204);
+                        res1.put("code", 4001);
                         res1.put("message", "No Device found!.");
                         res1.writeJSONString(hsr1.getWriter());
                     } else {
                         dao.moveFirst(wonum);
                         dao.insertToDeviceTable(wonum);
                         JSONObject res = new JSONObject();
-                        res.put("code", 200);
+                        res.put("code", 4000);
                         res.put("message", "update data successfully");
                         res.writeJSONString(hsr1.getWriter());
                     }
