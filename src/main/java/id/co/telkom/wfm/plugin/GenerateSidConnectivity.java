@@ -9,6 +9,7 @@ import id.co.telkom.wfm.plugin.dao.GenerateSidConnectivityDao;
 import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +20,7 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -85,12 +87,11 @@ public class GenerateSidConnectivity extends Element implements PluginWebSupport
                     while ((line = reader.readLine()) != null) {
                         jb.append(line);
                     }
-                } catch (Exception e) {
+                } catch (IOException e) {
                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
 
-//                ListAttributes attribute = new ListAttributes();
                 //Parse JSON String to JSON Object
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
@@ -102,7 +103,6 @@ public class GenerateSidConnectivity extends Element implements PluginWebSupport
                 try {
                     dao.callGenerateConnectivity(orderId, listAttribute);
 
-//                    ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                     LogUtil.info(this.getClassName(), "get data: " + listAttribute.getStatusCode3());
                     
                     if (listAttribute.getStatusCode3() == 404) {
@@ -120,18 +120,16 @@ public class GenerateSidConnectivity extends Element implements PluginWebSupport
                         res.put("message", "update data successfully");
                         res.writeJSONString(hsr1.getWriter());
                     }
-                } catch (Exception ex) {
-                    Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (Throwable ex) {
+                } catch (IOException | SQLException | JSONException ex) {
                     Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (ParseException ex) {
+            } catch (Exception ex) {
                 Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
-            } catch (Exception e) {
+            } catch (IOException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         }

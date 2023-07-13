@@ -156,38 +156,23 @@ public class GenerateSidConnectivityDao {
         // Generate UUID
         String uuId = UuidGenerator.getInstance().getUuid();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        StringBuilder insert = new StringBuilder();
-//        insert
-//                .append("INSERT INTO app_fd_tk_deviceattribute")
-//                .append("(")
-//                .append("id,")
-//                .append("c_ref_num,")
-//                .append("c_attr_name,")
-//                .append("c_attr_type,")
-//                .append("description")
-//                .append(")")
-//                .append("VALUES")
-//                .append("(")
-//                .append("?,")
-//                .append("?,")
-//                .append("?,")
-//                .append("?,")
-//                .append("?");
+
         String insert = "INSERT INTO APP_FD_TK_DEVICEATTRIBUTE (ID, C_REF_NUM, C_ATTR_NAME, C_ATTR_TYPE, C_DESCRIPTION) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement(insert.toString())) {
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(insert.toString())) {
             ps.setString(1, uuId);
             ps.setString(2, wonum);
             ps.setString(3, listGenerate.getName());
             ps.setString(4, "");
             ps.setString(5, listGenerate.getId());
-            
+
             int exe = ps.executeUpdate();
-            
+
             if (exe > 0) {
                 LogUtil.info(this.getClass().getName(), "insert data successfully");
             }
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close();
