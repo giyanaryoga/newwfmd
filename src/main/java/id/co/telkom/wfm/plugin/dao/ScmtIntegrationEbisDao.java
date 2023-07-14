@@ -139,56 +139,69 @@ public class ScmtIntegrationEbisDao {
         }
     }
 
-    private JSONObject buildInstallMessage(ListScmtIntegrationParam scmtParam, ListAttributes attribute) {
+    public JSONObject buildInstallMessage(ListScmtIntegrationParam scmtParam, ListAttributes attribute) {
         String segment = "";
-        String order = scmtParam.getScOrderNo().substring(0, 2);
-        if (order.equalsIgnoreCase("1-")) {
-            segment = "DES";
-        }
-        if (order.equalsIgnoreCase("2-")) {
-            segment = "DWS";
-        }
-        if (order.equalsIgnoreCase("SC") || scmtParam.getScOrderNo().substring(0, 3).equalsIgnoreCase("MYI")) {
-            segment = "DCS";
-        }
-        //Serial number
-        JSONObject serialNumber = new JSONObject();
-        serialNumber.put("number", scmtParam.getCpeSerialNumber());
-        serialNumber.put("type", "serial_number");
 
-        //Items
+        JSONObject serialNumber = new JSONObject();
         JSONArray items = new JSONArray();
-        items.add(serialNumber);
-        //Eai body
         JSONObject eaiBody = new JSONObject();
-        eaiBody.put("trc_type", Integer.valueOf(1));
-        eaiBody.put("technician_code", scmtParam.getLaborCode());
-        eaiBody.put("location_name", scmtParam.getCustomerName());
-        eaiBody.put("location_code", scmtParam.getServiceNum());
-        eaiBody.put("location_address", scmtParam.getServiceAddress());
-        eaiBody.put("location_segment", segment);
-        eaiBody.put("workzone", scmtParam.getWorkzone());
-        eaiBody.put("service_id", scmtParam.getServiceNum());
-        eaiBody.put("latitude", attribute.getLatitude());
-        eaiBody.put("longitude", attribute.getLongitude());
-        eaiBody.put("service_ord_id", scmtParam.getScOrderNo());
-        eaiBody.put("regional", Integer.valueOf(Integer.parseInt(scmtParam.getSiteId().substring(4))));
-        eaiBody.put("external_order_number", scmtParam.getWonum());
-        eaiBody.put("items", items);
-        eaiBody.put("creator", "ext007");
-        eaiBody.put("caller", "WFM");
-        //Eai header
         JSONObject eaiHeader = new JSONObject();
-        eaiHeader.put("internalId", "");
-        eaiHeader.put("externalId", scmtParam.getScOrderNo());
-        eaiHeader.put("timestamp", getTimeStamp().toString());
-        //Api asset request
         JSONObject apiAssetRequest = new JSONObject();
-        apiAssetRequest.put("eaiHeader", eaiHeader);
-        apiAssetRequest.put("eaiBody", eaiBody);
-        //Install Message
         JSONObject installMessage = new JSONObject();
-        installMessage.put("apiAssetRequest", apiAssetRequest);
+        try {
+            String order = scmtParam.getScOrderNo().substring(0, 2);
+            LogUtil.info(this.getClass().getName(), "Order : " + order);
+
+            if (order.equalsIgnoreCase("1-")) {
+                segment = "DES";
+            }
+            if (order.equalsIgnoreCase("2-")) {
+                segment = "DWS";
+            }
+            if (order.equalsIgnoreCase("SC") || scmtParam.getScOrderNo().substring(0, 3).equalsIgnoreCase("MYI")) {
+                segment = "DCS";
+            }
+            //Serial number
+//            JSONObject serialNumber = new JSONObject();
+            serialNumber.put("number", scmtParam.getCpeSerialNumber());
+            serialNumber.put("type", "serial_number");
+
+            //Items
+//            JSONArray items = new JSONArray();
+            items.add(serialNumber);
+            //Eai body
+//            JSONObject eaiBody = new JSONObject();
+            eaiBody.put("trc_type", Integer.valueOf(1));
+            eaiBody.put("technician_code", scmtParam.getLaborCode());
+            eaiBody.put("location_name", scmtParam.getCustomerName());
+            eaiBody.put("location_code", scmtParam.getServiceNum());
+            eaiBody.put("location_address", scmtParam.getServiceAddress());
+            eaiBody.put("location_segment", segment);
+            eaiBody.put("workzone", scmtParam.getWorkzone());
+            eaiBody.put("service_id", scmtParam.getServiceNum());
+            eaiBody.put("latitude", attribute.getLatitude());
+            eaiBody.put("longitude", attribute.getLongitude());
+            eaiBody.put("service_ord_id", scmtParam.getScOrderNo());
+            eaiBody.put("regional", Integer.valueOf(Integer.parseInt(scmtParam.getSiteId().substring(4))));
+            eaiBody.put("external_order_number", scmtParam.getWonum());
+            eaiBody.put("items", items);
+            eaiBody.put("creator", "ext007");
+            eaiBody.put("caller", "WFM");
+            //Eai header
+//            JSONObject eaiHeader = new JSONObject();
+            eaiHeader.put("internalId", "");
+            eaiHeader.put("externalId", scmtParam.getScOrderNo());
+            eaiHeader.put("timestamp", getTimeStamp().toString());
+            //Api asset request
+//            JSONObject apiAssetRequest = new JSONObject();
+            apiAssetRequest.put("eaiHeader", eaiHeader);
+            apiAssetRequest.put("eaiBody", eaiBody);
+            //Install Message
+//            JSONObject installMessage = new JSONObject();
+            installMessage.put("apiAssetRequest", apiAssetRequest);
+        } catch (StringIndexOutOfBoundsException e) {
+            LogUtil.info(getClass().getName(), e.getMessage());
+        }
         return installMessage;
     }
 

@@ -205,7 +205,7 @@ public class UpdateTaskStatusEbisDao {
         envelope.put("Header", header);
         envelope.put("Body", body);
         envelope.put("@ns", "soapenv");
-        envelope.put("attrs", attrs);
+        envelope.put("@attrs", attrs);
         //
         JSONObject completeJson = new JSONObject();
         completeJson.put("Envelope", envelope);
