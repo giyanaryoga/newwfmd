@@ -178,8 +178,11 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 for (int i = 0 ; i < attr_array.size() ; i++){
                     JSONObject attr_arrayObj = (JSONObject)attr_array.get(i);
                     //Store attribute
+//                    attr_arrayObj.put("@relationship", "WORKORDERATTRIBUTE");
+//                    attr_arrayObj.put("@deleteForInsert", attr_arrayObj.get("@deleteForInsert").toString());
                     listAttr.setTlkwoAttrName(attr_arrayObj.get("ATTR_NAME").toString());
-                    listAttr.setTlkwoAttrValue(attr_arrayObj.get("ATTR_VALUE").toString());
+//                    String attrValueWO = ();
+                    listAttr.setTlkwoAttrValue(attr_arrayObj.get("ATTR_VALUE").toString() == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString());
                     String sequence = (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString());
                     listAttr.setSequence(sequence);
                     //Insert attribute
@@ -212,9 +215,9 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     for (int j = 0; j < ossitem_attr.size(); j++){
                         JSONObject oss_itemObj1 = (JSONObject)ossitem_attr.get(j);
                         listOssItemAtt.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
-                        listOssItemAtt.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString());
+                        listOssItemAtt.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
                         taskAttr.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
-                        taskAttr.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString());
+                        taskAttr.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
                         dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
                         //@insert Oss Item Attribute
                         dao.insertToOssAttribute(listOssItemAtt);
@@ -274,9 +277,9 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         for (int j = 0; j < ossitem_attr.size(); j++){
                             JSONObject oss_itemObj2 = (JSONObject)ossitem_attr.get(j);
                             listOssItemAtt.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
-                            listOssItemAtt.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString());
+                            listOssItemAtt.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
                             taskAttr.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
-                            taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString());
+                            taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
                             //@insert to workorderspec
                             dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
                             //@insert Oss Item Attribute
