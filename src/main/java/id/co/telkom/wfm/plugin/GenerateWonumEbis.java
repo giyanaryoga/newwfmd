@@ -183,8 +183,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     listAttr.setTlkwoAttrName(attr_arrayObj.get("ATTR_NAME").toString());
 //                    String attrValueWO = ();
                     listAttr.setTlkwoAttrValue(attr_arrayObj.get("ATTR_VALUE").toString() == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString());
-                    String sequence = (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString());
-                    listAttr.setSequence(sequence);
+//                    String sequence = (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString());
+//                    listAttr.setSequence(sequence);
                     //Insert attribute
                     boolean insertAttrStatus = dao.insertToWoAttrTable(wonum, listAttr);
                     listAttr.setTlkwoInsertAttrStatus(insertAttrStatus);
@@ -198,7 +198,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 ListClassSpec taskAttr = new ListClassSpec();
                 ListCpeValidate cpeValidated = new ListCpeValidate();
                 act.setTaskId(10);
-                
+                int counter = 1;
+                JSONObject task = new JSONObject();
                 if (ossitem_arrayObj instanceof JSONObject){
                     listOssItem.setAction(((JSONObject) ossitem_arrayObj).get("ACTION").toString());
                     listOssItem.setCorrelationid(((JSONObject) ossitem_arrayObj).get("CORRELATIONID").toString());
@@ -210,15 +211,20 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     dao.insertToOssItem(wonum, listOssItem);
                     dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup);
                     dao2.generateAssignment(act.getDescriptionTask(), schedStart, parent);
+//                    String wonumChild = wonum + " - " + counter;
+                    JSONObject taskDetail = dao2.getDetailTask(act.getDescriptionTask());
+                    String classStructure = taskDetail.get("classstructureid").toString();
                     
                     JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
                     for (int j = 0; j < ossitem_attr.size(); j++){
                         JSONObject oss_itemObj1 = (JSONObject)ossitem_attr.get(j);
                         listOssItemAtt.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
                         listOssItemAtt.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
-                        taskAttr.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
+                        taskAttr.setAttrName(oss_itemObj1.get("ATTR_NAME").toString() == null ? "" : oss_itemObj1.get("ATTR_NAME").toString());
                         taskAttr.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
-                        dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
+//                        String classStructure = taskDetail.get("classstructureid");
+                        dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
+                        
                         //@insert Oss Item Attribute
                         dao.insertToOssAttribute(listOssItemAtt);
                         
@@ -272,16 +278,22 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         dao.insertToOssItem(wonum, listOssItem);
                         dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup);
                         dao2.generateAssignment(act.getDescriptionTask(), schedStart, parent);
+//                        String wonumChild = wonum + " - " + counter+i;
+                        JSONObject taskDetail = dao2.getDetailTask(act.getDescriptionTask());
+                        String classStructure = taskDetail.get("classstructureid").toString();
+                        
+//                        dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
                         
                         JSONArray ossitem_attr = (JSONArray) oss_itemObj.get("OSSITEMATTRIBUTE");
                         for (int j = 0; j < ossitem_attr.size(); j++){
+//                            String wonumChild = parent +" - "+ ((act.getTaskId()/10)-1);
                             JSONObject oss_itemObj2 = (JSONObject)ossitem_attr.get(j);
                             listOssItemAtt.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
                             listOssItemAtt.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
                             taskAttr.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
                             taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
                             //@insert to workorderspec
-                            dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
+                            dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
                             //@insert Oss Item Attribute
                             dao.insertToOssAttribute(listOssItemAtt);
                             

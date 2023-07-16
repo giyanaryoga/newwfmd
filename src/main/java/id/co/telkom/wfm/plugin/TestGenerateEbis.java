@@ -188,176 +188,214 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     String sequence = (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString());
                     listAttr.setSequence(sequence);
                     //Insert attribute
-                    boolean insertAttrStatus = dao.insertToWoAttrTable(wonum, listAttr);
-                    listAttr.setTlkwoInsertAttrStatus(insertAttrStatus);
+//                    boolean insertAttrStatus = dao.insertToWoAttrTable(wonum, listAttr);
+//                    listAttr.setTlkwoInsertAttrStatus(insertAttrStatus);
                 }
                 
                 //@OSSItem
-                Object ossitem_arrayObj = (Object)body.get("OSSITEM");
                 ListOssItem listOssItem = new ListOssItem();
                 ActivityTask act = new ActivityTask();
-                ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
-                ListClassSpec taskAttr = new ListClassSpec();
-                ListCpeValidate cpeValidated = new ListCpeValidate();
+//                ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
+//                ListClassSpec taskAttr = new ListClassSpec();
+//                ListCpeValidate cpeValidated = new ListCpeValidate();
+                
+                Object ossitem_arrayObj = (Object)body.get("OSSITEM");
+                JSONArray oss_item = new JSONArray();
                 act.setTaskId(10);
                 int counter = 1;
+                JSONObject task = new JSONObject();
+                List<JSONObject> taskList = new ArrayList<>();
+                List<JSONObject> taskAttrList = new ArrayList<>();
                 
                 if (ossitem_arrayObj instanceof JSONObject){
-                    listOssItem.setAction(((JSONObject) ossitem_arrayObj).get("ACTION").toString());
-                    listOssItem.setCorrelationid(((JSONObject) ossitem_arrayObj).get("CORRELATIONID").toString());
-                    listOssItem.setItemname(((JSONObject) ossitem_arrayObj).get("ITEMNAME").toString());
-                    //Task Dispatch
-                    act.setDescriptionTask(((JSONObject) ossitem_arrayObj).get("ITEMNAME").toString());
-                    act.setCorrelation(((JSONObject) ossitem_arrayObj).get("CORRELATIONID").toString());
+                    oss_item.add(ossitem_arrayObj);
+                    LogUtil.info(getClass().getName(), "TASK :" + oss_item);
+//                    listOssItem.setAction(((JSONObject) ossitem_arrayObj).get("ACTION").toString());
+//                    listOssItem.setCorrelationid(((JSONObject) ossitem_arrayObj).get("CORRELATIONID").toString());
+//                    listOssItem.setItemname(((JSONObject) ossitem_arrayObj).get("ITEMNAME").toString());
+//                    //Task Dispatch
+//                    act.setDescriptionTask(((JSONObject) ossitem_arrayObj).get("ITEMNAME").toString());
+//                    act.setCorrelation(((JSONObject) ossitem_arrayObj).get("CORRELATIONID").toString());
+//                    //@insertOSSItem
+//                    dao.insertToOssItem(wonum, listOssItem);
+//                    
+//                    JSONObject task = new JSONObject();
+//                    JSONObject detailAct = dao2.getDetailTask(act.getDescriptionTask());
+//                    
+//                    task.put("description", act.getDescriptionTask());
+//                    task.put("correlation", act.getCorrelation());
+//                    task.put("sequence", (int) detailAct.get("sequence"));
+//                    task.put("actplace", detailAct.get("actPlace"));
+//                    task.put("wonum", parent + " - " + counter);
+//                    task.put("taskid", counter*10);
+//                    task.put("status", "LABASSIGN");
+//                    dao2.generateActivityTask(parent, siteId, jmsCorrelationId, ownerGroup, task);
+//                    dao2.generateAssignment(act.getDescriptionTask(), schedStart, parent);
+//                    
+//                    JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
+//                    for (int j = 0; j < ossitem_attr.size(); j++){
+//                        JSONObject oss_itemObj1 = (JSONObject)ossitem_attr.get(j);
+//                        listOssItemAtt.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
+//                        listOssItemAtt.setAttrValue((oss_itemObj1.get("ATTR_VALUE").toString() == null) ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
+//                        taskAttr.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
+//                        taskAttr.setAttrValue((oss_itemObj1.get("ATTR_VALUE").toString() == null) ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
+////                        dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
+//                        //@insert Oss Item Attribute
+//                        dao.insertToOssAttribute(listOssItemAtt);
+//                        
+//                        switch (oss_itemObj1.get("ATTR_NAME").toString()) {
+//                            case "NTE_MODEL":
+//                                cpeValidated.setModel(listOssItemAtt.getAttrValue());
+//                                LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
+//                                break;
+//                            case "NTE_MANUFACTUR":
+//                                cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+//                                LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
+//                                break;
+//                            case "NTE_SERIALNUMBER":
+//                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+//                                LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
+//                                break;
+//                            case "AP_SERIALNUMBER":
+//                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+//                                LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
+//                                break;
+//                            default:
+//                                cpeValidated.setModel(null);
+//                                cpeValidated.setVendor(null);
+//                                cpeValidated.setSerial_number(null);
+//                                break;
+//                        }
+//                        String cpeValidate = "";
+//                        LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + ", " +cpeValidate+ " done");
+//                        if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
+//                            if (cpeValidated.getSerial_number().isEmpty()) {
+//                                cpeValidate = "";
+//                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+//                                cpeValidated.setUpdateCpeValidate(updateCpe);
+//                            } else {
+//                                cpeValidate = "PASS";
+//                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+//                                cpeValidated.setUpdateCpeValidate(updateCpe);
+//                            }
+//                        }
+//                    }
+                } else if (ossitem_arrayObj instanceof JSONArray) {
+                    oss_item = (JSONArray) ossitem_arrayObj;
+                    LogUtil.info(getClass().getName(), "TASK :" + oss_item);
+////                    JSONArray ossItemArray = (JSONArray) body.get("OSSITEM");
+//                    List<JSONObject> taskList = new ArrayList<>();
+//                    List<JSONObject> taskAttrList = new ArrayList<>();
+//                    JSONObject task = new JSONObject();
+//                    for(int j = 0; j < ((JSONArray) ossitem_arrayObj).size(); j++) {
+////                    for(Object obj : ossItemArray) {
+//                        JSONObject arrayObj = (JSONObject)((JSONArray) ossitem_arrayObj).get(j);
+//                        listOssItem.setAction(arrayObj.get("ACTION").toString());
+//                        listOssItem.setCorrelationid(arrayObj.get("CORRELATIONID") == null ? "" : arrayObj.get("CORRELATIONID").toString());
+//                        listOssItem.setItemname(arrayObj.get("ITEMNAME") == null ? "" : arrayObj.get("ITEMNAME").toString());
+//                         //Task Dispatch
+//                        String itemName = listOssItem.getItemname();
+//                        String correlation = listOssItem.getCorrelationid();
+//                        JSONObject detailAct = dao2.getDetailTask(itemName);
+//                        
+//                        task.put("description", detailAct.get("description"));
+//                        task.put("correlation", correlation);
+//                        task.put("sequence", (int) detailAct.get("sequence"));
+//                        task.put("actplace", detailAct.get("actPlace"));
+//                        task.put("attributes", detailAct.get("attributes"));
+//                        
+//                        JSONArray ossitem_attr = (JSONArray)((JSONObject)arrayObj).get("OSSITEMATTRIBUTE");
+//                        for ( int x = 0; x < ossitem_attr.size(); x++ ) {
+////                        for ( Object obj2 : ossitem_attr ) {
+//                            JSONObject arrayObj2 = (JSONObject)ossitem_attr.get(x);
+////                            JSONObject arrayObj2 = (JSONObject)ossitem_attr;
+//                            JSONObject taskAttrItem = new JSONObject();
+//                            listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
+//                            listOssItemAtt.setAttrValue((arrayObj2.get("ATTR_VALUE").toString() == null) ? "" : arrayObj2.get("ATTR_VALUE").toString());
+//                            String attrName = listOssItemAtt.getAttrName();
+//                            String attrValue = listOssItemAtt.getAttrValue();
+//                            
+//                            taskAttrItem.put("assetAttrId", attrName);
+//                            taskAttrItem.put("value", attrValue);
+//                            taskAttrList.add(taskAttrItem);
+////                            LogUtil.info(getClass().getName(), "Task attr =" +taskAttrList);
+//                        }
+//                        task.put("ossItemAttr", taskAttrList);
+//                        taskList.add(task);
+//                        LogUtil.info(getClass().getName(), "Task =" +taskList);
+//                    }
+//                    
+//                    Collections.sort(taskList, new Comparator<JSONObject>(){
+//                        @Override
+//                        public int compare(JSONObject o1, JSONObject o2) {
+//                            int valA = (int) o1.get("sequence");
+//                            int valB = (int) o2.get("sequence"); 
+//                            System.out.println("valA: " + valA);
+////                            LogUtil.info(getClass().getName(), "Compare sequence 1 =" +valA);
+//                            System.out.println("valB: " + valB);
+//                            LogUtil.info(getClass().getName(), "Compare sequence 2 =" +valB);
+//                            int result = valA - valB;
+//                            LogUtil.info(getClass().getName(), "Compare result =" +result);
+//                            return result;
+//                        }
+//                    });
+//                    
+//                    for(JSONObject taskObj: taskList) {
+//                        //TASK IDENTIFIER
+//                        taskObj.put("wonum", parent + " - " + counter);
+//                        taskObj.put("taskid", counter*10);
+//                        if (counter != 1) {
+//                            taskObj.put("status", "APPR");
+//                        } else {
+//                            taskObj.put("status", "LABASSIGN");
+//                        }
+//                        counter = counter + 1;
+//                        //GENERATE TASK
+//                        dao2.generateActivityTask(parent, siteId, jmsCorrelationId, ownerGroup, taskObj);
+//                        //GENERATE ASSIGNMENT
+//                        dao2.generateAssignment(taskObj.get("description").toString(), schedStart, parent);
+//                        
+//                        if ((int) taskObj.get("attributes") == 1) {
+//                            for(int x = 0; x < taskAttrList.size(); x++) {
+//                                JSONObject oss_itemObj = (JSONObject)taskAttrList.get(x);
+//                                dao.insertToOssAttribute(listOssItemAtt);
+//                                dao2.GenerateTaskAttribute(oss_itemObj, siteId, taskObj.get("wonum").toString());
+////                                LogUtil.info(getClass().getName(), "Attribute =" +taskAttrObj);
+////                                LogUtil.info(getClass().getName(), "Task Attr =" +taskAttrList);
+//                            }
+//                        }
+////                        LogUtil.info(getClass().getName(), "Task =" +taskObj);
+//                    }
+                }
+                
+                //CONFIGURE OSS ITEM AND OSS ITEM ATTRIBUTE
+                for (int y = 0; y < oss_item.size(); y++) {
+                    JSONObject oss_itemObj = (JSONObject)oss_item.get(y);
+                    listOssItem.setAction(((JSONObject) oss_itemObj).get("ACTION").toString());
+                    listOssItem.setCorrelationid(((JSONObject) oss_itemObj).get("CORRELATIONID").toString());
+                    listOssItem.setItemname(((JSONObject) oss_itemObj).get("ITEMNAME").toString());
                     //@insertOSSItem
-                    dao.insertToOssItem(wonum, listOssItem);
-                    
-                    JSONObject task = new JSONObject();
-                    JSONObject detailAct = dao2.getDetailTask(act.getDescriptionTask());
-                    
+//                    dao.insertToOssItem(wonum, listOssItem);
+                    //TASK GENERATE
+                    JSONObject detailAct = dao2.getDetailTask(listOssItem.getItemname());
+                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
                     task.put("description", act.getDescriptionTask());
                     task.put("correlation", act.getCorrelation());
                     task.put("sequence", (int) detailAct.get("sequence"));
                     task.put("actplace", detailAct.get("actPlace"));
-                    task.put("wonum", parent + " - " + counter);
-                    task.put("taskid", counter*10);
-                    task.put("status", "LABASSIGN");
-                    dao2.generateActivityTask(parent, siteId, jmsCorrelationId, ownerGroup, task);
-                    dao2.generateAssignment(act.getDescriptionTask(), schedStart, parent);
-                    
-                    JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
-                    for (int j = 0; j < ossitem_attr.size(); j++){
-                        JSONObject oss_itemObj1 = (JSONObject)ossitem_attr.get(j);
-                        listOssItemAtt.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
-                        listOssItemAtt.setAttrValue((oss_itemObj1.get("ATTR_VALUE").toString() == null) ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
-                        taskAttr.setAttrName(oss_itemObj1.get("ATTR_NAME").toString());
-                        taskAttr.setAttrValue((oss_itemObj1.get("ATTR_VALUE").toString() == null) ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
-//                        dao2.GenerateTaskAttribute(parent, act, siteId, taskAttr);
-                        //@insert Oss Item Attribute
-                        dao.insertToOssAttribute(listOssItemAtt);
-                        
-                        switch (oss_itemObj1.get("ATTR_NAME").toString()) {
-                            case "NTE_MODEL":
-                                cpeValidated.setModel(listOssItemAtt.getAttrValue());
-                                LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
-                                break;
-                            case "NTE_MANUFACTUR":
-                                cpeValidated.setVendor(listOssItemAtt.getAttrValue());
-                                LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
-                                break;
-                            case "NTE_SERIALNUMBER":
-                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
-                                LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
-                                break;
-                            case "AP_SERIALNUMBER":
-                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
-                                LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
-                                break;
-                            default:
-                                cpeValidated.setModel(null);
-                                cpeValidated.setVendor(null);
-                                cpeValidated.setSerial_number(null);
-                                break;
-                        }
-                        String cpeValidate = "";
-                        LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + ", " +cpeValidate+ " done");
-                        if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
-                            if (cpeValidated.getSerial_number().isEmpty()) {
-                                cpeValidate = "";
-                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
-                                cpeValidated.setUpdateCpeValidate(updateCpe);
-                            } else {
-                                cpeValidate = "PASS";
-                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
-                                cpeValidated.setUpdateCpeValidate(updateCpe);
-                            }
-                        }
+                    task.put("wonum", parent + " - " + counter+y);
+                    task.put("taskid", (y+1)*10);
+                    if (counter != 1) {
+                        task.put("status", "APPR"); 
+                    } else {
+                        task.put("status", "LABASSIGN");   
                     }
-                } else if (ossitem_arrayObj instanceof JSONArray) {
-//                    JSONArray ossItemArray = (JSONArray) body.get("OSSITEM");
-                    List<JSONObject> taskList = new ArrayList<>();
-                    List<JSONObject> taskAttrList = new ArrayList<>();
-                    JSONObject task = new JSONObject();
-                    for(int j = 0; j < ((JSONArray) ossitem_arrayObj).size(); j++) {
-//                    for(Object obj : ossItemArray) {
-                        JSONObject arrayObj = (JSONObject)((JSONArray) ossitem_arrayObj).get(j);
-                        listOssItem.setAction(arrayObj.get("ACTION").toString());
-                        listOssItem.setCorrelationid(arrayObj.get("CORRELATIONID") == null ? "" : arrayObj.get("CORRELATIONID").toString());
-                        listOssItem.setItemname(arrayObj.get("ITEMNAME") == null ? "" : arrayObj.get("ITEMNAME").toString());
-                         //Task Dispatch
-                        String itemName = listOssItem.getItemname();
-                        String correlation = listOssItem.getCorrelationid();
-                        JSONObject detailAct = dao2.getDetailTask(itemName);
-                        
-                        task.put("description", detailAct.get("description"));
-                        task.put("correlation", correlation);
-                        task.put("sequence", (int) detailAct.get("sequence"));
-                        task.put("actplace", detailAct.get("actPlace"));
-                        task.put("attributes", detailAct.get("attributes"));
-                        
-                        JSONArray ossitem_attr = (JSONArray)((JSONObject)arrayObj).get("OSSITEMATTRIBUTE");
-                        for ( int x = 0; x < ossitem_attr.size(); x++ ) {
-//                        for ( Object obj2 : ossitem_attr ) {
-                            JSONObject arrayObj2 = (JSONObject)ossitem_attr.get(x);
-//                            JSONObject arrayObj2 = (JSONObject)ossitem_attr;
-                            JSONObject taskAttrItem = new JSONObject();
-                            listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
-                            listOssItemAtt.setAttrValue((arrayObj2.get("ATTR_VALUE").toString() == null) ? "" : arrayObj2.get("ATTR_VALUE").toString());
-                            String attrName = listOssItemAtt.getAttrName();
-                            String attrValue = listOssItemAtt.getAttrValue();
-                            
-                            taskAttrItem.put("assetAttrId", attrName);
-                            taskAttrItem.put("value", attrValue);
-                            taskAttrList.add(taskAttrItem);
-//                            LogUtil.info(getClass().getName(), "Task attr =" +taskAttrList);
-                        }
-                        task.put("ossItemAttr", taskAttrList);
-                        taskList.add(task);
-                        LogUtil.info(getClass().getName(), "Task =" +taskList);
-                    }
-                    
-                    Collections.sort(taskList, new Comparator<JSONObject>(){
-                        @Override
-                        public int compare(JSONObject o1, JSONObject o2) {
-                            int valA = (int) o1.get("sequence");
-                            int valB = (int) o2.get("sequence"); 
-                            System.out.println("valA: " + valA);
-//                            LogUtil.info(getClass().getName(), "Compare sequence 1 =" +valA);
-                            System.out.println("valB: " + valB);
-                            LogUtil.info(getClass().getName(), "Compare sequence 2 =" +valB);
-                            int result = valA - valB;
-                            LogUtil.info(getClass().getName(), "Compare result =" +result);
-                            return result;
-                        }
-                    });
-                    
-                    for(JSONObject taskObj: taskList) {
-                        //TASK IDENTIFIER
-                        taskObj.put("wonum", parent + " - " + counter);
-                        taskObj.put("taskid", counter*10);
-                        if (counter != 1) {
-                            taskObj.put("status", "APPR");
-                        } else {
-                            taskObj.put("status", "LABASSIGN");
-                        }
-                        counter = counter + 1;
-                        //GENERATE TASK
-                        dao2.generateActivityTask(parent, siteId, jmsCorrelationId, ownerGroup, taskObj);
-                        //GENERATE ASSIGNMENT
-                        dao2.generateAssignment(taskObj.get("description").toString(), schedStart, parent);
-                        
-                        if ((int) taskObj.get("attributes") == 1) {
-                            for(int x = 0; x < taskAttrList.size(); x++) {
-                                JSONObject oss_itemObj = (JSONObject)taskAttrList.get(x);
-                                dao.insertToOssAttribute(listOssItemAtt);
-                                dao2.GenerateTaskAttribute(oss_itemObj, siteId, taskObj.get("wonum").toString());
-//                                LogUtil.info(getClass().getName(), "Attribute =" +taskAttrObj);
-//                                LogUtil.info(getClass().getName(), "Task Attr =" +taskAttrList);
-                            }
-                        }
-//                        LogUtil.info(getClass().getName(), "Task =" +taskObj);
-                    }
+                    taskList.add(task);
+                    LogUtil.info(getClass().getName(), "TASK :" + task);
+                    //TASK ATTRIBUTE GENERATE
+                    JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
                 }
+                
                 //@Work Order
                 //Insert Work Order param
 //                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, description, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup);

@@ -15,7 +15,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.ArrayList;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -290,6 +292,31 @@ public class TaskActivityDao {
         }
         return updateCpe;
     }
+    
+        public JSONObject getDetailTask(String activity) throws SQLException {
+        JSONObject activityProp = new JSONObject();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_description, c_classstructureid, c_actplace, c_attributes, c_sequence FROM app_fd_detailactivity WHERE c_activity = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, activity);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                activityProp.put("description", rs.getString("c_description"));
+                activityProp.put("sequence", rs.getInt("c_sequence"));
+                activityProp.put("actPlace", rs.getString("c_actplace"));
+                activityProp.put("classstructureid", rs.getString("c_classstructureid"));
+                activityProp.put("attributes", rs.getInt("c_attributes"));
+            } else {
+                activityProp = null;
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return activityProp;
+    }
 
     public void insertToWoActivity(PreparedStatement ps, String parent, ActivityTask act, String detailActCode, String description, String sequence, String actplace, String classstructureid, String siteId, String correlationId, String ownerGroup) throws SQLException{              
         ps.setString(1, UuidGenerator.getInstance().getUuid());
@@ -370,32 +397,33 @@ public class TaskActivityDao {
             }
     }
     
-    public void insertToWoAttribute(PreparedStatement ps, String classStructureId, String classSpecId, String parent, String siteId, String attr_name, String attr_name2, String attr_value, String isRequired, String isShared, String isReported, String readOnly, ActivityTask act ) throws SQLException{              
-        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
-//        act.setTaskId(10);
-        ps.setString(1, uuId);
-        ps.setString(2, classStructureId);
-        ps.setString(3, classSpecId);
-        ps.setString(4, "TELKOM");
-        ps.setString(5, parent);
-        ps.setString(6, siteId);
-        ps.setString(7, attr_name);
-        ps.setString(8, attr_name2);
-        ps.setString(9, attr_value);
-        ps.setString(10, isRequired);
-        ps.setString(11, isShared);
-        ps.setString(12, isReported);
-        ps.setString(13, readOnly);
-        ps.setString(14, Integer.toString(act.getTaskId() - 10));
-    }
+//    public void insertToWoAttribute(PreparedStatement ps, String classStructureId, String classSpecId, String parent, String siteId, String attr_name, String attr_name2, String attr_value, String isRequired, String isShared, String isReported, String readOnly, ActivityTask act ) throws SQLException{              
+//        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
+////        act.setTaskId(10);
+//        ps.setString(1, uuId);
+//        ps.setString(2, classStructureId);
+//        ps.setString(3, classSpecId);
+//        ps.setString(4, "TELKOM");
+//        ps.setString(5, parent);
+//        ps.setString(6, siteId);
+//        ps.setString(7, attr_name);
+//        ps.setString(8, attr_name2);
+//        ps.setString(9, attr_value);
+//        ps.setString(10, isRequired);
+//        ps.setString(11, isShared);
+//        ps.setString(12, isReported);
+//        ps.setString(13, readOnly);
+//        ps.setString(14, Integer.toString(act.getTaskId() - 10));
+//        ps.addBatch();
+//    }
     
-    public void GenerateTaskAttribute(String parent, ActivityTask act, String siteid, ListClassSpec taskAttr) throws SQLException {
-        String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_siteid, c_attribute_name, c_assetattrid, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, c_displaysequence, dateCreated) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+    public void GenerateTaskAttribute(String parent, ActivityTask act, ListClassSpec taskAttr, String classStructureId) throws SQLException {
+        String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_assetattrid, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
         String wonum = parent +" - "+ ((act.getTaskId()/10)-1);
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_classstructureid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec WHERE c_assetattrid = ?";
+        String query = "SELECT c_classstructureid, c_orgid, c_assetattrid, c_classspecid, c_isrequired, c_isshared, c_isreported, c_readonly FROM app_fd_classspec WHERE c_classstructureid = ?";
         try {
             Connection con = ds.getConnection();
             con.setAutoCommit(false);
@@ -403,25 +431,40 @@ public class TaskActivityDao {
                 PreparedStatement ps = con.prepareStatement(insert);
                 PreparedStatement stmt = con.prepareStatement(query);
                 try {
-//                    stmt.setString(1, getTaskAttrName(wonum));
-                    stmt.setString(1, taskAttr.getAttrName());
+                    stmt.setString(1, classStructureId);
                     ResultSet rs = stmt.executeQuery();
-                    if (rs.next()){
-                        taskAttr.setClassStructureId(rs.getString("c_classstructureid"));
-//                        taskAttr.setAttrName(rs.getString("c_assetattrid"));
-                        insertToWoAttribute(ps, taskAttr.getClassStructureId(), rs.getString("c_classspecid"), wonum, siteid, taskAttr.getAttrName(), taskAttr.getAttrName(), taskAttr.getAttrValue(), rs.getString("c_isrequired"), rs.getString("c_isshared"), rs.getString("c_isreported"), rs.getString("c_readonly"), act);
-                        int exe = ps.executeUpdate();
-                        //Checking insert status
-                        if (exe > 0) {
-                            LogUtil.info(getClass().getName(), "insert WO Activity Attribute for " +taskAttr.getAttrName()+ " done");
-                        }
-                        con.commit();
-                    } else con.rollback();
+                    LogUtil.info(getClass().getName(), "classstructureId = " + classStructureId);
+
+                    while (rs.next()) {
+                        ps.setString(1, UuidGenerator.getInstance().getUuid());
+                        ps.setString(2, classStructureId);
+                        ps.setString(3, (rs.getString("c_classspecid") == null ? "" : rs.getString("c_classspecid")));
+                        ps.setString(4, (rs.getString("c_orgid") == null ? "" : rs.getString("c_orgid"))); //c_orgid
+                        ps.setString(5, wonum);
+//                            ps.setString(6, siteId);
+                        ps.setString(6, (rs.getString("c_assetattrid") == null ? "" : rs.getString("c_assetattrid"))); //attr_name
+                        ps.setString(7, (taskAttr.getAttrValue() == null ? "" : taskAttr.getAttrValue())); //attrvalue
+//                        ps.setString(7, ""); 
+                        ps.setString(8, (rs.getString("c_isrequired") == null ? "" : rs.getString("c_isrequired"))); //isrequired
+                        ps.setString(9, (rs.getString("c_isshared") == null ? "" : rs.getString("c_isshared"))); //isshared
+                        ps.setString(10, (rs.getString("c_isreported") == null ? "" : rs.getString("c_isreported"))); //isreported
+                        ps.setString(11, (rs.getString("c_readonly") == null ? "" : rs.getString("c_readonly"))); //readonly
+//                        ps.setString(12, Integer.toString(act.getTaskId() - 10));
+                        ps.addBatch();
+                    }
+                    int[] exe = ps.executeBatch();
+                    //Checking insert status
+//                    if (exe.length > 0) {
+//                        LogUtil.info(getClass().getName(), "Success generated " + exe.length + " task attributes, for " + rs.getString("c_assetattrid"));
+//                    }
+                    con.commit();
                     con.setAutoCommit(true);
                     if (ps != null)
                         ps.close();
                     if (stmt != null)
                         stmt.close();
+//                    if (stmt2 != null)
+//                        stmt.close();
                 } catch (SQLException throwable) {
                     try {
                         if (ps != null)

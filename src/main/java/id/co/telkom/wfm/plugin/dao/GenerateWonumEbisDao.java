@@ -365,7 +365,7 @@ public class GenerateWonumEbisDao {
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_workorderattribute (id, c_workorderattributeid, c_wonum, c_attr_name, c_attr_value, c_sequence, dateCreated) VALUES (?, WFMDBDEV01.WORKORDERATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, ?, sysdate)";
+        String insert = "INSERT INTO app_fd_workorderattribute (id, c_workorderattributeid, c_wonum, c_attr_name, c_attr_value, dateCreated) VALUES (?, WFMDBDEV01.WORKORDERATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, sysdate)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -375,7 +375,7 @@ public class GenerateWonumEbisDao {
                     ps.setString(2, wonum);
                     ps.setString(3, listAttr.getTlkwoAttrName());
                     ps.setString(4, listAttr.getTlkwoAttrValue());
-                    ps.setString(5, listAttr.getSequence());
+//                    ps.setString(5, listAttr.getSequence());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
