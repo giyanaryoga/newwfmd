@@ -293,7 +293,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                             taskAttr.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
                             taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
                             //@insert to workorderspec
-                            dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
+//                            dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
                             //@insert Oss Item Attribute
                             dao.insertToOssAttribute(listOssItemAtt);
                             
@@ -334,6 +334,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                                 }
                             }
                         }
+                        dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
                     }
                 }
                 //@Work Order
