@@ -8,6 +8,7 @@ package id.co.telkom.wfm.plugin;
 import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
+import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -73,6 +74,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
+        TimeUtil time = new TimeUtil();
         //@@Start..
         LogUtil.info(getClass().getName(), "Start Process: Update Task Status");
         //@Authorization
@@ -123,8 +125,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                     description = (body.get("description") == null ? "" : body.get("description").toString());
                     errorCode = (body.get("errorCode") == null ? "" : body.get("errorCode").toString());
                     engineerMemo = (body.get("engineerMemo") == null ? "" : body.get("engineerMemo").toString());
-                    DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-                    currentDate = ZonedDateTime.now(ZoneId.of("Asia/Jakarta")).format(currentDateFormat);
+                    currentDate = time.getCurrentTime();
                 } else {
                     wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
                     parent = wonum.substring(0, 11);
@@ -133,8 +134,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                     woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
                     woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
                     description = (body.get("description") == null ? "" : body.get("description").toString());
-                    DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-                    currentDate = ZonedDateTime.now(ZoneId.of("Asia/Jakarta")).format(currentDateFormat);
+                    currentDate = time.getCurrentTime();
                 }
 
                 int nextTaskId = Integer.parseInt(taskId) + 10;
