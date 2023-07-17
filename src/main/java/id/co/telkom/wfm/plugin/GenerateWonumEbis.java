@@ -214,6 +214,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
 //                    String wonumChild = wonum + " - " + counter;
                     JSONObject taskDetail = dao2.getDetailTask(act.getDescriptionTask());
                     String classStructure = taskDetail.get("classstructureid").toString();
+                    dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
                     
                     JSONArray ossitem_attr = (JSONArray)((JSONObject)ossitem_arrayObj).get("OSSITEMATTRIBUTE");
                     for (int j = 0; j < ossitem_attr.size(); j++){
@@ -222,7 +223,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         listOssItemAtt.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
                         taskAttr.setAttrName(oss_itemObj1.get("ATTR_NAME").toString() == null ? "" : oss_itemObj1.get("ATTR_NAME").toString());
                         taskAttr.setAttrValue(oss_itemObj1.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj1.get("ATTR_VALUE").toString());
-//                        String classStructure = taskDetail.get("classstructureid");
                         dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
                         
                         //@insert Oss Item Attribute
@@ -278,63 +278,108 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         dao.insertToOssItem(wonum, listOssItem);
                         dao2.generateActivityTask(parent, act.getDescriptionTask(), act, siteId, act.getCorrelation(), ownerGroup);
                         dao2.generateAssignment(act.getDescriptionTask(), schedStart, parent);
-//                        String wonumChild = wonum + " - " + counter+i;
                         JSONObject taskDetail = dao2.getDetailTask(act.getDescriptionTask());
                         String classStructure = taskDetail.get("classstructureid").toString();
                         
-//                        dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
+                        dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
                         
                         JSONArray ossitem_attr = (JSONArray) oss_itemObj.get("OSSITEMATTRIBUTE");
                         for (int j = 0; j < ossitem_attr.size(); j++){
-//                            String wonumChild = parent +" - "+ ((act.getTaskId()/10)-1);
                             JSONObject oss_itemObj2 = (JSONObject)ossitem_attr.get(j);
-                            listOssItemAtt.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
-                            listOssItemAtt.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
                             taskAttr.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
-                            taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
-                            //@insert to workorderspec
-//                            dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
-                            //@insert Oss Item Attribute
-                            dao.insertToOssAttribute(listOssItemAtt);
-                            
-                            switch (oss_itemObj2.get("ATTR_NAME").toString()) {
-                                case "NTE_MODEL":
-                                    cpeValidated.setModel(listOssItemAtt.getAttrValue());
-                                    LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
-                                    break;
-                                case "NTE_MANUFACTUR":
-                                    cpeValidated.setVendor(listOssItemAtt.getAttrValue());
-                                    LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
-                                    break;
-                                case "NTE_SERIALNUMBER":
-                                    cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
-                                    LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
-                                    break;
-                                case "AP_SERIALNUMBER":
-                                    cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
-                                    LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
-                                    break;
-                                default:
-                                    cpeValidated.setModel(null);
-                                    cpeValidated.setVendor(null);
-                                    cpeValidated.setSerial_number(null);
-                                    break;
-                            }
-                            String cpeValidate = "";
-                            LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + ", " +cpeValidate+ " done");
-                            if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
-                                if (cpeValidated.getSerial_number().isEmpty()) {
-                                    cpeValidate = "";
-                                    boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
-                                    cpeValidated.setUpdateCpeValidate(updateCpe);
-                                } else {
-                                    cpeValidate = "PASS";
-                                    boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
-                                    cpeValidated.setUpdateCpeValidate(updateCpe);
+                            if (taskAttr.getAttrName().equals(dao2.getTaskAttrName(taskAttr.getAttrName()))) {
+                                listOssItemAtt.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
+                                listOssItemAtt.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
+                                taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
+                                
+                                //update value task attribute
+                                dao2.updateValueTaskAttribute(parent, act, taskAttr.getAttrName(), taskAttr.getAttrValue());
+                                //@insert Oss Item Attribute
+                                dao.insertToOssAttribute(listOssItemAtt);
+                                
+                                switch (taskAttr.getAttrName()) {
+                                    case "NTE_MODEL":
+                                        cpeValidated.setModel(listOssItemAtt.getAttrValue());
+                                        LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
+                                        break;
+                                    case "NTE_MANUFACTUR":
+                                        cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+                                        LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
+                                        break;
+                                    case "NTE_SERIALNUMBER":
+                                        cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                                        LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
+                                        break;
+                                    case "AP_SERIALNUMBER":
+                                        cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                                        LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
+                                        break;
+                                    default:
+                                        cpeValidated.setModel(null);
+                                        cpeValidated.setVendor(null);
+                                        cpeValidated.setSerial_number(null);
+                                        break;
+                                }
+                                String cpeValidate = "";
+                                LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + ", " +cpeValidate+ " done");
+                                if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
+                                    if (cpeValidated.getSerial_number().isEmpty()) {
+                                        cpeValidate = "";
+                                        boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                                        cpeValidated.setUpdateCpeValidate(updateCpe);
+                                    } else {
+                                        cpeValidate = "PASS";
+                                        boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                                        cpeValidated.setUpdateCpeValidate(updateCpe);
+                                    }
                                 }
                             }
+//                            listOssItemAtt.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
+//                            listOssItemAtt.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
+////                            taskAttr.setAttrName(oss_itemObj2.get("ATTR_NAME").toString());
+//                            taskAttr.setAttrValue(oss_itemObj2.get("ATTR_VALUE").toString() == null ? "" : oss_itemObj2.get("ATTR_VALUE").toString());
+//                            //@insert to workorderspec
+////                            dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
+//                            //@insert Oss Item Attribute
+//                            dao.insertToOssAttribute(listOssItemAtt);
+                            
+//                            switch (oss_itemObj2.get("ATTR_NAME").toString()) {
+//                                case "NTE_MODEL":
+//                                    cpeValidated.setModel(listOssItemAtt.getAttrValue());
+//                                    LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
+//                                    break;
+//                                case "NTE_MANUFACTUR":
+//                                    cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+//                                    LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
+//                                    break;
+//                                case "NTE_SERIALNUMBER":
+//                                    cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+//                                    LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
+//                                    break;
+//                                case "AP_SERIALNUMBER":
+//                                    cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+//                                    LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
+//                                    break;
+//                                default:
+//                                    cpeValidated.setModel(null);
+//                                    cpeValidated.setVendor(null);
+//                                    cpeValidated.setSerial_number(null);
+//                                    break;
+//                            }
+//                            String cpeValidate = "";
+//                            LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + ", " +cpeValidate+ " done");
+//                            if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
+//                                if (cpeValidated.getSerial_number().isEmpty()) {
+//                                    cpeValidate = "";
+//                                    boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+//                                    cpeValidated.setUpdateCpeValidate(updateCpe);
+//                                } else {
+//                                    cpeValidate = "PASS";
+//                                    boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+//                                    cpeValidated.setUpdateCpeValidate(updateCpe);
+//                                }
+//                            }
                         }
-                        dao2.GenerateTaskAttribute(parent, act, taskAttr, classStructure);
                     }
                 }
                 //@Work Order

@@ -161,22 +161,22 @@ public class TaskActivityDao {
         return cpeVendor;
     }
     
-    public String getTaskAttrName(String wonum) throws SQLException {
-        String classStructure = "";
+    public String getTaskAttrName(String attrName) throws SQLException {
+        String taskAttrName = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_classstructureid FROM app_fd_workorder WHERE c_wonum = ?";
+        String query = "SELECT c_assetattrid FROM app_fd_workorderspec WHERE c_assetattrid = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
+            ps.setString(1, attrName);
             ResultSet rs = ps.executeQuery();
             if (rs.next())
-                classStructure = rs.getString("c_classstructureid");
+                taskAttrName = rs.getString("c_assetattrid");
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close();
         }
-        return classStructure;
+        return taskAttrName;
     }
     
     public void reviseTask(String parent){
@@ -397,26 +397,6 @@ public class TaskActivityDao {
             }
     }
     
-//    public void insertToWoAttribute(PreparedStatement ps, String classStructureId, String classSpecId, String parent, String siteId, String attr_name, String attr_name2, String attr_value, String isRequired, String isShared, String isReported, String readOnly, ActivityTask act ) throws SQLException{              
-//        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
-////        act.setTaskId(10);
-//        ps.setString(1, uuId);
-//        ps.setString(2, classStructureId);
-//        ps.setString(3, classSpecId);
-//        ps.setString(4, "TELKOM");
-//        ps.setString(5, parent);
-//        ps.setString(6, siteId);
-//        ps.setString(7, attr_name);
-//        ps.setString(8, attr_name2);
-//        ps.setString(9, attr_value);
-//        ps.setString(10, isRequired);
-//        ps.setString(11, isShared);
-//        ps.setString(12, isReported);
-//        ps.setString(13, readOnly);
-//        ps.setString(14, Integer.toString(act.getTaskId() - 10));
-//        ps.addBatch();
-//    }
-    
     public void GenerateTaskAttribute(String parent, ActivityTask act, ListClassSpec taskAttr, String classStructureId) throws SQLException {
         String insert = "INSERT INTO app_fd_workorderspec (id, c_classstructureid, c_classspecid, c_orgid, c_wonum, c_assetattrid, c_alnvalue, c_isrequired, c_isshared, c_isreported, c_readonly, dateCreated) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
@@ -441,15 +421,12 @@ public class TaskActivityDao {
                         ps.setString(3, (rs.getString("c_classspecid") == null ? "" : rs.getString("c_classspecid")));
                         ps.setString(4, (rs.getString("c_orgid") == null ? "" : rs.getString("c_orgid"))); //c_orgid
                         ps.setString(5, wonum);
-//                            ps.setString(6, siteId);
                         ps.setString(6, (rs.getString("c_assetattrid") == null ? "" : rs.getString("c_assetattrid"))); //attr_name
                         ps.setString(7, (taskAttr.getAttrValue() == null ? "" : taskAttr.getAttrValue())); //attrvalue
-//                        ps.setString(7, ""); 
                         ps.setString(8, (rs.getString("c_isrequired") == null ? "" : rs.getString("c_isrequired"))); //isrequired
                         ps.setString(9, (rs.getString("c_isshared") == null ? "" : rs.getString("c_isshared"))); //isshared
                         ps.setString(10, (rs.getString("c_isreported") == null ? "" : rs.getString("c_isreported"))); //isreported
                         ps.setString(11, (rs.getString("c_readonly") == null ? "" : rs.getString("c_readonly"))); //readonly
-//                        ps.setString(12, Integer.toString(act.getTaskId() - 10));
                         ps.addBatch();
                     }
                     int[] exe = ps.executeBatch();
@@ -493,6 +470,69 @@ public class TaskActivityDao {
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
+    }
+    
+    public boolean updateValueTaskAttribute(String parent, ActivityTask act, String attrName, String attrValue){
+        String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
+        boolean updateCpe = false;    
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
+        StringBuilder update = new StringBuilder();
+        update
+                .append(" UPDATE app_fd_workorderspec SET ")
+                .append(" c_alnvalue = ?, ")
+                .append(" c_value = ? ")
+                .append(" WHERE ")
+                .append(" c_wonum = ? ")
+                .append(" AND ")
+                .append(" c_assetattrid = ? ");
+        // change 03
+        try {
+            Connection con = ds.getConnection();
+            try {
+                // change 03
+                PreparedStatement ps = con.prepareStatement(update.toString());
+                // change 03
+                try {
+                    ps.setString(1, attrValue);
+                    ps.setString(2, attrValue);
+                    // change 03 where clause
+                    ps.setString(3, wonum);
+                    ps.setString(4, attrName);
+                    // change 03
+                    int exe = ps.executeUpdate();
+                    //Checking insert status
+                    if (exe > 0) {
+                        updateCpe = true;
+                        LogUtil.info(getClass().getName(), " Task Attribute updated to " + wonum);
+                    }   
+                    if (ps != null)
+                        ps.close();
+                } catch (Throwable throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (Throwable throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (Throwable throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+        return updateCpe;
     }
     
     public void insertToAssignment(PreparedStatement ps, String parent, String wonum, String taskid, String status, String description, String scheduledate) throws SQLException{              

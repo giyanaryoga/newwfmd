@@ -252,16 +252,12 @@ public class TaskGenerateEbisDao {
                 .append(" c_cpe_validation = ? ")
                 .append(" WHERE ")
                 .append(" c_wonum = ? ")
-//                .append(" AND ")
-//                .append(" c_taskid = ? ")
                 .append(" AND ")
                 .append(" c_woclass = 'ACTIVITY' ");
         // change 03
         try {
             Connection con = ds.getConnection();
             try {
-                //PreparedStatement ps = con.prepareStatement(update);
-                // change 03
                 PreparedStatement ps = con.prepareStatement(update.toString());
                 // change 03
                 try {
@@ -384,74 +380,19 @@ public class TaskGenerateEbisDao {
         }
     }
     
-//    public JSONObject getDetailTaskAttr(String taskAttr) throws SQLException {
-//        JSONObject activityProp = new JSONObject();
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        StringBuilder query = new StringBuilder();
-//        query
-//                .append(" SELECT ")
-//                .append(" c_assetattrid, ")
-////                .append(" c_defaultalnvalue, ") //joinan dari classspecusewith
-////                .append(" c_samplevalue, ")
-////                .append(" c_sequence, ") //joinan dari classspecusewith
-//                .append(" c_readonly, ")
-//                .append(" c_isrequired, ") //joinan dari classspecusewith
-//                .append(" c_isshared ")
-//                .append(" FROM app_fd_classspec WHERE")
-////                .append(" c_classstructureid = ?");
-//                .append(" c_assetattrid = ?");  //this is for next patching
-//        try (Connection con = ds.getConnection();
-//            PreparedStatement ps = con.prepareStatement(query.toString())) {
-//            ps.setString(1, taskAttr);
-//            ResultSet rs = ps.executeQuery();
-//            if (rs.next()) {
-//                activityProp.put("assetattrid", rs.getString("c_assetattrid"));
-////                activityProp.put("sequence", rs.getInt("c_sequence"));
-////                activityProp.put("defaultValue", rs.getString("c_defaultalnvalue"));
-////                activityProp.put("sampleValue", rs.getString("c_samplevalue"));
-//                activityProp.put("readOnly", rs.getInt("c_readonly"));
-//                activityProp.put("required", rs.getInt("c_isrequired"));
-//                activityProp.put("shared", rs.getInt("c_isshared"));
-//            } else {
-//                activityProp = null;
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//        return activityProp;
-//    }
-    
-//    public void insertToWoAttribute(PreparedStatement ps, String classStructureId, String classSpecId, String parent, String siteId, String attr_name, String attr_name2, String attr_value, String isRequired, String isShared, String isReported, String readOnly, ActivityTask act ) throws SQLException{              
-//        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
-////        act.setTaskId(10);
-//        ps.setString(1, uuId);
-//        ps.setString(2, classStructureId);
-//        ps.setString(3, classSpecId);
-//        ps.setString(4, "TELKOM");
-//        ps.setString(5, parent);
-//        ps.setString(6, siteId);
-//        ps.setString(7, attr_name);
-//        ps.setString(8, attr_name2);
-//        ps.setString(9, attr_value);
-//        ps.setString(10, isRequired);
-//        ps.setString(11, isShared);
-//        ps.setString(12, isReported);
-//        ps.setString(13, readOnly);
-//        ps.setString(14, Integer.toString(act.getTaskId() - 10));
-//    }
-    
-    public void GenerateTaskAttribute(JSONObject taskObj, String siteId, String wonum) throws SQLException {
+    public void GenerateTaskAttribute(JSONObject taskObj, String wonum) throws SQLException {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
+                .append(" c_classstructureid, ")
+                .append(" c_classspecid, ")
+                .append(" c_orgid, ")
                 .append(" c_assetattrid, ")
                 .append(" c_readonly, ")
                 .append(" c_isrequired, ") //joinan dari classspecusewith
                 .append(" c_isshared ")
                 .append(" FROM app_fd_classspec WHERE ")
-                .append(" c_assetattrid = ? ");  //this is for next patching
+                .append(" c_classstructureid = ? ");  //this is for next patching
         
         StringBuilder insert = new StringBuilder();
         insert
@@ -460,7 +401,7 @@ public class TaskGenerateEbisDao {
                 //TEMPLATE CONFIGURATION
                 .append(" id, dateCreated, createdBy, createdByName,  ")
                 //TASK ATTRIBUTE
-                .append(" c_wonum, c_assetattrid, c_value, c_orgid, c_siteid, ")
+                .append(" c_wonum, c_assetattrid, c_value, c_orgid, c_classspecid ")
                 //PERMISSION
                 .append(" c_readonly, c_isrequired, c_isshared ")
                 .append(" ) ")
@@ -469,7 +410,7 @@ public class TaskGenerateEbisDao {
                 //VALUES TEMPLATE CONFIGURATION
                 .append(" ?, sysdate, 'admin', 'Admin admin', ")
                 //VALUES TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ")
+                .append(" ?, ?, ?, ?, ")
                 //VALUES PERMISSION
                 .append(" ?, ?, ? ")
                 .append(" ) ");
@@ -486,13 +427,13 @@ public class TaskGenerateEbisDao {
                 while (rs.next()) {
                     psInsert.setString(1, UuidGenerator.getInstance().getUuid());
                     psInsert.setString(2, wonum);
-                    psInsert.setString(3, taskObj.get("assetAttrId").toString());
+                    psInsert.setString(3, rs.getString("c_assetattrid"));
                     psInsert.setString(4, taskObj.get("value").toString());
-                    psInsert.setString(5, "TELKOM");
-                    psInsert.setString(6, siteId);
-                    psInsert.setString(7, rs.getString("c_readonly"));
-                    psInsert.setString(8, rs.getString("c_isrequired"));
-                    psInsert.setString(9, rs.getString("c_isshared"));
+                    psInsert.setString(5, rs.getString("c_orgid"));
+                    psInsert.setString(6, rs.getString("c_classspecid"));
+                    psInsert.setString(6, rs.getString("c_readonly"));
+                    psInsert.setString(7, rs.getString("c_isrequired"));
+                    psInsert.setString(8, rs.getString("c_isshared"));
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();
@@ -541,7 +482,16 @@ public class TaskGenerateEbisDao {
                         stmt.setString(2, parent);
                         ResultSet rs = stmt.executeQuery();
                         if (rs.next()){
-                            insertToAssignment(ps, parent, rs.getString("c_wonum"), rs.getString("c_taskid"), "WAITASSIGN", rs.getString("c_description"), scheduledate);
+                            ps.setString(1, UuidGenerator.getInstance().getUuid());
+                            ps.setString(2, parent);
+                            ps.setString(3, rs.getString("c_wonum"));
+                            ps.setString(4, rs.getString("c_taskid"));
+                            ps.setString(5, "WAITASSIGN");
+                            ps.setString(6, rs.getString("c_description"));
+                            ps.setString(7, "WFM");
+                            ps.setString(8, "ACTIVITY");
+                            ps.setString(9, scheduledate);
+                            
                             int exe = ps.executeUpdate();
                             //Checking insert status
                             if (exe > 0) {
