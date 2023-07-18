@@ -14,6 +14,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -178,7 +182,12 @@ public class GenerateWonumEbisDao {
      public boolean insertToWoTable(String id, String wonum, String crmOrderType, String custName, String custAddress, String description, String prodName, String prodType, String scOrderNo, String workZone, String siteId, String workType, String schedStart, String reportBy,  String woClass, String woRevisionNo, String jmsCorrelationId, String status, String serviceNum, String tkWo4, String ownerGroup, String statusDate){
         boolean insertStatus = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+//        StringBuilder insert = new StringBuilder();
+//        insert
+        String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, "
+                + "c_schedstart1, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate1, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        //c_schedstart1 dan c_statusdate1 TEMPORARY masih, angka 1 dihilangkan jika sudah di hapus column di table
         try {
             Connection con = ds.getConnection();
             try {
@@ -196,7 +205,7 @@ public class GenerateWonumEbisDao {
                     ps.setString(10, workZone);
                     ps.setString(11, siteId);
                     ps.setString(12, workType);
-                    ps.setString(13, schedStart);
+                    ps.setTimestamp(13, schedStart == null ? null : Timestamp.valueOf(schedStart));
                     ps.setString(14, reportBy);
                     ps.setString(15, woClass);
                     ps.setString(16, woRevisionNo);
@@ -205,9 +214,9 @@ public class GenerateWonumEbisDao {
                     ps.setString(19, serviceNum);
                     ps.setString(20, tkWo4);
                     ps.setString(21, ownerGroup);
-                    ps.setString(22, statusDate);
-//                    ps.setString(20, listAttr.getTechCode());
-//                    ps.setString(21, listAttr.getTechName());
+                    ps.setTimestamp(22, Timestamp.valueOf(statusDate));
+                    ps.setTimestamp(23, getTimeStamp());
+                    
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
@@ -248,7 +257,7 @@ public class GenerateWonumEbisDao {
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_ossitem (id, c_wonum, c_action, c_correlationid, c_itemname, dateCreated, dateModified) VALUES (?, ?, ?, ?, ?, sysdate, sysdate)";
+        String insert = "INSERT INTO app_fd_ossitem (id, c_wonum, c_action, c_correlationid, c_itemname, dateCreated) VALUES (?, ?, ?, ?, ?, ?)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -259,6 +268,7 @@ public class GenerateWonumEbisDao {
                     ps.setString(3, listOssItem.getAction());
                     ps.setString(4, listOssItem.getCorrelationid());
                     ps.setString(5, listOssItem.getItemname());
+                    ps.setTimestamp(6, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
@@ -297,10 +307,9 @@ public class GenerateWonumEbisDao {
 
     public boolean insertToOssAttribute(ListOssItemAttribute listOssItemAtt){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
-//        String ossItemId = insertToOssItem.uuId;
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_ossitemattribute (id, c_ossitemattributeid, c_ossitemid, c_attr_name, c_attr_value, dateCreated, dateModified) VALUES (?, WFMDBDEV01.OSSITEMATTRIBUTEIDSEQ.NEXTVAL, WFMDBDEV01.OSSITEMIDSEQ.NEXTVAL, ?, ?, sysdate, sysdate)";
+        String insert = "INSERT INTO app_fd_ossitemattribute (id, c_ossitemattributeid, c_ossitemid, c_attr_name, c_attr_value, dateCreated) VALUES (?, WFMDBDEV01.OSSITEMATTRIBUTEIDSEQ.NEXTVAL, WFMDBDEV01.OSSITEMIDSEQ.NEXTVAL, ?, ?, ?)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -309,6 +318,7 @@ public class GenerateWonumEbisDao {
                     ps.setString(1, uuId);
                     ps.setString(2, listOssItemAtt.getAttrName());
                     ps.setString(3, listOssItemAtt.getAttrValue());
+                    ps.setTimestamp(4, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
@@ -345,27 +355,11 @@ public class GenerateWonumEbisDao {
         return insertStatus;
     }
     
-    public void ossItemAttributeLoop (Object attrObj, ListOssItemAttribute listOssItemAtt){
-        //Attribute level
-        if (attrObj instanceof JSONObject){
-            listOssItemAtt.setAttrName(((JSONObject) attrObj).get("ATTR_NAME").toString());
-            listOssItemAtt.setAttrValue(((JSONObject) attrObj).get("ATTR_VALUE").toString());
-            insertToOssAttribute(listOssItemAtt);
-        } else if (attrObj instanceof JSONArray){
-            for (int j = 0 ; j < ((JSONArray) attrObj).size() ; j++ ){
-                JSONObject deviceAttr = (JSONObject)((JSONArray) attrObj).get(j);
-                listOssItemAtt.setAttrName(deviceAttr.get("ATTR_NAME").toString());
-                listOssItemAtt.setAttrValue(deviceAttr.get("ATTR_VALUE").toString());
-                insertToOssAttribute(listOssItemAtt);
-            }
-        }
-    }
-    
     public boolean insertToWoAttrTable(String wonum, ListAttributes listAttr){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_workorderattribute (id, c_workorderattributeid, c_wonum, c_attr_name, c_attr_value, dateCreated) VALUES (?, WFMDBDEV01.WORKORDERATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, sysdate)";
+        String insert = "INSERT INTO app_fd_workorderattribute (id, c_workorderattributeid, c_wonum, c_attr_name, c_attr_value, dateCreated) VALUES (?, WFMDBDEV01.WORKORDERATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, ?)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -375,7 +369,7 @@ public class GenerateWonumEbisDao {
                     ps.setString(2, wonum);
                     ps.setString(3, listAttr.getTlkwoAttrName());
                     ps.setString(4, listAttr.getTlkwoAttrValue());
-//                    ps.setString(5, listAttr.getSequence());
+                    ps.setTimestamp(5, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
@@ -411,42 +405,11 @@ public class GenerateWonumEbisDao {
         }
         return insertStatus;
     }
- 
     
-    public Object getLaborNewManja(String wonum, String bookId) throws SQLException{
-    //Prepare variable
-    JSONObject data_obj = null;
-    JSONObject api_obj;
-//        api_obj = null;
-    String response;
-    //Get configuration to 'POST'
-    RequestAPI api = new RequestAPI();
-    ConnUtil connUtil = new ConnUtil();
-    api_obj = connUtil.getEnvVariableScheduling();
-    try {
-        APIConfig apiConfig = new APIConfig();
-        apiConfig.setUrl(api_obj.get("SCHEDULING_BASE").toString() + "/jw/web/json/plugin/id.co.telkom.scheduling.plugin.ListSchedule/service");
-        apiConfig.setApiId(api_obj.get("SCHEDULING_API_ID").toString());
-        apiConfig.setApiKey(api_obj.get("SCHEDULING_API_KEY").toString());
-        //Create request
-        JSONObject req = new JSONObject();
-        req.put("action", "autoAssign");
-        req.put("externalID", "INC10145");
-        req.put("bookingID", bookId);
-        req.put("wonum", wonum);
-        req.put("rk", "ODC-BEK-FCQ");
-        String json = req.toJSONString();
-        RequestBody body = RequestBody.create(MediaType.parse("application/json"),json);
-        //Send request with okhttp
-        response = api.sendPostWithoutToken(apiConfig, body);
-        //Parse response
-        JSONParser parse = new JSONParser();
-        data_obj = (JSONObject)parse.parse(response);
-    } catch (ParseException e) {
-        LogUtil.error(getClass().getName(), e, "Error getting labor: " + e.getMessage());
-    } catch (Exception e) {
-        LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-    }
-    return data_obj;
+    private Timestamp getTimeStamp() {
+        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"); 
+        Timestamp ts =  Timestamp.valueOf(zdt.toLocalDateTime().format(format));
+        return ts;
     }
 }
