@@ -5,14 +5,31 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.SecureRandom;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Scanner;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
-import javax.security.cert.CertificateExpiredException;
-import javax.security.cert.CertificateNotYetValidException;
-import javax.security.cert.X509Certificate;
+//import javax.security.cert.CertificateExpiredException;
+//import javax.security.cert.CertificateNotYetValidException;
+//import javax.security.cert.X509Certificate;
+import javax.sql.DataSource;
+import org.joget.apps.app.service.AppUtil;
+import org.joget.commons.util.LogUtil;
+import org.json.JSONException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+//import org.json.simple.JSONObject;
 
 /**
  *
@@ -58,9 +75,92 @@ public class ValidateStoDao {
         HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
         HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
     }
-    
-    String propName = "telkom.endpoint.uimax";
-    String UrlByIp = propName+"/api/area/stoByCoordinate?";
-    
-    
+
+//    public String getLat(String wonum){
+//        String result= "";
+//        Connection con = null;
+//        PreparedStatement ps = null;
+//        ResultSet rs = null;
+//        
+//        try {
+//            DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//            con = ds.getConnection();
+//            
+//            if(!con.isClosed()){
+//                String selectQuery = "SELECT c_assetattrid, c_alnvalue FROM APP_FD_WORKORDERSPEC WHERE c_wonum = ? AND c_assetattrid IN ('LATITUDE')";
+//                ps = con.prepareStatement(selectQuery);
+//                ps.setString(1, wonum);
+//                rs = ps.executeQuery();
+//                
+//                if(rs.next()){
+//                    result = rs.getString("c_alnvalue");
+//                    LogUtil.info(this.getClass().getName(), "Latitude : " + result );
+//                }
+//            }
+//        } catch (Exception e) {
+//            LogUtil.info(getClass().getName(), e.getMessage());
+//        } finally{
+//            try {
+//                if(rs!= null){
+//                    rs.close();
+//                }
+//                if(ps!= null){
+//                    ps.close();
+//                }
+//                if(con!= null){
+//                    con.close();
+//                }
+//            } catch (Exception e) {
+//            }
+//        }
+//        return result;
+//    }
+    public JSONObject getAssetattrid(String wonum) throws SQLException {
+        JSONObject resultObj = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT C_ASSETATTRID, C_ALNVALUE FROM APP_FD_WORKORDERSPEC WHERE C_WONUM = ? AND C_ASSETATTRID IN ('PRODUCT_TYPE','LATITUDE','LONGITUDE')";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                resultObj.put(rs.getString("C_ASSETATTRID"), rs.getString("C_ALNVALUE"));
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return resultObj;
+    }
+
+    public void callUimaxStoValidation(String wonum) {
+        try {
+            setupSSLFactory();
+            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + getAssetattrid(wonum).get("LATITUDE").toString() + "&lon=" + getAssetattrid(wonum).get("LONGITUDE").toString() + "&serviceType=" + getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
+//            String url = "telkom.endpoint.uimax/api/area/stoByCoordinate?"+"lat="+lat+"&lon="+lon+"&serviceType="+serviceType;
+            URL obj = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Accept", "application/json");
+            int responseCode = con.getResponseCode();
+            LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + url);
+            LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            LogUtil.info(this.getClass().getName(), "Response : " + response.toString());
+            in.close();
+        } catch (Exception e) {
+            LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
+        }
+    }
+
+
 }
