@@ -71,18 +71,18 @@ public class ValidateSto extends Element implements PluginWebSupport {
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         //@@Start..
-        LogUtil.info(getClass().getName(), "Start Process: Update Task Status");
+        LogUtil.info(getClass().getName(), "Start Process: Generate Validate STO");
         //@Authorization
         try {
             // Store Params
-            if (hsr.getParameterMap().containsKey("wonum")) {
-                String wonum = hsr.getParameter("wonum");
-//                String lat = hsr.getParameter("lat");
-//                String lon = hsr.getParameter("lon");
-//                String serviceType = hsr.getParameter("serviceType");
+            if (hsr.getParameterMap().containsKey("lat") || hsr.getParameterMap().containsKey("lon") || hsr.getParameterMap().containsKey("serviceType")) {
+//                String wonum = hsr.getParameter("wonum") == null ? "" : hsr.getParameter("wonum");
+                String lat = hsr.getParameter("lat");
+                String lon = hsr.getParameter("lon");
+                String serviceType = hsr.getParameter("serviceType");
 
                 ValidateStoDao dao = new ValidateStoDao();
-                dao.callUimaxStoValidation(wonum);
+                dao.callUimaxStoValidation(lat, lon, serviceType);
             }
 
         } catch (Exception e) {

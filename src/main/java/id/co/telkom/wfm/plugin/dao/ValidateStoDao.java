@@ -118,13 +118,14 @@ public class ValidateStoDao {
     public JSONObject getAssetattrid(String wonum) throws SQLException {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT C_ASSETATTRID, C_ALNVALUE FROM APP_FD_WORKORDERSPEC WHERE C_WONUM = ? AND C_ASSETATTRID IN ('PRODUCT_TYPE','LATITUDE','LONGITUDE')";
+//        String query = "SELECT C_ASSETATTRID, C_ALNVALUE FROM APP_FD_WORKORDERSPEC WHERE C_WONUM = ? AND C_ASSETATTRID IN ('PRODUCT_TYPE','LATITUDE','LONGITUDE')";
+        String query = "SELECT C_ATTR_NAME, C_ATTR_VALUE FROM APP_FD_WORKORDERATTRIBUTE WHERE C_WONUM = ? AND C_ATTR_NAME IN ('LONGITUDE', 'LATITUDE')";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                resultObj.put(rs.getString("C_ASSETATTRID"), rs.getString("C_ALNVALUE"));
+                resultObj.put(rs.getString("C_ATTR_NAME"), rs.getString("C_ATTR_VALUE"));
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -134,11 +135,12 @@ public class ValidateStoDao {
         return resultObj;
     }
 
-    public void callUimaxStoValidation(String wonum) {
+    public JSONObject callUimaxStoValidation(String lat, String lon, String serviceType) {
         try {
             setupSSLFactory();
-            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + getAssetattrid(wonum).get("LATITUDE").toString() + "&lon=" + getAssetattrid(wonum).get("LONGITUDE").toString() + "&serviceType=" + getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
-//            String url = "telkom.endpoint.uimax/api/area/stoByCoordinate?"+"lat="+lat+"&lon="+lon+"&serviceType="+serviceType;
+//            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + getAssetattrid(wonum).get("LATITUDE").toString() + "&lon=" + getAssetattrid(wonum).get("LONGITUDE").toString() + "&serviceType=" + "ASTINET";
+            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + lat + "&lon=" + lon + "&serviceType=" + serviceType;
+
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -155,12 +157,18 @@ public class ValidateStoDao {
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
             }
-            LogUtil.info(this.getClass().getName(), "Response : " + response.toString());
+            if (responseCode != 200) {
+                LogUtil.info(this.getClass().getName(), "STO not found");
+            } else if (responseCode == 200) {
+                LogUtil.info(this.getClass().getName(), "Response : " + response.toString());
+                
+                LogUtil.info(this.getClass().getName(), "STO : " + response);
+            }
             in.close();
         } catch (Exception e) {
             LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
         }
+        return null;
     }
-
 
 }
