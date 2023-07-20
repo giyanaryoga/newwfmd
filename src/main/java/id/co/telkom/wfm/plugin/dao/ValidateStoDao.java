@@ -119,13 +119,18 @@ public class ValidateStoDao {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 //        String query = "SELECT C_ASSETATTRID, C_ALNVALUE FROM APP_FD_WORKORDERSPEC WHERE C_WONUM = ? AND C_ASSETATTRID IN ('PRODUCT_TYPE','LATITUDE','LONGITUDE')";
-        String query = "SELECT C_ATTR_NAME, C_ATTR_VALUE FROM APP_FD_WORKORDERATTRIBUTE WHERE C_WONUM = ? AND C_ATTR_NAME IN ('LONGITUDE', 'LATITUDE')";
+        String query = "SELECT C_ASSETATTRID, C_VALUE FROM APP_FD_WORKORDERSPEC WHERE C_WONUM = ? AND C_ASSETATTRID IN ('PRODUCT_TYPE','LATITUDE','LONGITUDE')";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                resultObj.put(rs.getString("C_ATTR_NAME"), rs.getString("C_ATTR_VALUE"));
+            if (rs.next()) {
+                resultObj.put("assetattrid", rs.getString("C_ASSETATTRID"));
+                resultObj.put("value", rs.getString("C_VALUE"));
+                
+                LogUtil.info(this.getClass().getName(), "Result : " + resultObj);
+            } else {
+                resultObj = null;
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -161,7 +166,7 @@ public class ValidateStoDao {
                 LogUtil.info(this.getClass().getName(), "STO not found");
             } else if (responseCode == 200) {
                 LogUtil.info(this.getClass().getName(), "Response : " + response.toString());
-                
+
                 LogUtil.info(this.getClass().getName(), "STO : " + response);
             }
             in.close();

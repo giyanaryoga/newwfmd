@@ -74,15 +74,17 @@ public class ValidateSto extends Element implements PluginWebSupport {
         LogUtil.info(getClass().getName(), "Start Process: Generate Validate STO");
         //@Authorization
         try {
+            ValidateStoDao dao = new ValidateStoDao();
+            JSONObject result = new JSONObject();
             // Store Params
-            if (hsr.getParameterMap().containsKey("lat") || hsr.getParameterMap().containsKey("lon") || hsr.getParameterMap().containsKey("serviceType")) {
-//                String wonum = hsr.getParameter("wonum") == null ? "" : hsr.getParameter("wonum");
-                String lat = hsr.getParameter("lat");
-                String lon = hsr.getParameter("lon");
-                String serviceType = hsr.getParameter("serviceType");
-
-                ValidateStoDao dao = new ValidateStoDao();
-                dao.callUimaxStoValidation(lat, lon, serviceType);
+            if (hsr.getParameterMap().containsKey("wonum")) {
+                String wonum = hsr.getParameter("wonum") == null ? "" : hsr.getParameter("wonum");
+//                String lat = hsr.getParameter("lat");
+//                String lon = hsr.getParameter("lon");
+//                String serviceType = hsr.getParameter("serviceType");
+               JSONObject data = dao.getAssetattrid(wonum);
+                LogUtil.info(getClassName(), "List Attribute :" + data);
+                dao.getAssetattrid(wonum);
             }
 
         } catch (Exception e) {

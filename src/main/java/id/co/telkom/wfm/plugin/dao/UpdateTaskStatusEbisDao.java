@@ -223,8 +223,8 @@ public class UpdateTaskStatusEbisDao {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 JSONObject attributeObject = new JSONObject();
-                attributeObject.put("Name", rs.getString("C_ATTRIBUTE_NAME"));
-                attributeObject.put("Value", rs.getString("C_ALNVALUE"));
+                attributeObject.put("Name", rs.getString("C_ASSETATTRID"));
+                attributeObject.put("Value", rs.getString("C_VALUE"));
                 listAttr.add(attributeObject);
             }
         } catch (SQLException e) {
