@@ -198,7 +198,6 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     boolean insertAttrStatus = dao.insertToWoAttrTable(wonum, listAttr);
                     listAttr.setTlkwoInsertAttrStatus(insertAttrStatus);
                 }
-                LogUtil.info(getClass().getName(), "WO ATTRIBUTE" + AttributeWO);
                 
                 //@OSSItem
                 Object ossitem_arrayObj = (Object)body.get("OSSITEM");
@@ -298,46 +297,28 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     dao2.GenerateTaskAttribute((String) sortedTask.get("classStructureId"), (String) sortedTask.get("wonum"), orderId);
                     
                     JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
-                    LogUtil.info(getClass().getName(), "SORTED TASK ATTRIBUTE :" + taskAttrArray);
+//                    LogUtil.info(getClass().getName(), "SORTED TASK ATTRIBUTE :" + taskAttrArray);
                     for (Object taskAttrArrayObj: taskAttrArray) {
                         JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
                         String attrName = taskAttrObj.get("attrName").toString();
-//                        String attrValue = (String) taskAttrObj.get("attrValue");
-//                        LogUtil.info(getClass().getName(), "TASK ATTRIBUTE NAME = " +attrName);
                         if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
-//                            listOssItemAtt.setAttrValue((taskAttrObj.get("attrValue").toString() == null) ? "" : taskAttrObj.get("attrValue").toString());
                             String attrValue = taskAttrObj.get("attrValue").toString();
                             if (attrValue.isEmpty()) {
                                 //GENERATE VALUE FROM WORKORDERATTRIBUTE
                                 for (Object objWoAttr : AttributeWO) {
                                     JSONObject arrayObj3 = (JSONObject)objWoAttr;
                                     JSONObject resp = dao.getWoAttrName(parent, arrayObj3.get("woAttrName").toString());
-                                    LogUtil.info(getClass().getName(), "LIST WO ATTRIBUTE :" + resp);
                                     String AttrNameWo = resp.get("attr_name").toString().toUpperCase();
-                                    LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO = " +AttrNameWo);
-//                                    String AttrValueWo = resp.get("attr_value").toString();
-                                        listAttribute.setAttrValue(resp.get("attr_value").toString() == null ? "" : resp.get("attr_value").toString());
-                                    LogUtil.info(getClass().getName(), "ATTRIBUTE VALUE WO = " +listAttribute.getAttrValue());
+                                    String AttrValueWo = (arrayObj3.get("woAttrValue").toString() == null ? "" : arrayObj3.get("woAttrValue").toString());
                                     if (AttrNameWo.equals(attrName)) {
-//                                        String AttrValueWo = listOssItemAtt.getAttrValue();
-//                                        listOssItemAtt.setAttrValue(AttrValueWo);
-                                        dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, listAttribute.getAttrValue());
+                                        dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, AttrValueWo);
                                         LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
                                     }
                                 }
                             } else {
-//                                listOssItemAtt.setAttrValue(attrValue);
                                 dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
                                 LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
                             }
-//                                listOssItemAtt.setAttrValue(taskAttrObj.get("attrValue").toString());
-////                                String attrValue = listOssItemAtt.getAttrValue();
-//                                dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
-//                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");
-//                            }
-//                            LogUtil.info(getClass().getName(), "");
-//                            String attrValue = listOssItemAtt.getAttrValue();
-//                            dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
                         }
                         
                         //@insert Oss Item Attribute

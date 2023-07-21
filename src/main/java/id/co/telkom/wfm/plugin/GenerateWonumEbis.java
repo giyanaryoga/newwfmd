@@ -225,7 +225,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     String itemName = json.getString(oss_itemObj, "ITEMNAME");
                     String correlationId = listOssItem.getCorrelationid();
                     
-                    
                     //TASK GENERATE
                     JSONObject detailAct = dao2.getDetailTask(itemName);
                     LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
