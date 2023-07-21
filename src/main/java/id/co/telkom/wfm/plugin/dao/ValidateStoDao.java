@@ -9,19 +9,13 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-import org.joget.commons.util.UuidGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
 //import org.json.simple.JSONObject;
@@ -31,38 +25,6 @@ import org.json.JSONObject;
  * @author ASUS
  */
 public class ValidateStoDao {
-    class MyTrustManager implements X509TrustManager {
-
-        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authtype) {
-            // Do nothing
-        }
-
-        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authtype) {
-            // Do nothing
-        }
-
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
-    }
-
-    class MyHostnameVerifier implements HostnameVerifier {
-
-        public boolean verify(String hostname, javax.net.ssl.SSLSession session) {
-            return true;
-        }
-    }
-
-    public void setupSSLFactory() throws Exception {
-        X509TrustManager[] tm = {new MyTrustManager()};
-        SSLContext sc = SSLContext.getInstance("SSL");
-        SecureRandom rs = new SecureRandom();
-        sc.init(null, tm, rs);
-        HostnameVerifier allHostsValid = new MyHostnameVerifier();
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-    }
-
     public JSONObject getAssetattrid(String wonum) throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -79,12 +41,69 @@ public class ValidateStoDao {
         }
         return resultObj;
     }
+    
+    public boolean updateSto(String wonum, String sto, String region, String witel, String datel) throws SQLException {
+        boolean result = false;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update.append("UPDATE APP_FD_WORKORDERSPEC")
+                .append("SET c_value = CASE c_assetattrid")
+                .append("WHEN 'STO_ALN' THEN ?")
+                .append("WHEN 'REGION' THEN ?")
+                .append("WHEN 'WITEL' THEN ?")
+                .append("WHEN 'DATEL' THEN ?")
+                .append("ELSE 'Missing' END")
+                .append("WHERE c_wonum = ?");
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(update.toString());
+                try {
+                    ps.setString(1, sto);
+                    ps.setString(2, region);
+                    ps.setString(3, witel);
+                    ps.setString(4, datel);
+                    ps.setString(5, wonum);
+                    
+                    int exe = ps.executeUpdate();
+                    if(exe > 0) {
+                        result = true;
+                        LogUtil.info(getClass().getName(), "STO updated to " + wonum);
+                    }
+                    if (ps != null)
+                        ps.close();
+                } catch (Throwable throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (Throwable throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (Throwable throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+        return result;
+    }
 
     public JSONObject callUimaxStoValidation(String wonum, String lat, String lon, String serviceType) {
         try {
-            setupSSLFactory();
-//            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + getAssetattrid(wonum).get("LATITUDE").toString() + "&lon=" + getAssetattrid(wonum).get("LONGITUDE").toString() + "&serviceType=" + getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
-            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + lat + "&lon=" + lon + "&serviceType=" + serviceType;
+            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + getAssetattrid(wonum).get("LATITUDE").toString() + "&lon=" + getAssetattrid(wonum).get("LONGITUDE").toString() + "&serviceType=" + getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
+//            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + lat + "&lon=" + lon + "&serviceType=" + serviceType;
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -96,7 +115,7 @@ public class ValidateStoDao {
 
             if (responseCode == 400) {
                 LogUtil.info(this.getClass().getName(), "STO not found");
-                
+
             } else if (responseCode == 200) {
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(con.getInputStream()));
@@ -107,7 +126,7 @@ public class ValidateStoDao {
                 }
                 LogUtil.info(this.getClass().getName(), "STO : " + response);
                 in.close();
-                
+
                 // At this point, 'response' contains the JSON data as a string
                 String jsonData = response.toString();
 
@@ -127,38 +146,13 @@ public class ValidateStoDao {
                 LogUtil.info(this.getClass().getName(), "Region : " + region);
                 LogUtil.info(this.getClass().getName(), "Witel : " + witel);
                 LogUtil.info(this.getClass().getName(), "Datel : " + datel);
+                
+                // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
+                updateSto(wonum, sto, region, witel, datel);
             }
         } catch (Exception e) {
             LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
         }
         return null;
     }
-    
-//    public void insertIntoWorkorderspec(String sto, String region, String witel, String datel) {
-//        // Generate UUID
-//        String uuId = UuidGenerator.getInstance().getUuid();
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//
-//        String insert = "INSERT INTO APP_FD_WORKORDERSPEC (ID, C_, C_ATTR_NAME, C_ATTR_TYPE, C_DESCRIPTION) VALUES (?, ?, ?, ?, ?)";
-//
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(insert.toString())) {
-//            ps.setString(1, uuId);
-//            ps.setString(2, wonum);
-//            ps.setString(3, listGenerate.getName());
-//            ps.setString(4, "");
-//            ps.setString(5, listGenerate.getId());
-//
-//            int exe = ps.executeUpdate();
-//
-//            if (exe > 0) {
-//                LogUtil.info(this.getClass().getName(), "insert data successfully");
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//    }
-
 }

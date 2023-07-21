@@ -5,15 +5,8 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.dao.ValidateStoDao;
-//import id.co.telkom.wfm.plugin.model.ListAttributes;
-//import java.io.BufferedReader;
 import java.io.IOException;
-//import java.net.HttpURLConnection;
-//import java.net.URL;
-//import java.util.ArrayList;
-//import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -22,8 +15,6 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 /**
  *
@@ -78,11 +69,6 @@ public class ValidateSto extends Element implements PluginWebSupport {
             try {
                 ValidateStoDao dao = new ValidateStoDao();
 
-                // Store Params
-//                if (hsr.getParameterMap().containsKey("wonum")) {
-//                    String wonum = hsr.getParameter("wonum");
-//                    dao.callUimaxStoValidation(wonum);
-//                }
                 if (hsr.getParameterMap().containsKey("lat") || hsr.getParameterMap().containsKey("lon") || hsr.getParameterMap().containsKey("serviceType")) {
                     String lat = hsr.getParameter("lat");
                     String lon = hsr.getParameter("lon");

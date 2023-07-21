@@ -233,8 +233,11 @@ public class UpdateTaskStatusEbisDao {
             ds.getConnection().close();
         }
         JSONObject attributeObj = new JSONObject();
-        attributeObj.put("attribute", listAttr);
-
+        if (listAttr.isEmpty()) {
+            attributeObj.put("Attribute", "");
+        } else {
+            attributeObj.put("Attribute", listAttr);
+        }
         return attributeObj;
     }
 
@@ -244,7 +247,7 @@ public class UpdateTaskStatusEbisDao {
         itemObj.put("Name", name);
         itemObj.put("Correlation", correlation);
         itemObj.put("Status", status);
-        
+
         // Wrapper
         JSONObject attributes = new JSONObject();
         attributes.put("Attributes", getListAttribute(wonum));
@@ -280,14 +283,14 @@ public class UpdateTaskStatusEbisDao {
             ds.getConnection().close();
         }
     }
-    
+
     private JSONObject buildTaskAttributeWorkFail(String wonum, String name, String sequence, String correlation, String status) throws SQLException {
         JSONObject itemObj = new JSONObject();
         itemObj.put("Sequence", sequence);
         itemObj.put("Name", name);
         itemObj.put("Correlation", correlation);
         itemObj.put("Status", status);
-        
+
 //        JSONObject attrError = new JSONObject();
 //        attrError.put("ErrorCode", errorCode);
 //        attrError.put("EngineerMemo", engineerMemo);
@@ -303,7 +306,7 @@ public class UpdateTaskStatusEbisDao {
         itemObj.put("ServiceDetails", serviceDetail);
         return itemObj;
     }
-    
+
     //===============================
     // GET FAILWORK JSON 
     //===============================
