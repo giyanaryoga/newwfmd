@@ -60,8 +60,6 @@ public class TaskAttributeDao {
         return attrValue;
     }
     
-
-    
     public JSONArray getAttribute(String wonum, String classStructureId) throws SQLException {
         JSONArray listAttribute = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");

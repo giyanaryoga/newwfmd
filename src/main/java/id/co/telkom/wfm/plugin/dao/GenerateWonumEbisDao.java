@@ -305,9 +305,9 @@ public class GenerateWonumEbisDao {
         return insertStatus;
     }
 
-    public boolean insertToOssAttribute(ListOssItemAttribute listOssItemAtt){
+    public void insertToOssAttribute(JSONObject ossItem){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
-        boolean insertStatus = false;
+//        boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String insert = "INSERT INTO app_fd_ossitemattribute (id, c_ossitemattributeid, c_ossitemid, c_attr_name, c_attr_value, dateCreated) VALUES (?, WFMDBDEV01.OSSITEMATTRIBUTEIDSEQ.NEXTVAL, WFMDBDEV01.OSSITEMIDSEQ.NEXTVAL, ?, ?, ?)";
         try {
@@ -316,14 +316,14 @@ public class GenerateWonumEbisDao {
                 PreparedStatement ps = con.prepareStatement(insert);
                 try {
                     ps.setString(1, uuId);
-                    ps.setString(2, listOssItemAtt.getAttrName());
-                    ps.setString(3, listOssItemAtt.getAttrValue());
+                    ps.setString(2, ossItem.get("attrName").toString());
+                    ps.setString(3, ossItem.get("attrValue").toString());
                     ps.setTimestamp(4, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
-                        insertStatus = true;
-                        LogUtil.info(getClass().getName(), "Add | OssAttr : " + listOssItemAtt.getAttrName() + ", Value: " + listOssItemAtt.getAttrValue());
+//                        insertStatus = true;
+                        LogUtil.info(getClass().getName(), "Add | OssAttr : " + ossItem.get("attrName").toString() + ", Value: " + ossItem.get("attrValue").toString());
                     }   
                     if (ps != null)
                         ps.close();
@@ -352,7 +352,7 @@ public class GenerateWonumEbisDao {
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
-        return insertStatus;
+//        return insertStatus;
     }
     
     public boolean insertToWoAttrTable(String wonum, ListAttributes listAttr){
@@ -404,6 +404,30 @@ public class GenerateWonumEbisDao {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
         return insertStatus;
+    }
+    
+    public JSONObject getWoAttrName(String wonum, String attrName) throws SQLException {
+        JSONObject attrProp = new JSONObject();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_attr_name, c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_attr_name = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ps.setString(2, attrName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                attrProp.put("attr_name", rs.getString("c_attr_name"));
+                attrProp.put("attr_value", (rs.getString("c_attr_value") == null ? "" : rs.getString("c_attr_value")));
+                LogUtil.info(getClass().getName(), "wo attribute obj = " +attrProp);
+            } else {
+                attrProp = null;
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return attrProp;
     }
     
     private Timestamp getTimeStamp() {
