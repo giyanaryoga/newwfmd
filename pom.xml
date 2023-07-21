@@ -119,7 +119,7 @@
             <artifactId>xmlbeans</artifactId>
             <version>3.0.2</version>
         </dependency>
-    <!-- End change plugin specific dependencies here -->
+        <!-- End change plugin specific dependencies here -->
     </dependencies>
     <distributionManagement>
         <repository>

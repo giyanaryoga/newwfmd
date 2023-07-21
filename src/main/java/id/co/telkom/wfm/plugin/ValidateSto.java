@@ -7,13 +7,13 @@ package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.dao.ValidateStoDao;
-import id.co.telkom.wfm.plugin.model.ListAttributes;
-import java.io.BufferedReader;
+//import id.co.telkom.wfm.plugin.model.ListAttributes;
+//import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+//import java.net.HttpURLConnection;
+//import java.net.URL;
+//import java.util.ArrayList;
+//import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -72,24 +72,34 @@ public class ValidateSto extends Element implements PluginWebSupport {
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         //@@Start..
         LogUtil.info(getClass().getName(), "Start Process: Generate Validate STO");
-        //@Authorization
-        try {
-            ValidateStoDao dao = new ValidateStoDao();
-            JSONObject result = new JSONObject();
-            // Store Params
-            if (hsr.getParameterMap().containsKey("wonum")) {
-                String wonum = hsr.getParameter("wonum") == null ? "" : hsr.getParameter("wonum");
-//                String lat = hsr.getParameter("lat");
-//                String lon = hsr.getParameter("lon");
-//                String serviceType = hsr.getParameter("serviceType");
-               JSONObject data = dao.getAssetattrid(wonum);
-                LogUtil.info(getClassName(), "List Attribute :" + data);
-                dao.getAssetattrid(wonum);
-            }
 
-        } catch (Exception e) {
-            LogUtil.error(getClassName(), e, "Trace Error Here : " + e.getMessage());
+        //@Authorization
+        if ("GET".equals(hsr.getMethod())) {
+            try {
+                ValidateStoDao dao = new ValidateStoDao();
+
+                // Store Params
+//                if (hsr.getParameterMap().containsKey("wonum")) {
+//                    String wonum = hsr.getParameter("wonum");
+//                    dao.callUimaxStoValidation(wonum);
+//                }
+                if (hsr.getParameterMap().containsKey("lat") || hsr.getParameterMap().containsKey("lon") || hsr.getParameterMap().containsKey("serviceType")) {
+                    String lat = hsr.getParameter("lat");
+                    String lon = hsr.getParameter("lon");
+                    String serviceType = hsr.getParameter("serviceType");
+                    dao.callUimaxStoValidation(lon, lat, lon, serviceType);
+                }
+            } catch (Exception e) {
+                LogUtil.error(getClassName(), e, "Trace Error Here : " + e.getMessage());
+            }
+        } else if (!"GET".equals(hsr.getMethod())) {
+            try {
+                hsr1.sendError(405, "Method Not Allowed");
+            } catch (Exception e) {
+                LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
+            }
         }
+
     }
 
 }
