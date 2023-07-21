@@ -223,7 +223,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     listOssItem.setCorrelationid(((JSONObject) oss_itemObj).get("CORRELATIONID").toString());
                     listOssItem.setItemname(((JSONObject) oss_itemObj).get("ITEMNAME").toString());
                     String itemName = json.getString(oss_itemObj, "ITEMNAME");
-                    String correlationId = json.getString(oss_itemObj, "CORRELATIONID");
+                    String correlationId = listOssItem.getCorrelationid();
+                    
                     
                     //TASK GENERATE
                     JSONObject detailAct = dao2.getDetailTask(itemName);
@@ -283,7 +284,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //GENERATE OSS ITEM
                     dao.insertToOssItem(wonum, listOssItem);
                     //GENERATE TASK
-                    dao2.generateActivityTask(parent, siteId, jmsCorrelationId, ownerGroup, sortedTask);
+                    dao2.generateActivityTask(parent, siteId, sortedTask.get("correlation").toString(), ownerGroup, sortedTask);
                     //GENERATE ASSIGNMENT
                     dao2.generateAssignment(sortedTask.get("description").toString(), schedStart, parent);
 
@@ -308,7 +309,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         }
                         
                         //@insert Oss Item Attribute
-                        dao.insertToOssAttribute(listOssItemAtt);
+                        dao.insertToOssAttribute(taskAttrObj);
                         
                         switch (attrName) {
                             case "NTE_MODEL":
