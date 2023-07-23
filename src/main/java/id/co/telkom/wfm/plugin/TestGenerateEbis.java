@@ -235,29 +235,50 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     //TASK GENERATE
                     JSONObject detailAct = dao2.getDetailTask(itemName);
 //                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
+                    task.put("activity", detailAct.get("activity"));
                     task.put("description", detailAct.get("description"));
                     task.put("correlation", correlationId);
                     task.put("sequence", (int) detailAct.get("sequence"));
                     task.put("actplace", detailAct.get("actPlace"));
                     task.put("classStructureId", detailAct.get("classstructureid"));
+                    task.put("orgid", detailAct.get("orgid"));
 
-                    JSONArray taskAttrList = new JSONArray();
-                    JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
-                    for (Object ossItemAttr : ossitem_attr) {
-                        JSONObject arrayObj2 = (JSONObject)ossItemAttr;
-                        JSONObject taskAttrItem = new JSONObject();
-                        
-                        listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
-                        String attrName = listOssItemAtt.getAttrName();
-                        listOssItemAtt.setAttrValue(arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
-                        String attrValue = listOssItemAtt.getAttrValue();
+                    if (detailAct.get("attributes").equals(1)) {
+                        JSONArray taskAttrList = new JSONArray();
+                        JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
+                        for (Object ossItemAttr : ossitem_attr) {
+                            JSONObject arrayObj2 = (JSONObject)ossItemAttr;
+                            JSONObject taskAttrItem = new JSONObject();
 
-                        taskAttrItem.put("attrName", attrName);
-                        taskAttrItem.put("attrValue", attrValue);
-                        taskAttrList.add(taskAttrItem);
+                            listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
+                            String attrName = listOssItemAtt.getAttrName();
+                            listOssItemAtt.setAttrValue(arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
+                            String attrValue = listOssItemAtt.getAttrValue();
+
+                            taskAttrItem.put("attrName", attrName);
+                            taskAttrItem.put("attrValue", attrValue);
+                            taskAttrList.add(taskAttrItem);
+                        }
+
+                        task.put("task_attr", taskAttrList);
                     }
-                    
-                    task.put("task_attr", taskAttrList);
+//                    JSONArray taskAttrList = new JSONArray();
+//                    JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
+//                    for (Object ossItemAttr : ossitem_attr) {
+//                        JSONObject arrayObj2 = (JSONObject)ossItemAttr;
+//                        JSONObject taskAttrItem = new JSONObject();
+//                        
+//                        listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
+//                        String attrName = listOssItemAtt.getAttrName();
+//                        listOssItemAtt.setAttrValue(arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
+//                        String attrValue = listOssItemAtt.getAttrValue();
+//
+//                        taskAttrItem.put("attrName", attrName);
+//                        taskAttrItem.put("attrValue", attrValue);
+//                        taskAttrList.add(taskAttrItem);
+//                    }
+//                    
+//                    task.put("task_attr", taskAttrList);
                     taskList.add(task);
 //                    LogUtil.info(getClass().getName(), "TASK "+j+" :" + taskList);
                 }
@@ -289,12 +310,12 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     //GENERATE OSS ITEM
                     dao.insertToOssItem(wonum, listOssItem);
                     //GENERATE TASK
-                    dao2.generateActivityTask(parent, siteId, jmsCorrelationId, ownerGroup, sortedTask);
+                    dao2.generateActivityTask(parent, siteId, sortedTask.get("correlation").toString(), ownerGroup, sortedTask);
                     //GENERATE ASSIGNMENT
                     dao2.generateAssignment(sortedTask.get("description").toString(), schedStart, parent);
 
                     //TASK ATTRIBUTE GENERATE
-                    dao2.GenerateTaskAttribute((String) sortedTask.get("classStructureId"), (String) sortedTask.get("wonum"), orderId);
+                    dao2.GenerateTaskAttribute((String) sortedTask.get("activity"), (String) sortedTask.get("wonum"), orderId);
                     
                     JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
 //                    LogUtil.info(getClass().getName(), "SORTED TASK ATTRIBUTE :" + taskAttrArray);
