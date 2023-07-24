@@ -48,7 +48,7 @@ public class ValidateStoDao {
         StringBuilder update = new StringBuilder();
         update.append("UPDATE APP_FD_WORKORDERSPEC")
                 .append("SET c_value = CASE c_assetattrid")
-                .append("WHEN 'STO_ALN' THEN ?")
+                .append("WHEN 'STO' THEN ?")
                 .append("WHEN 'REGION' THEN ?")
                 .append("WHEN 'WITEL' THEN ?")
                 .append("WHEN 'DATEL' THEN ?")
