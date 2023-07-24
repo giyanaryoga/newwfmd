@@ -144,19 +144,20 @@ public class GenerateIPReservationDao {
                 if(listGenerate.getIpType().equals("LAN")){
                     boolean updateWOSpec = updateWorkOrderSpec(wonum,listGenerate,"LAN%", serviceType, cardinality);
                     if(updateWOSpec){
-                        message="IP LAN Reserved with reservationID:"+listGenerate.getReservationId();
+                        message="IP LAN Reserved with reservationID: "+listGenerate.getReservationId();
                     }
                 }else if(listGenerate.getIpType().equals("WAN") && listGenerate.getPackageType().equals("GLOBAL")){
                     boolean updateWOSpec = updateWorkOrderSpec(wonum,listGenerate,"WAN%", serviceType, cardinality);
                     if(updateWOSpec){
-                         message="IP WAN Reserved with reservationID:"+listGenerate.getReservationId();
+                         message="IP WAN Reserved with reservationID: "+listGenerate.getReservationId();
                     }
                 }else if(listGenerate.getIpType().equals("WAN") && listGenerate.getPackageType().equals("DOMESTIK")){
                     boolean updateWOSpec = updateWorkOrderSpec(wonum,listGenerate,"WAN%DOMESTIK", serviceType, cardinality);
                     if(updateWOSpec){
-                        message="IP WAN Domestic Reserved with reservationID:"+listGenerate.getReservationId();
+                        message="IP WAN Domestic Reserved with reservationID: "+listGenerate.getReservationId();
                     }
                 }
+//                insertIntegrationHistory(wonum,);
                 listGenerate.setMessage(message);
             }
         } catch (Exception e) {
@@ -185,16 +186,15 @@ public class GenerateIPReservationDao {
         boolean status = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
-        String query = "SELECT * FROM APP_FD_WORKORDERSPEC";
+        String query = "SELECT * FROM APP_FD_WORKORDERSPEC WHERE C_WONUM=? AND C_ASSETATTRID like (?)";
         try {
             Connection con = ds.getConnection();
             if (con != null && !con.isClosed()) {
                 PreparedStatement ps = con.prepareStatement(query);
-//                ps.setString(1, wonum);
-//                ps.setString(2, "("+ipType+")");
-//                ps.executeUpdate();
-//                LogUtil.info(getClass().getName(), "Wonum: " + wonum);
-//                LogUtil.info(getClass().getName(), "IpType: " + ipType);
+                ps.setString(1, wonum);
+                ps.setString(2, ipType);
+                LogUtil.info(getClass().getName(), "Wonum: " + wonum);
+                LogUtil.info(getClass().getName(), "IpType: " + ipType);
 //                LogUtil.info(getClass().getName(), "Query ps to string: " + ps.toString());
 
                 ResultSet rs = ps.executeQuery();
@@ -202,42 +202,52 @@ public class GenerateIPReservationDao {
 
                 if (rs != null) {
                     int size = 0;
+                    LogUtil.info(getClass().getName(), "IP TYPE Sebelum: " + ipType);
+                    if (ipType.equals("WAN%DOMESTIK")) {
+                        ipType = ipType.replace("%", "-%-");
+
+                    } else {
+                        ipType = ipType.replace("%", "-%");
+                    }
                     while (rs.next()) {
                         size++;
                         String c_alnvalue = "";
                         String c_assetattrid = rs.getString("c_assetattrid");
+                        String id = rs.getString("id");
                         LogUtil.info(getClass().getName(), "Asset Attribute ID : " + c_assetattrid);
-                        if (ipType.equals("WAN%DOMESTIK")) {
-                            ipType.replace("%", "-%-");
-                        } else {
-                            ipType.replace("%", "-%");
-                        }
-                        LogUtil.info(getClass().getName(), "IP TYPE: " + ipType);
+                        LogUtil.info(getClass().getName(), "getServiceIp : " + listGenerateAttributes.getServiceIp());
+                        LogUtil.info(getClass().getName(), "getSubnetMask : " + listGenerateAttributes.getSubnetMask());
 
+                        LogUtil.info(getClass().getName(), "IP TYPE sesudah: " + ipType); //LAN%
+                        // sampai sini berhasilnya selanjutnya masih error
                         if (c_assetattrid.equals(ipType.replace("%", "GATEWAYADDRESS"))) {
+                            LogUtil.info(getClass().getName(), "GATEWAYADDRESS ");
                             status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getGateawayAddress(), con);
                         }
                         if (c_assetattrid.equals(ipType.replace("%", "IPDOMAIN"))) {
+                            LogUtil.info(getClass().getName(), "IPDOMAIN ");
                             status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getIpDomain(), con);
                         }
                         if (c_assetattrid.equals(ipType.replace("%", "NETWORKADDRESS"))) {
+                            LogUtil.info(getClass().getName(), "NETWORKADDRESS ");
                             status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getNetworkAddress(), con);
                         }
-                        if (c_assetattrid.equals(ipType.replace("%", "reservationID"))) {
+                        if (c_assetattrid.equals(ipType.replace("%", "RESERVATIONID"))) {
+                            LogUtil.info(getClass().getName(), "RESERVATIONID ");
                             status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getReservationId(), con);
                         }
-                        if (c_assetattrid.equals(ipType.replace("%", "ServiceIp"))) {
+                        if (c_assetattrid.equals(ipType.replace("%", "SERVICEIP"))) {
                             status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getServiceIp(), con);
                         }
                         if (c_assetattrid.equals(ipType.replace("%", "SUBNETMASK"))) {
                             if (serviceType == "CDN" && cardinality == "6") {
+                                LogUtil.info(getClass().getName(), "SUBNETMASK cdn 6 ");
                                 status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getNetMask(), con);
                             } else {
                                 status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getSubnetMask(), con);
                             }
                         }
                     }
-                    LogUtil.info(getClass().getName(), "Berhasil merubah data , count : " + size + ", status : " + status);
                 } else {
                     LogUtil.info(getClass().getName(), "Gagal merubah data");
                 }
@@ -261,9 +271,11 @@ public class GenerateIPReservationDao {
         ps.setString(1, valueUpdate);
         ps.setString(2, wonum);
         ps.setString(3, c_assetattrid);
-        LogUtil.info(getClass().getName(), "Query Update : "+queryUpdate);
-        ResultSet update = ps.executeQuery();
-        LogUtil.info(getClass().getName(), "Result Set Update : "+update);
+        int count= ps.executeUpdate();
+        if(count>0){
+            status = true;
+        }
+        LogUtil.info(getClass().getName(), "Status Update : "+status);
         return true;
     }
 
