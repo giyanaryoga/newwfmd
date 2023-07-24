@@ -411,6 +411,7 @@ public class TaskActivityDao {
                 .append(" c_classspecid, ")
                 .append(" c_orgid, ")
                 .append(" c_assetattrid, ")
+                .append(" c_description, ")
                 .append(" c_readonly, ")
                 .append(" c_isrequired, ") //joinan dari classspecusewith
                 .append(" c_isshared ")
@@ -451,7 +452,7 @@ public class TaskActivityDao {
                     psInsert.setString(1, UuidGenerator.getInstance().getUuid());
                     psInsert.setTimestamp(2, getTimeStamp());
                     psInsert.setString(3, wonum);
-                    psInsert.setString(4, rs.getString("c_assetattrid"));
+                    psInsert.setString(4, rs.getString("c_description"));
                     psInsert.setString(5, rs.getString("c_orgid"));
                     psInsert.setString(6, rs.getString("c_classspecid"));
                     psInsert.setString(7, orderId);
