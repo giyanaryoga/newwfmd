@@ -101,7 +101,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
         //@Authorization
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
-        TaskGenerateEbisDao dao2 = new TaskGenerateEbisDao();
+        TaskActivityDao dao2 = new TaskActivityDao();
+//        TaskGenerateEbisDao dao2 = new TaskGenerateEbisDao();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;
@@ -231,17 +232,18 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     listOssItem.setAction(((JSONObject) oss_itemObj).get("ACTION").toString());
                     listOssItem.setCorrelationid(((JSONObject) oss_itemObj).get("CORRELATIONID").toString());
                     listOssItem.setItemname(((JSONObject) oss_itemObj).get("ITEMNAME").toString());
-                    String itemName = json.getString(oss_itemObj, "ITEMNAME");
-                    String correlationId = json.getString(oss_itemObj, "CORRELATIONID");
-                    
+                    String itemName = listOssItem.getItemname();
+                    String correlationId = listOssItem.getCorrelationid();
+                    LogUtil.info(getClass().getName(), "TASK :" + itemName);
                     //TASK GENERATE
                     JSONObject detailAct = dao2.getDetailTask(itemName);
 //                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
+                    task.put("activity", detailAct.get("activity"));
                     task.put("description", detailAct.get("description"));
                     task.put("correlation", correlationId);
                     task.put("sequence", (int) detailAct.get("sequence"));
                     task.put("actplace", detailAct.get("actPlace"));
-                    task.put("classStructureId", detailAct.get("classstructureid"));
+//                    task.put("classStructureId", detailAct.get("classstructureid"));
 
                     JSONArray taskAttrList = new JSONArray();
                     JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
@@ -296,7 +298,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     dao2.generateAssignment(sortedTask.get("description").toString(), schedStart, parent);
 
                     //TASK ATTRIBUTE GENERATE
-                    dao2.GenerateTaskAttribute((String) sortedTask.get("classStructureId"), (String) sortedTask.get("wonum"), orderId);
+                    dao2.GenerateTaskAttribute((String) sortedTask.get("activity"), (String) sortedTask.get("wonum"), orderId);
                     
                     JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
 //                    LogUtil.info(getClass().getName(), "SORTED TASK ATTRIBUTE :" + taskAttrArray);
