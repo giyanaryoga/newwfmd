@@ -418,7 +418,6 @@ public class GenerateWonumEbisDao {
             if (rs.next()) {
                 attrProp.put("attr_name", rs.getString("c_attr_name"));
                 attrProp.put("attr_value", (rs.getString("c_attr_value") == null ? "" : rs.getString("c_attr_value")));
-                LogUtil.info(getClass().getName(), "wo attribute obj = " +attrProp);
             } else {
                 attrProp = null;
             }

@@ -175,16 +175,17 @@ public class TaskActivityDao {
     public JSONObject getDetailTask(String activity) throws SQLException {
         JSONObject activityProp = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_description, c_classstructureid, c_actplace, c_attributes, c_sequence FROM app_fd_detailactivity WHERE c_activity = ?";
+        String query = "SELECT c_activity, c_description, c_actplace, c_attributes, c_sequence FROM app_fd_detailactivity WHERE c_activity = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, activity);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
+                activityProp.put("activity", rs.getString("c_activity"));
                 activityProp.put("description", rs.getString("c_description"));
                 activityProp.put("sequence", rs.getInt("c_sequence"));
                 activityProp.put("actPlace", rs.getString("c_actplace"));
-                activityProp.put("classstructureid", rs.getString("c_classstructureid"));
+//                activityProp.put("classstructureid", rs.getString("c_classstructureid"));
                 activityProp.put("attributes", rs.getInt("c_attributes"));
             } else {
                 activityProp = null;
@@ -376,7 +377,7 @@ public class TaskActivityDao {
             ps.setTimestamp(2, getTimeStamp());
             ps.setString(3, parent);
             ps.setString(4, taskObj.get("wonum").toString());
-            ps.setString(5, taskObj.get("description").toString()); //activity
+            ps.setString(5, taskObj.get("activity").toString()); //activity
             ps.setString(6, taskObj.get("description").toString());   //activity
             ps.setString(7, taskObj.get("sequence").toString());
             ps.setString(8, taskObj.get("actplace").toString());
@@ -402,11 +403,11 @@ public class TaskActivityDao {
         }
     }
     
-    public void GenerateTaskAttribute(String classStructure, String wonum, String orderId) throws SQLException {
+    public void GenerateTaskAttribute(String activity, String wonum, String orderId) throws SQLException {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
-                .append(" c_classstructureid, ")
+//                .append(" c_classstructureid, ")
                 .append(" c_classspecid, ")
                 .append(" c_orgid, ")
                 .append(" c_assetattrid, ")
@@ -414,7 +415,7 @@ public class TaskActivityDao {
                 .append(" c_isrequired, ") //joinan dari classspecusewith
                 .append(" c_isshared ")
                 .append(" FROM app_fd_classspec WHERE ")
-                .append(" c_classstructureid = ? ");  //this is for next patching
+                .append(" c_activity = ? ");  //this is for next patching
         
         StringBuilder insert = new StringBuilder();
         insert
@@ -444,7 +445,7 @@ public class TaskActivityDao {
             con.setAutoCommit(false);
             try(PreparedStatement ps = con.prepareStatement(query.toString());
                 PreparedStatement psInsert = con.prepareStatement(insert.toString())) {
-                    ps.setString(1, classStructure);
+                    ps.setString(1, activity);
                     ResultSet rs = ps.executeQuery();
                 while (rs.next()) {
                     psInsert.setString(1, UuidGenerator.getInstance().getUuid());
@@ -461,7 +462,7 @@ public class TaskActivityDao {
                 }
                 int[] exe = psInsert.executeBatch();
                 if (exe.length > 0) {
-                    LogUtil.info(getClass().getName(), "Success generated task attributes, for " + classStructure);
+                    LogUtil.info(getClass().getName(), "Success generated task attributes, for " + activity);
                 }
                 con.commit();
             } catch(SQLException e) {
@@ -479,7 +480,7 @@ public class TaskActivityDao {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
-                .append(" c_classstructureid, ")
+//                .append(" c_classstructureid, ")
                 .append(" c_classspecid, ")
                 .append(" c_orgid, ")
                 .append(" c_assetattrid, ")
