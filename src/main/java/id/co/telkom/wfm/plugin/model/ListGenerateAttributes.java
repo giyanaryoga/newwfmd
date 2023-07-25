@@ -27,10 +27,15 @@ public class ListGenerateAttributes {
     private String subnetMask;
     private String netMask;
 
+    private String ipType;
+
+    private String packageType;
     // Generate SID Connectivity
     private String id;
     private String  name;
+    private String  ipArea;
     public Integer statusCode3;
+    public String message;
     
     // ===============================
     // Generate STP NETWORK LOCATION
@@ -163,5 +168,38 @@ public class ListGenerateAttributes {
      */
     public void setStatusCode3(Integer statusCode3) {
         this.statusCode3 = statusCode3;
+    }
+
+//    Generate IP Reservation
+    public String getIpArea() {
+    return ipArea;
+}
+
+    public void setIpArea(String ipArea) {
+        this.ipArea = ipArea;
+    }
+
+    public String getIpType() {
+        return ipType;
+    }
+
+    public void setIpType(String ipType) {
+        this.ipType = ipType;
+    }
+
+    public String getPackageType() {
+        return packageType;
+    }
+
+    public void setPackageType(String packageType) {
+        this.packageType = packageType;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

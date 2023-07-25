@@ -9,6 +9,7 @@ import id.co.telkom.wfm.plugin.util.ConnUtil;
 import id.co.telkom.wfm.plugin.util.RequestAPI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import javax.sql.DataSource;
@@ -99,5 +100,41 @@ public class CpeValidationEbisDao {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
         return updateStatus;
+    }
+    
+    public String checkCpeModel(String model) throws SQLException {
+        String cpeModel = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_model, c_vendor FROM app_fd_cpemodel WHERE c_model = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, model);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                cpeModel = rs.getString("c_model");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return cpeModel;
+    }
+    
+    public boolean checkCpeVendor(String vendor) throws SQLException {
+        boolean cpeVendor = false;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_vendor FROM app_fd_cpevendor WHERE c_vendor = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, vendor);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                cpeVendor = true;
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return cpeVendor;
     }
 }

@@ -95,62 +95,117 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
-//                JSONObject body = (JSONObject) data_obj.get("Request");
 
                 //Store param
                 String wonum = (data_obj.get("wonum") == null ? "" : data_obj.get("wonum").toString());
                 String taskId = (data_obj.get("taskId") == null ? "" : data_obj.get("taskId").toString());
-//                String craft = (body.get("craft") == null ? "" : body.get("craft").toString());
-//                String crewType = (body.get("amcrewtype") == null ? "" : body.get("amcrewtype").toString());
-//                String crew = (body.get("amcrew") == null ? "" : body.get("amcrew").toString());
+                String craft = (data_obj.get("craft") == null ? "" : data_obj.get("craft").toString());
+                String crewType = (data_obj.get("amcrewtype") == null ? "" : data_obj.get("amcrewtype").toString());
+                String crew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
                 String laborcode = (data_obj.get("laborcode") == null ? "" : data_obj.get("laborcode").toString());
-//                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-//                String currentDate = LocalDateTime.now().format(currentDateFormat);
+//                String chiefcode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
+                
                 UpdateAssignmentEbisDao dao = new UpdateAssignmentEbisDao();
 //                ListLabor listLabor = new ListLabor();
                 try {
-//                    boolean updatedTemp = dao.updateLaborTemp(wonum, laborcode);
-//                    dao.getLabor(laborcode, listLabor);
-                    boolean validLabor = dao.validateLabor(laborcode);
-                    if (validLabor) {
-                        dao.getLaborName(laborcode);
-                        String laborname = dao.getLaborName(laborcode);
-                        LogUtil.info(getClass().getName(), "Laborcode: " + laborcode + ", Laborname: " + laborname);
-                        /**
-                         * laborcode ada di table labor 
-                         */
-                        dao.updateLabor(laborcode, laborname, wonum);
-                        /**
-                         * update c_laborcode dan c_laborname di table app_fd_workorder
-                         */
-                        dao.updateLaborWorkOrder(laborcode, laborname, wonum);
-                        
-                        hsr1.setStatus(200);
-                        String statusHeaders = "200";
-                        String statusRequest = "Success";
-                        JSONObject response = new JSONObject();
-                        JSONObject data = new JSONObject();
-                        response.put("status", statusHeaders);
-                        response.put("message", statusRequest);
-                        response.put("response", data);
-                        data.put("WONUM", wonum);
-                        data.put("LABORCODE", laborcode);
-                        data.put("LABORNAME", laborname);
-                        response.writeJSONString(hsr1.getWriter());             
+                    boolean getStatus = dao.getStatusTask(wonum);
+                    if (getStatus == true) {
+                        if (!laborcode.isEmpty()) {
+                            boolean validLabor = dao.validateLabor(laborcode);
+                            if (validLabor) {
+                                dao.getLaborName(laborcode);
+                                String laborname = dao.getLaborName(laborcode);
+                                LogUtil.info(getClass().getName(), "Laborcode: " + laborcode + ", Laborname: " + laborname);
+                                /**
+                                 * laborcode ada di table labor 
+                                 */
+                                dao.updateLabor(laborcode, laborname, wonum);
+                                /**
+                                 * update c_laborcode dan c_laborname di table app_fd_workorder
+                                 */
+                                dao.updateLaborWorkOrder(laborcode, laborname, wonum);
+
+                                hsr1.setStatus(200);
+                                String statusHeaders = "200";
+                                String statusRequest = "Success";
+                                JSONObject response = new JSONObject();
+                                JSONObject data = new JSONObject();
+                                response.put("status", statusHeaders);
+                                response.put("message", statusRequest);
+                                response.put("response", data);
+                                data.put("WONUM", wonum);
+                                data.put("LABORCODE", laborcode);
+                                data.put("LABORNAME", laborname);
+                                response.writeJSONString(hsr1.getWriter());             
+                            } else {
+                                LogUtil.info(getClass().getName(), "Laborcode and laborname is not found!");
+                                /**
+                                 * laborcode tidak ada di table labor
+                                 */
+                                hsr1.setStatus(422);
+                                String statusHeaders = "422";
+                                String statusRequest = "Failed";
+                                JSONObject response = new JSONObject();
+                                JSONObject data = new JSONObject();
+                                response.put("status", statusHeaders);
+                                response.put("message", "Laborcode and laborname is not found!");
+                                response.put("response", data);
+                                response.writeJSONString(hsr1.getWriter());
+                            }
+                        } else {
+                            if (!crew.isEmpty()) {
+                                boolean validCrew = dao.validateCrew(crew);
+                                if (validCrew) {
+                                    dao.getLaborName(laborcode);
+    //                                String laborname = dao.getLaborName(laborcode);
+                                    LogUtil.info(getClass().getName(), "Amcrew: " + crew);
+                                    /**
+                                     * laborcode ada di table labor 
+                                     */
+                                    dao.updateCrew(crew, wonum);
+                                    /**
+                                     * update c_laborcode dan c_laborname di table app_fd_workorder
+                                     */
+                                    dao.updateCrewWorkOrder(crew, wonum);
+
+                                    hsr1.setStatus(200);
+                                    String statusHeaders = "200";
+                                    String statusRequest = "Success";
+                                    JSONObject response = new JSONObject();
+                                    JSONObject data = new JSONObject();
+                                    response.put("status", statusHeaders);
+                                    response.put("message", statusRequest);
+                                    response.put("response", data);
+                                    data.put("WONUM", wonum);
+                                    data.put("AMCREW", crew);
+                                    response.writeJSONString(hsr1.getWriter());
+                                } else {
+                                    LogUtil.info(getClass().getName(), "AmCrew is not found!");
+                                    /**
+                                     * amcrew tidak ada di table labor
+                                     */
+                                    hsr1.setStatus(422);
+                                    String statusHeaders = "422";
+                                    String statusRequest = "Failed";
+                                    JSONObject response = new JSONObject();
+                                    JSONObject data = new JSONObject();
+                                    response.put("status", statusHeaders);
+                                    response.put("message", "AmCrew is not found!");
+                                    response.put("response", data);
+                                    response.writeJSONString(hsr1.getWriter());
+                                }
+                            }
+                        }   
                     } else {
-                        LogUtil.info(getClass().getName(), "Laborcode and laborname is not found!");
-                    /**
-                     * laborcode tidak ada di table labor
-                     */
-                        hsr1.setStatus(422);
-                        String statusHeaders = "422";
+                        LogUtil.info(getClass().getName(), "Status parent task is not STARTWA");
+                        hsr1.setStatus(420);
+                        String statusHeaders = "420";
                         String statusRequest = "Failed";
                         JSONObject response = new JSONObject();
                         JSONObject data = new JSONObject();
                         response.put("status", statusHeaders);
-                        response.put("message", "Laborcode and laborname is not found!");
+                        response.put("message", "Status parent task is not STARTWA");
                         response.put("response", data);
-//                        data.put("message", "Laborcode and laborname is not found!");
                         response.writeJSONString(hsr1.getWriter());
                     }
                 } catch (SQLException ex) {
@@ -169,4 +224,3 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
         }
     }
 }
-

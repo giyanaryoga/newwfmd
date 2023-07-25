@@ -253,7 +253,7 @@ public class GenerateWonumEbisDao {
         return insertStatus;
     }
        
-    public boolean insertToOssItem(String wonum, ListOssItem listOssItem){
+    public boolean insertToOssItem(String wonum, JSONObject taskObj){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -265,15 +265,15 @@ public class GenerateWonumEbisDao {
                 try {
                     ps.setString(1, uuId);
                     ps.setString(2, wonum);
-                    ps.setString(3, listOssItem.getAction());
-                    ps.setString(4, listOssItem.getCorrelationid());
-                    ps.setString(5, listOssItem.getItemname());
+                    ps.setString(3, "ADD");
+                    ps.setString(4, taskObj.get("correlation").toString());
+                    ps.setString(5, taskObj.get("activity").toString());
                     ps.setTimestamp(6, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
                         insertStatus = true;
-                        LogUtil.info(getClass().getName(), "ADD | OSS Item : " + listOssItem.getItemname() + ", CorrelationId : " + listOssItem.getCorrelationid() + ", insert to DB");
+                        LogUtil.info(getClass().getName(), "ADD | OSS Item : " + taskObj.get("activity").toString() + ", CorrelationId : " + taskObj.get("correlation").toString() + ", insert to DB");
                     }   
                     if (ps != null)
                         ps.close();
@@ -305,11 +305,11 @@ public class GenerateWonumEbisDao {
         return insertStatus;
     }
 
-    public void insertToOssAttribute(JSONObject ossItem){
+    public void insertToOssAttribute(JSONObject ossItem, String wonum){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
 //        boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_ossitemattribute (id, c_ossitemattributeid, c_ossitemid, c_attr_name, c_attr_value, dateCreated) VALUES (?, WFMDBDEV01.OSSITEMATTRIBUTEIDSEQ.NEXTVAL, WFMDBDEV01.OSSITEMIDSEQ.NEXTVAL, ?, ?, ?)";
+        String insert = "INSERT INTO app_fd_ossitemattribute (id, c_ossitemattributeid, c_ossitemid, c_attr_name, c_attr_value, c_wonum, dateCreated) VALUES (?, WFMDBDEV01.OSSITEMATTRIBUTEIDSEQ.NEXTVAL, WFMDBDEV01.OSSITEMIDSEQ.NEXTVAL, ?, ?, ?, ?)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -318,7 +318,8 @@ public class GenerateWonumEbisDao {
                     ps.setString(1, uuId);
                     ps.setString(2, ossItem.get("attrName").toString());
                     ps.setString(3, ossItem.get("attrValue").toString());
-                    ps.setTimestamp(4, getTimeStamp());
+                    ps.setString(4, wonum);
+                    ps.setTimestamp(5, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
