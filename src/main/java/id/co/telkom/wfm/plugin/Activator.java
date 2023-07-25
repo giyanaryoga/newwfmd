@@ -27,6 +27,7 @@ public class Activator implements BundleActivator {
         //Test Generate Ebis
         registrationList.add(context.registerService(TestGenerateEbis.class.getName(), new TestGenerateEbis(), null));
         registrationList.add(context.registerService(GenerateIPReservation.class.getName(), new GenerateIPReservation(), null));
+        registrationList.add(context.registerService(GenerateUplinkPort.class.getName(), new GenerateUplinkPort(), null));
     }
 
     @Override
