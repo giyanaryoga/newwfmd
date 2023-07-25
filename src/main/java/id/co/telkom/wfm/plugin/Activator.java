@@ -13,7 +13,11 @@ public class Activator implements BundleActivator {
     @Override
     public void start(BundleContext context) {
         registrationList = new ArrayList<>();
-        //Register plugin here
+        //DEFAULT APPLICATION PLUGIN
+        registrationList.add(context.registerService(RevisedTask.class.getName(), new RevisedTask(), null));
+        //TEST PLUGIN
+        registrationList.add(context.registerService(TestGenerateEbis.class.getName(), new TestGenerateEbis(), null));
+        //REGISTER PLUGIN HERE
         registrationList.add(context.registerService(GenerateWonumEbis.class.getName(), new GenerateWonumEbis(), null));
         registrationList.add(context.registerService(UpdateTaskStatusEbis.class.getName(), new UpdateTaskStatusEbis(), null));
         registrationList.add(context.registerService(GenerateStpNetLoc.class.getName(), new GenerateStpNetLoc(), null));
@@ -24,9 +28,8 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(FalloutIncident.class.getName(), new FalloutIncident(), null));
         registrationList.add(context.registerService(GenerateSidConnectivity.class.getName(), new GenerateSidConnectivity(), null));
         registrationList.add(context.registerService(ValidateSto.class.getName(), new ValidateSto(), null));
-        //Test Generate Ebis
-        registrationList.add(context.registerService(TestGenerateEbis.class.getName(), new TestGenerateEbis(), null));
         registrationList.add(context.registerService(GenerateIPReservation.class.getName(), new GenerateIPReservation(), null));
+        
     }
 
     @Override

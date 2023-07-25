@@ -134,46 +134,46 @@ public class TaskGenerateEbisDao {
         return ownerGroup;
     }
 
-    public String getCpeModel(String model) throws SQLException {
-        String cpeModel = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_model, c_vendor FROM app_fd_cpemodel WHERE c_model = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, model);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                cpeModel = rs.getString("c_model");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return cpeModel;
-    }
-    
-    public String getCpeVendor(String vendor) throws SQLException {
-        String cpeVendor = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_vendor, c_model FROM app_fd_cpevendor WHERE c_vendor = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, vendor);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                cpeVendor = rs.getString("c_vendor");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return cpeVendor;
-    }
+//    public String getCpeModel(String model) throws SQLException {
+//        String cpeModel = "";
+//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String query = "SELECT c_model, c_vendor FROM app_fd_cpemodel WHERE c_model = ?";
+//        try (Connection con = ds.getConnection();
+//            PreparedStatement ps = con.prepareStatement(query)) {
+//            ps.setString(1, model);
+//            ResultSet rs = ps.executeQuery();
+//            if (rs.next())
+//                cpeModel = rs.getString("c_model");
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//        return cpeModel;
+//    }
+//    
+//    public String getCpeVendor(String vendor) throws SQLException {
+//        String cpeVendor = "";
+//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String query = "SELECT c_vendor, c_model FROM app_fd_cpevendor WHERE c_vendor = ?";
+//        try (Connection con = ds.getConnection();
+//            PreparedStatement ps = con.prepareStatement(query)) {
+//            ps.setString(1, vendor);
+//            ResultSet rs = ps.executeQuery();
+//            if (rs.next())
+//                cpeVendor = rs.getString("c_vendor");
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//        return cpeVendor;
+//    }
     
     public JSONObject getDetailTask(String activity) throws SQLException {
         JSONObject activityProp = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_activity, c_description, c_classstructureid, c_actplace, c_attributes, c_sequence, c_orgid FROM app_fd_detailactivity WHERE c_activity = ?";
+        String query = "SELECT c_activity, c_description, c_actplace, c_attributes, c_sequence FROM app_fd_detailactivity WHERE c_activity = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, activity);
@@ -183,9 +183,8 @@ public class TaskGenerateEbisDao {
                 activityProp.put("description", rs.getString("c_description"));
                 activityProp.put("sequence", rs.getInt("c_sequence"));
                 activityProp.put("actPlace", rs.getString("c_actplace"));
-                activityProp.put("classstructureid", rs.getString("c_classstructureid"));
+//                activityProp.put("classstructureid", rs.getString("c_classstructureid"));
                 activityProp.put("attributes", rs.getInt("c_attributes"));
-                activityProp.put("orgid", rs.getInt("c_orgid"));
             } else {
                 activityProp = null;
             }
@@ -376,13 +375,13 @@ public class TaskGenerateEbisDao {
             ps.setTimestamp(2, getTimeStamp());
             ps.setString(3, parent);
             ps.setString(4, taskObj.get("wonum").toString());
-            ps.setString(5, taskObj.get("activity").toString());
-            ps.setString(6, taskObj.get("description").toString());
+            ps.setString(5, taskObj.get("activity").toString()); //activity
+            ps.setString(6, taskObj.get("description").toString());   //activity
             ps.setString(7, taskObj.get("sequence").toString());
             ps.setString(8, taskObj.get("actplace").toString());
             ps.setString(9, taskObj.get("status").toString());
             ps.setString(10, "NEW");
-            ps.setString(11, taskObj.get("orgid").toString());     
+            ps.setString(11, "TELKOM");     
             ps.setString(12, siteId);
             ps.setString(13, "WFM");
             ps.setString(14, "ACTIVITY");       
@@ -406,15 +405,12 @@ public class TaskGenerateEbisDao {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
-                .append(" c_classstructureid, ")
+//                .append(" c_classstructureid, ")
                 .append(" c_classspecid, ")
-                 .append(" c_defaultalnvalue, ") //untuk insert ke alnvalue
-                .append(" c_defaultnumvalue, ") //untuk insert ke numvalue
-                .append(" c_defaulttablevalue, ") //untuk insert ke tablevalue
-                .append(" c_samplevalue, ") //untuk insert ke samplevalue
-                .append(" c_sequence, ") //untuk insert ke displaysequence
                 .append(" c_orgid, ")
                 .append(" c_assetattrid, ")
+                .append(" c_description, ")
+                .append(" c_sequence, ")
                 .append(" c_readonly, ")
                 .append(" c_isrequired, ") //joinan dari classspecusewith
                 .append(" c_isshared ")
@@ -428,9 +424,7 @@ public class TaskGenerateEbisDao {
                 //TEMPLATE CONFIGURATION
                 .append(" id, dateCreated, createdBy, createdByName,  ")
                 //TASK ATTRIBUTE
-                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, ")
-                //DEFAULT VALUE AND SEQUENCE
-                .append(" c_alnvalue, c_numvalue, c_tablevalue, c_samplevalue, c_displaysequence, ")
+                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, c_displaysequence, ")
                 //PERMISSION
                 .append(" c_readonly, c_isrequired, c_isshared ")
                 .append(" ) ")
@@ -439,9 +433,7 @@ public class TaskGenerateEbisDao {
                 //VALUES TEMPLATE CONFIGURATION
                 .append(" ?, ?, 'admin', 'Admin admin', ")
                 //VALUES TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ")
-                //VALUES DEFAULT VALUE TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ")
+                .append(" ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
                 .append(" ?, ?, ? ")
                 .append(" ) ");
@@ -459,18 +451,14 @@ public class TaskGenerateEbisDao {
                     psInsert.setString(1, UuidGenerator.getInstance().getUuid());
                     psInsert.setTimestamp(2, getTimeStamp());
                     psInsert.setString(3, wonum);
-                    psInsert.setString(4, rs.getString("c_assetattrid"));
+                    psInsert.setString(4, rs.getString("c_description"));
                     psInsert.setString(5, rs.getString("c_orgid"));
                     psInsert.setString(6, rs.getString("c_classspecid"));
                     psInsert.setString(7, orderId);
-                    psInsert.setString(8, rs.getString("c_defaultalnvalue"));
-                    psInsert.setString(9, rs.getString("c_defaultnumvalue"));
-                    psInsert.setString(10, rs.getString("c_defaulttablevalue"));
-                    psInsert.setString(11, rs.getString("c_samplevalue"));
-                    psInsert.setString(12, rs.getString("c_sequence"));
-                    psInsert.setString(13, rs.getString("c_readonly"));
-                    psInsert.setString(14, rs.getString("c_isrequired"));
-                    psInsert.setString(15, rs.getString("c_isshared"));
+                    psInsert.setString(8, rs.getString("c_sequence"));
+                    psInsert.setString(9, rs.getString("c_readonly"));
+                    psInsert.setString(10, rs.getString("c_isrequired"));
+                    psInsert.setString(11, rs.getString("c_isshared"));
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();
@@ -488,13 +476,12 @@ public class TaskGenerateEbisDao {
             LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
         }
     }
-
-    //updateNameTaskAttribute sepertinya sudah tidak dipakai    
+    
     public void updateNameTaskAttribute(String assetattrid, String wonum, String orderId, String attrValue) throws SQLException {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
-                .append(" c_classstructureid, ")
+//                .append(" c_classstructureid, ")
                 .append(" c_classspecid, ")
                 .append(" c_orgid, ")
                 .append(" c_assetattrid, ")
@@ -562,8 +549,7 @@ public class TaskGenerateEbisDao {
         } catch(SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
         }
-    } 
-    //updateNameTaskAttribute sepertinya sudah tidak dipakai
+    }
     
     public boolean updateValueTaskAttribute(String wonum, String attrName, String attrValue){
         boolean updateValue = false;    
@@ -571,7 +557,7 @@ public class TaskGenerateEbisDao {
         StringBuilder update = new StringBuilder();
         update
                 .append(" UPDATE app_fd_workorderspec SET ")
-//                .append(" c_alnvalue = ?, ")
+                .append(" c_alnvalue = ?, ")
                 .append(" c_value = ?, ")
                 .append(" dateModified = ? ")
                 .append(" WHERE ")
@@ -587,11 +573,11 @@ public class TaskGenerateEbisDao {
                 // change 03
                 try {
                     ps.setString(1, attrValue);
-//                    ps.setString(2, attrValue);
-                    ps.setTimestamp(2, getTimeStamp());
+                    ps.setString(2, attrValue);
+                    ps.setTimestamp(3, getTimeStamp());
                     // change 03 where clause
-                    ps.setString(3, wonum);
-                    ps.setString(4, attrName);
+                    ps.setString(4, wonum);
+                    ps.setString(5, attrName);
                     // change 03
                     int exe = ps.executeUpdate();
                     //Checking insert status

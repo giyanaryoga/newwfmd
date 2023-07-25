@@ -135,42 +135,6 @@ public class TaskActivityDao {
         }
         return ownerGroup;
     }
-
-    public String getCpeModel(String model) throws SQLException {
-        String cpeModel = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_model, c_vendor FROM app_fd_cpemodel WHERE c_model = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, model);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                cpeModel = rs.getString("c_model");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return cpeModel;
-    }
-    
-    public String getCpeVendor(String vendor) throws SQLException {
-        String cpeVendor = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_vendor, c_model FROM app_fd_cpevendor WHERE c_vendor = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, vendor);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                cpeVendor = rs.getString("c_vendor");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return cpeVendor;
-    }
     
     public JSONObject getDetailTask(String activity) throws SQLException {
         JSONObject activityProp = new JSONObject();
@@ -216,48 +180,48 @@ public class TaskActivityDao {
         return taskAttrName;
     }
     
-    public void reviseTask(String parent){
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_woactivity SET c_wfmdoctype = ? WHERE c_parent = ?";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update);
-                try {
-                    ps.setString(1, "REVISED");
-                    ps.setString(2, parent);
-                    int exe = ps.executeUpdate();
-                    //Checking insert status
-                    if (exe > 0) 
-                        LogUtil.info(getClass().getName(), "Older activity task has been revised, will be deactivated task");
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
-                }
-                if (con != null)
-                    con.close();
-            } catch (Throwable throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        }
-    }
+//    public void reviseTask(String parent){
+//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ? WHERE c_parent = ?";
+//        try {
+//            Connection con = ds.getConnection();
+//            try {
+//                PreparedStatement ps = con.prepareStatement(update);
+//                try {
+//                    ps.setString(1, "REVISED");
+//                    ps.setString(2, parent);
+//                    int exe = ps.executeUpdate();
+//                    //Checking insert status
+//                    if (exe > 0) 
+//                        LogUtil.info(getClass().getName(), "Older activity task has been revised, will be deactivated task");
+//                    if (ps != null)
+//                        ps.close();
+//                } catch (SQLException throwable) {
+//                    try {
+//                        if (ps != null)
+//                            ps.close();
+//                    } catch (SQLException throwable1) {
+//                        throwable.addSuppressed(throwable1);
+//                    }
+//                    throw throwable;
+//                }
+//                if (con != null)
+//                    con.close();
+//            } catch (Throwable throwable) {
+//                try {
+//                    if (con != null)
+//                        con.close();
+//                } catch (SQLException throwable1) {
+//                    throwable.addSuppressed(throwable1);
+//                }
+//                throw throwable;
+//            } finally {
+//                ds.getConnection().close();
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+//        }
+//    }
 
     public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String parent, ActivityTask act){
 //        ActivityTask act = new ActivityTask();
@@ -412,6 +376,7 @@ public class TaskActivityDao {
                 .append(" c_orgid, ")
                 .append(" c_assetattrid, ")
                 .append(" c_description, ")
+                .append(" c_sequence, ")
                 .append(" c_readonly, ")
                 .append(" c_isrequired, ") //joinan dari classspecusewith
                 .append(" c_isshared ")
@@ -425,7 +390,7 @@ public class TaskActivityDao {
                 //TEMPLATE CONFIGURATION
                 .append(" id, dateCreated, createdBy, createdByName,  ")
                 //TASK ATTRIBUTE
-                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, ")
+                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, c_displaysequence, ")
                 //PERMISSION
                 .append(" c_readonly, c_isrequired, c_isshared ")
                 .append(" ) ")
@@ -434,7 +399,7 @@ public class TaskActivityDao {
                 //VALUES TEMPLATE CONFIGURATION
                 .append(" ?, ?, 'admin', 'Admin admin', ")
                 //VALUES TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ")
+                .append(" ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
                 .append(" ?, ?, ? ")
                 .append(" ) ");
@@ -456,9 +421,10 @@ public class TaskActivityDao {
                     psInsert.setString(5, rs.getString("c_orgid"));
                     psInsert.setString(6, rs.getString("c_classspecid"));
                     psInsert.setString(7, orderId);
-                    psInsert.setString(8, rs.getString("c_readonly"));
-                    psInsert.setString(9, rs.getString("c_isrequired"));
-                    psInsert.setString(10, rs.getString("c_isshared"));
+                    psInsert.setString(8, rs.getString("c_sequence"));
+                    psInsert.setString(9, rs.getString("c_readonly"));
+                    psInsert.setString(10, rs.getString("c_isrequired"));
+                    psInsert.setString(11, rs.getString("c_isshared"));
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();
