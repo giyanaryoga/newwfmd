@@ -98,10 +98,11 @@ public class GenerateSidConnectivity extends Element implements PluginWebSupport
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-                String orderId = data_obj.get("orderId").toString();
+//                String orderId = data_obj.get("orderId").toString();
                 ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                 try {
-                    dao.callGenerateConnectivity(orderId, listAttribute);
+                    
+                    dao.callGenerateConnectivity(dao.getScorderno(wonum), listAttribute);
 
                     LogUtil.info(this.getClassName(), "get data: " + listAttribute.getStatusCode3());
                     

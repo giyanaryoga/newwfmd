@@ -151,8 +151,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                     } else if ("COMPWA".equals(body.get("status"))) {
                         // update task status
                         updateTaskStatusEbisDao.updateTask(wonum, status);
-                        if (description.equals("Registration Suplychain")) {
-                            // Start of 'Install NTE'
+                        if (description.equals("Registration Suplychain") || description.equals("Replace NTE")) {
+                            // Start of Set Install/Set Dismantle
                             ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
                             scmtIntegrationEbisDao.sendInstall(parent);
 

@@ -5,14 +5,11 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -176,7 +173,7 @@ public class UpdateTaskStatusEbisDao {
                 //Milestone input
                 milestoneInput.put("JMSCorrelationID", rs.getString("c_jmscorrelationid"));
                 milestoneInput.put("WFMWOId", wonum);
-                milestoneInput.put("WoRevisionNo", rs.getString("c_worevisionno"));
+                milestoneInput.put("WoRevisionNo", rs.getString("c_worevisionno") == null ? "" : rs.getString("c_worevisionno"));
                 milestoneInput.put("WOStatus", rs.getString("c_status"));
                 milestoneInput.put("item", itemArrayObj);
             }
@@ -213,13 +210,22 @@ public class UpdateTaskStatusEbisDao {
         return completeJson;
     }
 
-    private JSONObject getListAttribute(String wonum) throws SQLException {
+    private JSONArray getListAttribute(String wonum) throws SQLException {
         JSONArray listAttr = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
+//        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
+        String query = "SELECT C_WONUM, C_VALUE, C_ASSETATTRID, C_ISSHARED FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND (a.C_WONUM = ? OR (a.C_WONUM = ? AND EXISTS (SELECT 1 FROM app_fd_workorder WHERE c_wonum = ? AND c_description = 'Survey On Desk')))";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
+            String newwonum = wonum;
+            String a = newwonum.substring(0, newwonum.length() - 1);
+            int b = Integer.parseInt(newwonum.substring(newwonum.length() - 1)) - 1;
+            String result = a + b;
+            LogUtil.info(getClass().getName(), " Wonum : " + a+b);
+
             ps.setString(1, wonum);
+            ps.setString(2, result);
+            ps.setString(3, result);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 JSONObject attributeObject = new JSONObject();
@@ -232,13 +238,13 @@ public class UpdateTaskStatusEbisDao {
         } finally {
             ds.getConnection().close();
         }
-        JSONObject attributeObj = new JSONObject();
-        if (listAttr.isEmpty()) {
-            attributeObj.put("Attribute", "");
-        } else {
-            attributeObj.put("Attribute", listAttr);
-        }
-        return attributeObj;
+//        JSONObject attributeObj = new JSONObject();
+//        if (listAttr.isEmpty()) {
+//            attributeObj.put("Attribute", "");
+//        } else {
+//            attributeObj.put("Attribute", listAttr);
+//        }
+        return listAttr;
     }
 
     private JSONObject buildTaskAttribute(String wonum, String name, String sequence, String correlation, String status) throws SQLException {
@@ -248,11 +254,23 @@ public class UpdateTaskStatusEbisDao {
         itemObj.put("Correlation", correlation);
         itemObj.put("Status", status);
 
-        // Wrapper
+        // checking attribute
+        JSONObject attributeObj = new JSONObject();
+        if (getListAttribute(wonum).isEmpty()) {
+            attributeObj.put("Attribute", "");
+        } else {
+            attributeObj.put("Attribute", getListAttribute(wonum));
+        }
+        // Checking attribute
+        if (name.equals("Survey-Ondesk")) {
+            attributeObj.put("Attribute", "");
+        }
+            
         JSONObject attributes = new JSONObject();
-        attributes.put("Attributes", getListAttribute(wonum));
+        attributes.put("Attributes", attributeObj);
 
         JSONObject serviceDetail = new JSONObject();
+//        serviceDetail.put("ServiceDetail", attributeObj);
         serviceDetail.put("ServiceDetail", attributes);
 
         itemObj.put("ServiceDetails", serviceDetail);
@@ -392,6 +410,8 @@ public class UpdateTaskStatusEbisDao {
     // INSERT TO TABLE APP_FD_WFMMILESTONE
     //====================================
     public void insertToWfmMilestone(String wonum, String siteId, String statusDate) {
+        TimeUtil time = new TimeUtil();
+
         // Generate UUID
         String uuId = UuidGenerator.getInstance().getUuid();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -441,8 +461,8 @@ public class UpdateTaskStatusEbisDao {
                 PreparedStatement ps = con.prepareStatement(insert.toString());
                 try {
                     ps.setString(1, uuId);
-                    ps.setTimestamp(2, getTimeStamp());
-                    ps.setTimestamp(3, getTimeStamp());
+                    ps.setTimestamp(2, time.getTimeStamp());
+                    ps.setTimestamp(3, time.getTimeStamp());
                     ps.setString(4, wonum);
                     ps.setString(5, wonum);
                     ps.setString(6, siteId);
@@ -482,12 +502,5 @@ public class UpdateTaskStatusEbisDao {
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
-    }
-
-    private Timestamp getTimeStamp() {
-        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-        Timestamp ts = Timestamp.valueOf(zdt.toLocalDateTime().format(format));
-        return ts;
     }
 }

@@ -33,7 +33,7 @@ import org.json.simple.parser.ParseException;
 public class CpeValidationEbis extends Element implements PluginWebSupport {
 
     String pluginName = "Telkom New WFM - CPE Validation - Web Service";
-    
+
     @Override
     public String renderTemplate(FormData fd, Map map) {
         return "";
@@ -75,15 +75,16 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
         LogUtil.info(getClass().getName(), "Start Process: Validate CPE");
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
-            try{
-                 //@Parsing message
+            try {
+                //@Parsing message
                 //HttpServletRequest get JSON Post data
                 StringBuffer jb = new StringBuffer();
                 String line = null;
                 try {//read the response JSON to string buffer
                     BufferedReader reader = hsr.getReader();
-                    while((line = reader.readLine()) !=null)
+                    while ((line = reader.readLine()) != null) {
                         jb.append(line);
+                    }
                 } catch (Exception e) {
                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                 }
@@ -91,7 +92,7 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 //Parse JSON String to JSON Object
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
-                JSONObject data_obj = (JSONObject)parser.parse(bodyParam);//JSON Object
+                JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
 //                String cpeVendor = data_obj.get("cpeVendor").toString();
@@ -111,8 +112,8 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 } catch (SQLException ex) {
                     Logger.getLogger(CpeValidationEbis.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                JSONObject apiItem = (JSONObject)data.get("apiItemResponse");
-                JSONObject eaiStatus = (JSONObject)apiItem.get("eaiStatus");
+                JSONObject apiItem = (JSONObject) data.get("apiItemResponse");
+                JSONObject eaiStatus = (JSONObject) apiItem.get("eaiStatus");
                 String statusCode = eaiStatus.get("srcResponseCode").toString();
                 
                 switch(statusCode) {
@@ -193,18 +194,18 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         hsr1.sendError(465, "error, silahkan kontak administrator");
                         break;
                 }
-            } catch (ParseException e){
+            } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             } catch (SQLException ex) {
                 Logger.getLogger(CpeValidationEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else if (!"POST".equals(hsr.getMethod())){
+        } else if (!"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
             } catch (IOException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-            } 
+            }
         }
     }
-    
+
 }

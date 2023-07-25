@@ -137,28 +137,41 @@ public class GenerateStpNetLocDao {
         return resultObj;
     }
 
-    public String moveFirst(String wonum) throws SQLException {
-        String moveFirst = "";
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ? AND c_attr_name in ('STP_NETWORKLOCATION')";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query);) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            if (rs != null) {
-                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE";
-                ResultSet del = ps.executeQuery(delete);
-                moveFirst = "Deleted data";
-                LogUtil.info(getClass().getName(), "Berhasil menghapus data" + del);
-            } else {
-                LogUtil.info(getClass().getName(), "Gagal menghapus data");
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
+//    public String moveFirst(String wonum) throws SQLException {
+//        String moveFirst = "";
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ? AND c_attr_name in ('STP_NETWORKLOCATION')";
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(query);) {
+//            ps.setString(1, wonum);
+//            ResultSet rs = ps.executeQuery();
+//            if (rs != null) {
+//                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE";
+//                ResultSet del = ps.executeQuery(delete);
+//                moveFirst = "Deleted data";
+//                LogUtil.info(getClass().getName(), "Berhasil menghapus data" + del);
+//            } else {
+//                LogUtil.info(getClass().getName(), "Gagal menghapus data");
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//        return moveFirst;
+//    }
+
+    public boolean deletetkDeviceattribute(String wonum, Connection con) throws SQLException {
+        boolean status = false;
+        String queryDelete = "DELETE FROM app_fd_tk_deviceattribute WHERE c_ref_num = ?";
+        PreparedStatement ps = con.prepareStatement(queryDelete);
+        ps.setString(1, wonum);
+        int count = ps.executeUpdate();
+        if (count > 0) {
+            status = true;
         }
-        return moveFirst;
+        LogUtil.info(getClass().getName(), "Status Delete : " + status);
+        return status;
     }
 
     public void insertToDeviceTable(String wonum) throws Throwable {
@@ -177,7 +190,7 @@ public class GenerateStpNetLocDao {
             ps.setString(5, listAttribute.getAttrName());
 
             int exe = ps.executeUpdate();
-            
+
             if (exe > 0) {
                 LogUtil.info(this.getClass().getName(), "Berhasil menambahkan data");
             }

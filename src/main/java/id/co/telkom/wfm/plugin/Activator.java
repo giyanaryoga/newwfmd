@@ -30,7 +30,6 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(ValidateSto.class.getName(), new ValidateSto(), null));
         registrationList.add(context.registerService(GenerateIPReservation.class.getName(), new GenerateIPReservation(), null));
         registrationList.add(context.registerService(GenerateUplinkPort.class.getName(), new GenerateUplinkPort(), null));
-        
     }
 
     @Override
