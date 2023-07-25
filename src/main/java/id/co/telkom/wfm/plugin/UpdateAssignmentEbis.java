@@ -98,10 +98,10 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
 
                 //Store param
                 String wonum = (data_obj.get("wonum") == null ? "" : data_obj.get("wonum").toString());
-                String taskId = (data_obj.get("taskId") == null ? "" : data_obj.get("taskId").toString());
-                String craft = (data_obj.get("craft") == null ? "" : data_obj.get("craft").toString());
-                String crewType = (data_obj.get("amcrewtype") == null ? "" : data_obj.get("amcrewtype").toString());
-                String crew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
+//                String taskId = (data_obj.get("taskId") == null ? "" : data_obj.get("taskId").toString());
+//                String craft = (data_obj.get("craft") == null ? "" : data_obj.get("craft").toString());
+//                String crewType = (data_obj.get("amcrewtype") == null ? "" : data_obj.get("amcrewtype").toString());
+                String amcrew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
                 String laborcode = (data_obj.get("laborcode") == null ? "" : data_obj.get("laborcode").toString());
 //                String chiefcode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
                 
@@ -112,6 +112,7 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                     if (getStatus == true) {
                         if (!laborcode.isEmpty()) {
                             boolean validLabor = dao.validateLabor(laborcode);
+                            
                             if (validLabor) {
                                 dao.getLaborName(laborcode);
                                 String laborname = dao.getLaborName(laborcode);
@@ -153,49 +154,46 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                                 response.writeJSONString(hsr1.getWriter());
                             }
                         } else {
-                            if (!crew.isEmpty()) {
-                                boolean validCrew = dao.validateCrew(crew);
-                                if (validCrew) {
-                                    dao.getLaborName(laborcode);
-    //                                String laborname = dao.getLaborName(laborcode);
-                                    LogUtil.info(getClass().getName(), "Amcrew: " + crew);
-                                    /**
-                                     * laborcode ada di table labor 
-                                     */
-                                    dao.updateCrew(crew, wonum);
-                                    /**
-                                     * update c_laborcode dan c_laborname di table app_fd_workorder
-                                     */
-                                    dao.updateCrewWorkOrder(crew, wonum);
+                            boolean validCrew = dao.validateCrew(amcrew);
+                            
+                            if (validCrew) {
+                                LogUtil.info(getClass().getName(), "Amcrew: " + amcrew);
+                                /**
+                                 * laborcode ada di table labor 
+                                 */
+                                dao.updateCrew(amcrew, wonum);
+                                /**
+                                 * update c_laborcode dan c_laborname di table app_fd_workorder
+                                 */
+                                dao.updateCrewWorkOrder(amcrew, wonum);
 
-                                    hsr1.setStatus(200);
-                                    String statusHeaders = "200";
-                                    String statusRequest = "Success";
-                                    JSONObject response = new JSONObject();
-                                    JSONObject data = new JSONObject();
-                                    response.put("status", statusHeaders);
-                                    response.put("message", statusRequest);
-                                    response.put("response", data);
-                                    data.put("WONUM", wonum);
-                                    data.put("AMCREW", crew);
-                                    response.writeJSONString(hsr1.getWriter());
-                                } else {
-                                    LogUtil.info(getClass().getName(), "AmCrew is not found!");
-                                    /**
-                                     * amcrew tidak ada di table labor
-                                     */
-                                    hsr1.setStatus(422);
-                                    String statusHeaders = "422";
-                                    String statusRequest = "Failed";
-                                    JSONObject response = new JSONObject();
-                                    JSONObject data = new JSONObject();
-                                    response.put("status", statusHeaders);
-                                    response.put("message", "AmCrew is not found!");
-                                    response.put("response", data);
-                                    response.writeJSONString(hsr1.getWriter());
-                                }
+                                hsr1.setStatus(201);
+                                String statusHeaders = "200";
+                                String statusRequest = "Success";
+                                JSONObject response = new JSONObject();
+                                JSONObject data = new JSONObject();
+                                response.put("status", statusHeaders);
+                                response.put("message", statusRequest);
+                                response.put("response", data);
+                                data.put("WONUM", wonum);
+                                data.put("AMCREW", amcrew);
+                                response.writeJSONString(hsr1.getWriter());
+                            } else {
+                                LogUtil.info(getClass().getName(), "AmCrew is not found!");
+                                /**
+                                 * amcrew tidak ada di table labor
+                                 */
+                                hsr1.setStatus(423);
+                                String statusHeaders = "422";
+                                String statusRequest = "Failed";
+                                JSONObject response = new JSONObject();
+                                JSONObject data = new JSONObject();
+                                response.put("status", statusHeaders);
+                                response.put("message", "AmCrew is not found!");
+                                response.put("response", data);
+                                response.writeJSONString(hsr1.getWriter());
                             }
-                        }   
+                        } 
                     } else {
                         LogUtil.info(getClass().getName(), "Status parent task is not STARTWA");
                         hsr1.setStatus(420);

@@ -80,6 +80,7 @@ public class RevisedTaskDao {
         query
                 .append(" SELECT ")
                 .append(" c_taskid, ")
+                .append(" c_wonum, ")
                 .append(" c_orgid, ")
                 .append(" c_detailactcode, ")
                 .append(" c_description, ")
@@ -101,6 +102,7 @@ public class RevisedTaskDao {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 activityProp.put("taskid", rs.getString("c_taskid"));
+                activityProp.put("wonum", rs.getString("c_wonum"));
                 activityProp.put("orgid", rs.getString("c_orgid"));
                 activityProp.put("description", rs.getString("c_description"));
                 activityProp.put("detailActCode", rs.getInt("c_detailactcode"));
@@ -141,21 +143,40 @@ public class RevisedTaskDao {
         return taskName;
     }
     
+    public boolean checkAttrName(String attrName, String wonum) throws SQLException {
+        boolean isTrue = false;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid FROM app_fd_workorderspec WHERE c_assetattrid = ? AND c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, attrName);
+            ps.setString(2, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+//                taskName = rs.getString("c_detailactcode");
+                isTrue = true;
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return isTrue;
+    }
+    
     public void GenerateTaskAttribute(String activity, String wonum, String orderId) throws SQLException {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
-//                .append(" c_classstructureid, ")
                 .append(" c_classspecid, ")
                 .append(" c_orgid, ")
                 .append(" c_assetattrid, ")
                 .append(" c_description, ")
                 .append(" c_sequence, ")
                 .append(" c_readonly, ")
-                .append(" c_isrequired, ") //joinan dari classspecusewith
+                .append(" c_isrequired, ")
                 .append(" c_isshared ")
                 .append(" FROM app_fd_classspec WHERE ")
-                .append(" c_activity = ? ");  //this is for next patching
+                .append(" c_activity = ? ");
         
         StringBuilder insert = new StringBuilder();
         insert

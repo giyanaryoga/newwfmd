@@ -9,6 +9,8 @@ import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -92,10 +94,11 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 JSONObject data_obj = (JSONObject)parser.parse(bodyParam);//JSON Object
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-                String cpeVendor = data_obj.get("cpeVendor").toString();
-                String cpeModel = data_obj.get("cpeModel").toString();
+//                String cpeVendor = data_obj.get("cpeVendor").toString();
+//                String cpeModel = data_obj.get("cpeModel").toString();
                 String cpeSerialNumber = data_obj.get("cpeSerialNumber").toString();
-//                String laborCode = data_obj.get("laborCode").toString();
+                String chiefCode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
+//                String partnerCode = (data_obj.get("partnerCode") == null ? "" : data_obj.get("partnerCode").toString());
                 //Get EAI Token for access scmt
                 ScmtIntegrationEbisDao scmtIntegrationDao = new ScmtIntegrationEbisDao();
                 String eaiToken = scmtIntegrationDao.getScmtToken();
@@ -111,36 +114,77 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 JSONObject apiItem = (JSONObject)data.get("apiItemResponse");
                 JSONObject eaiStatus = (JSONObject)apiItem.get("eaiStatus");
                 String statusCode = eaiStatus.get("srcResponseCode").toString();
-                switch (statusCode) {
+                
+                switch(statusCode) {
                     case "200":
-                        //                    JSONArray item_array = (JSONArray)apiItem.get("eaiBody");
-//                    String locationCode = "";
-//                    for (Object object : item_array){
-//                        JSONObject obj = (JSONObject)object;
-//                        locationCode = (obj.get("location_code") == null ? "" : obj.get("location_code").toString());
-//                    }
-                        //Validate CPE
-//                    if (locationCode.equals(laborCode)){
-                        boolean updateValidation = dao.updateCpeValidation(wonum, cpeVendor, cpeModel, cpeSerialNumber);
-                        if (updateValidation){
-                            JSONObject res = new JSONObject();
-                            res.put("message", "validasi berhasil!");
-                            res.writeJSONString(hsr1.getWriter());
-                            LogUtil.info(getClassName(), "CPE validation success for " + wonum);
-                            hsr1.setStatus(200);
-                        } else {
-                            JSONObject res = new JSONObject();
-                            res.put("message", "validasi gagal!");
-                            res.writeJSONString(hsr1.getWriter());
-                            LogUtil.info(getClassName(), "CPE validation error for " + wonum);
-                            hsr1.setStatus(422);
+                        hsr1.setStatus(200);
+                        JSONArray item_array = (JSONArray)apiItem.get("eaiBody");
+                        String locationCode = "";
+                        String cpeModel = "";
+                        String cpeVendor = "";
+                        int snLength = cpeSerialNumber.length();
+                        List<String> taskList = new ArrayList<>();
+                        
+                        for (Object object : item_array){
+                            JSONObject obj = (JSONObject)object;
+                            locationCode = (obj.get("location_code") == null) ? "" : obj.get("location_code").toString();
+                            cpeVendor = (obj.get("brand") == null ? "" : obj.get("brand").toString());
+                            cpeModel = (obj.get("item_description") == null ? "" : obj.get("item_description").toString());
                         }
-//                    } else {
-//                        hsr1.setStatus(265);
-//                        JSONObject res = new JSONObject();
-//                        res.put("message", "validasi gagal, perangkat ini terdaftar di lokasi: ");
-//                        res.writeJSONString(hsr1.getWriter());
-//                    } 
+                        
+                        final boolean isVendorExist = dao.checkCpeVendor(cpeVendor);
+                        boolean[] arrayBoolean = new boolean[4];
+                        boolean[] checkedArrayBoolean = dao.cpeModelCheck(arrayBoolean, cpeVendor, cpeModel, snLength, taskList);
+                        final boolean isModelExist = checkedArrayBoolean[0];
+                        final boolean isModelVendorMatch = checkedArrayBoolean[1];
+                        final boolean isSerialNumMatch = checkedArrayBoolean[2];
+                        final boolean isCpeTaskMatch = checkedArrayBoolean[3];
+                        boolean isDeviceInTech = false;
+                        if (locationCode.equals(chiefCode)) {
+                            isDeviceInTech = true;
+                            LogUtil.info(getClassName(), "Device in Chief");
+                        } 
+    //                    else if (locationCode.equals(partnerCode)) {
+    //                        isDeviceInTech = true;
+    //                        LogUtil.info(getClassName(), "Device in Partner");
+    //                    }
+                        //Validate CPE
+                        JSONObject res = new JSONObject();
+                        res.put("cpeVendor", cpeVendor);
+                        res.put("cpeModel", cpeModel);
+                        if (isDeviceInTech && isVendorExist && isModelExist && isModelVendorMatch && isSerialNumMatch && isCpeTaskMatch){
+                            boolean updateValidation = dao.updateCpeValidation(wonum, cpeVendor, cpeModel, cpeSerialNumber);
+                            if (updateValidation){
+                                LogUtil.info(getClassName(), "CPE validation success for " + wonum);
+                                res.put("status", "ok");
+                                res.put("message", "validasi berhasil untuk wonum " + wonum);
+                                res.writeJSONString(hsr1.getWriter());
+                            }
+                        } else if (!isDeviceInTech) {
+                            res.put("status", "nok1");
+                            res.put("message", "validasi gagal, perangkat ini terdaftar di lokasi: " + locationCode);
+                            res.writeJSONString(hsr1.getWriter());
+                        } else if (!isVendorExist) {
+                            res.put("status", "nok2");
+                            res.put("message", "vendor tidak ada di database");
+                            res.writeJSONString(hsr1.getWriter());
+                        } else if (!isModelExist) {
+                            res.put("status", "nok3");
+                            res.put("message", "model tidak ada di database");
+                            res.writeJSONString(hsr1.getWriter());
+                        } else if (!isModelVendorMatch) {
+                            res.put("status", "nok4");
+                            res.put("message", "model dan vendor tidak sinkron di database");
+                            res.writeJSONString(hsr1.getWriter());
+                        } else if (!isSerialNumMatch) {
+                            res.put("status", "nok5");
+                            res.put("message", "panjang serial number tidak sesuai");
+                            res.writeJSONString(hsr1.getWriter());
+                        } else if (!isCpeTaskMatch) {
+                            res.put("status", "nok6");
+                            res.put("message", "tipe perangkat tidak sesuai dengan task");
+                            res.writeJSONString(hsr1.getWriter());
+                        }
                         break;
                     case "404":
                         hsr1.sendError(404, "serial number tidak ditemukan");
@@ -151,6 +195,8 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 }
             } catch (ParseException e){
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
+            } catch (SQLException ex) {
+                Logger.getLogger(CpeValidationEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (!"POST".equals(hsr.getMethod())){
             try {

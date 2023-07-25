@@ -11,7 +11,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -24,6 +30,13 @@ import org.json.simple.parser.ParseException;
  * @author User
  */
 public class CpeValidationEbisDao {
+    private Timestamp getTimeStamp() {
+        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"); 
+        Timestamp ts =  Timestamp.valueOf(zdt.toLocalDateTime().format(format));
+        return ts;
+    }
+    
     public Object getQueryNte(String cpeSerialNumber, String eaiToken) throws SQLException{
         //Prepare variable
         JSONObject data_obj = null;
@@ -55,7 +68,7 @@ public class CpeValidationEbisDao {
         boolean updateStatus = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         // change 22
-        String update = "UPDATE app_fd_workorder SET c_cpe_validation = 'PASS', c_cpe_vendor = ?, c_cpe_model = ?, c_cpe_serial_number = ? WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_cpe_validation = 'PASS', c_cpe_vendor = ?, c_cpe_model = ?, c_cpe_serial_number = ?, datemodified = ? WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         // change 22
         try {
             Connection con = ds.getConnection();
@@ -66,6 +79,7 @@ public class CpeValidationEbisDao {
                     ps.setString(2, cpeModel);
                     ps.setString(3, cpeSerialNumber);
                     ps.setString(4, wonum);
+                    ps.setTimestamp(5, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
@@ -102,22 +116,32 @@ public class CpeValidationEbisDao {
         return updateStatus;
     }
     
-    public String checkCpeModel(String model) throws SQLException {
-        String cpeModel = "";
+    public boolean[] cpeModelCheck(boolean[] arrayBoolean, String cpeVendor, String cpeModel, int snLength, List<String> taskList) throws SQLException {
+        Arrays.fill(arrayBoolean, Boolean.FALSE);
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_model, c_vendor FROM app_fd_cpemodel WHERE c_model = ?";
-        try (Connection con = ds.getConnection();
+        String query = "SELECT c_vendor, c_description, c_serialnumlength  FROM app_fd_cpemodel WHERE c_model = ?";
+        try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, model);
+            ps.setString(1, cpeModel);
             ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                cpeModel = rs.getString("c_model");
+            if (rs.next()){
+                arrayBoolean[0] = true;
+                if ((rs.getString("c_vendor") == null ? "" : rs.getString("c_vendor").toString()).equalsIgnoreCase(cpeVendor)) {
+                    arrayBoolean[1] = true;
+                }
+                if (snLength == rs.getInt("c_serialnumlength")) {
+                    arrayBoolean[2] = true;
+                }
+                if (taskList.contains((rs.getString("c_description") == null ? "" : rs.getString("c_description").toString()))) {
+                    arrayBoolean[3] = true;
+                }
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close();
         }
-        return cpeModel;
+        return arrayBoolean;
     }
     
     public boolean checkCpeVendor(String vendor) throws SQLException {
