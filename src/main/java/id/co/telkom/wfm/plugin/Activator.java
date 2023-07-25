@@ -29,7 +29,11 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(GenerateSidConnectivity.class.getName(), new GenerateSidConnectivity(), null));
         registrationList.add(context.registerService(ValidateSto.class.getName(), new ValidateSto(), null));
         registrationList.add(context.registerService(GenerateIPReservation.class.getName(), new GenerateIPReservation(), null));
+<<<<<<< HEAD
         
+=======
+        registrationList.add(context.registerService(GenerateUplinkPort.class.getName(), new GenerateUplinkPort(), null));
+>>>>>>> 7f2d5533c546ba31492b4a373bf36297b1443a89
     }
 
     @Override

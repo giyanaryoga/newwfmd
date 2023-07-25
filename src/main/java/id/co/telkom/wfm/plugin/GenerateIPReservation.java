@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 public class GenerateIPReservation extends Element implements PluginWebSupport {
 
-        String pluginName = "Telkom New WFM - Generate SID Connectivity - Web Service";
+        String pluginName = "Telkom New WFM - Generate IP RESERVATION - Web Service";
 
         @Override
         public String renderTemplate(FormData fd, Map map) {

@@ -16,6 +16,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.*;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class GenerateIPReservationDao {
     //====================================
@@ -211,7 +214,7 @@ public class GenerateIPReservationDao {
                     }
                     while (rs.next()) {
                         size++;
-                        String c_alnvalue = "";
+                        String c_value = "";
                         String c_assetattrid = rs.getString("c_assetattrid");
                         String id = rs.getString("id");
                         LogUtil.info(getClass().getName(), "Asset Attribute ID : " + c_assetattrid);
@@ -222,29 +225,29 @@ public class GenerateIPReservationDao {
                         // sampai sini berhasilnya selanjutnya masih error
                         if (c_assetattrid.equals(ipType.replace("%", "GATEWAYADDRESS"))) {
                             LogUtil.info(getClass().getName(), "GATEWAYADDRESS ");
-                            status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getGateawayAddress(), con);
+                            status = updateCVALUE(wonum, c_assetattrid, listGenerateAttributes.getGateawayAddress(), con);
                         }
                         if (c_assetattrid.equals(ipType.replace("%", "IPDOMAIN"))) {
                             LogUtil.info(getClass().getName(), "IPDOMAIN ");
-                            status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getIpDomain(), con);
+                            status = updateCVALUE(wonum, c_assetattrid, listGenerateAttributes.getIpDomain(), con);
                         }
                         if (c_assetattrid.equals(ipType.replace("%", "NETWORKADDRESS"))) {
                             LogUtil.info(getClass().getName(), "NETWORKADDRESS ");
-                            status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getNetworkAddress(), con);
+                            status = updateCVALUE(wonum, c_assetattrid, listGenerateAttributes.getNetworkAddress(), con);
                         }
                         if (c_assetattrid.equals(ipType.replace("%", "RESERVATIONID"))) {
                             LogUtil.info(getClass().getName(), "RESERVATIONID ");
-                            status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getReservationId(), con);
+                            status = updateCVALUE(wonum, c_assetattrid, listGenerateAttributes.getReservationId(), con);
                         }
                         if (c_assetattrid.equals(ipType.replace("%", "SERVICEIP"))) {
-                            status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getServiceIp(), con);
+                            status = updateCVALUE(wonum, c_assetattrid, listGenerateAttributes.getServiceIp(), con);
                         }
                         if (c_assetattrid.equals(ipType.replace("%", "SUBNETMASK"))) {
                             if (serviceType == "CDN" && cardinality == "6") {
                                 LogUtil.info(getClass().getName(), "SUBNETMASK cdn 6 ");
-                                status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getNetMask(), con);
+                                status = updateCVALUE(wonum, c_assetattrid, listGenerateAttributes.getNetMask(), con);
                             } else {
-                                status = updateALNVALUE(wonum, c_assetattrid, listGenerateAttributes.getSubnetMask(), con);
+                                status = updateCVALUE(wonum, c_assetattrid, listGenerateAttributes.getSubnetMask(), con);
                             }
                         }
                     }
@@ -263,10 +266,10 @@ public class GenerateIPReservationDao {
         return status;
     }
 
-    public boolean updateALNVALUE(String wonum, String c_assetattrid,String valueUpdate, Connection con) throws SQLException {
+    public boolean updateCVALUE(String wonum, String c_assetattrid,String valueUpdate, Connection con) throws SQLException {
         boolean status = false;
 
-        String queryUpdate = "UPDATE APP_FD_WORKORDERSPEC SET c_alnvalue= ? WHERE c_wonum = ? AND c_assetattrid = ?";
+        String queryUpdate = "UPDATE APP_FD_WORKORDERSPEC SET c_value= ? WHERE c_wonum = ? AND c_assetattrid = ?";
         PreparedStatement ps = con.prepareStatement(queryUpdate);
         ps.setString(1, valueUpdate);
         ps.setString(2, wonum);
@@ -276,7 +279,7 @@ public class GenerateIPReservationDao {
             status = true;
         }
         LogUtil.info(getClass().getName(), "Status Update : "+status);
-        return true;
+        return status;
     }
 
     public void insertIntoDeviceTable(String wonum, ListGenerateAttributes listGenerate) throws SQLException {
