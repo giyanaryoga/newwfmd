@@ -43,15 +43,14 @@ public class UpdateAssignmentEbisDao {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs.next()){
-                if (rs.getString("c_status").equalsIgnoreCase("STARTWA")) {
+                String statusParent = rs.getString("c_status");
+                if (statusParent.equals("LABASSIGN")) {
                     status = true;
                     LogUtil.info(getClass().getName(), "Status laborname = " +status);
                 } else {
                     status = false;
                     LogUtil.info(getClass().getName(), "Status laborname = " +status);
                 }
-//                status = true;
-//                LogUtil.info(getClass().getName(), "Status laborname = " +status);
             } 
 //            else con.rollback();
         } catch (SQLException e) {
@@ -190,10 +189,10 @@ public class UpdateAssignmentEbisDao {
         StringBuilder update = new StringBuilder();
         update
             .append("UPDATE app_fd_workorder SET ")
-//            .append("c_laborcode = ?, ")
-//            .append("c_laborname = ?, ")
             .append("c_chief_code = ?, ")
             .append("c_chief_name = ?, ")
+            .append("c_assignment_type = ?, ")
+            .append("c_assignment_status = ?, ")
             .append("datemodified = ? ")
             .append("WHERE ")
             .append("c_wonum = ?")
@@ -202,9 +201,11 @@ public class UpdateAssignmentEbisDao {
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setString(1, laborcode);
             ps.setString(2, laborname);
-            ps.setTimestamp(3, getTimeStamp());
-            ps.setString(4, wonum);
-            ps.setString(5, "ACTIVITY");
+            ps.setString(3, "MANJA");
+            ps.setString(4, "ASSIGNED");
+            ps.setTimestamp(5, getTimeStamp());
+            ps.setString(6, wonum);
+            ps.setString(7, "ACTIVITY");
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Updated Workorder Laborcode :  " + laborcode);
@@ -222,6 +223,8 @@ public class UpdateAssignmentEbisDao {
         update
             .append("UPDATE app_fd_workorder SET ")
             .append("c_amcrew = ?, ")
+            .append("c_assignment_type = ?, ")
+            .append("c_assignment_status = ?, ")
             .append("datemodified = ? ")
             .append("WHERE ")
             .append("c_wonum = ?")
@@ -229,9 +232,11 @@ public class UpdateAssignmentEbisDao {
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setString(1, laborcode);
-            ps.setTimestamp(2, getTimeStamp());
-            ps.setString(3, wonum);
-            ps.setString(4, "ACTIVITY");
+            ps.setString(2, "MANJA");
+            ps.setString(3, "ASSIGNED");
+            ps.setTimestamp(4, getTimeStamp());
+            ps.setString(5, wonum);
+            ps.setString(6, "ACTIVITY");
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Updated Workorder Amcrew :  " + laborcode);

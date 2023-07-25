@@ -57,5 +57,7 @@ public class RevisedTask extends DefaultApplicationPlugin {
 //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    String id = UuidGenerator.getInstance().getUuid();//generating uuid
+    public static void main(String[] args) {
+        String id = UuidGenerator.getInstance().getUuid();//generating uuid
+    }
 }

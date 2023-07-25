@@ -98,7 +98,7 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
 
                 //Store param
                 String wonum = (data_obj.get("wonum") == null ? "" : data_obj.get("wonum").toString());
-//                String taskId = (data_obj.get("taskId") == null ? "" : data_obj.get("taskId").toString());
+                String taskId = (data_obj.get("taskId") == null ? "" : data_obj.get("taskId").toString());
 //                String craft = (data_obj.get("craft") == null ? "" : data_obj.get("craft").toString());
 //                String crewType = (data_obj.get("amcrewtype") == null ? "" : data_obj.get("amcrewtype").toString());
                 String amcrew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
@@ -109,7 +109,7 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
 //                ListLabor listLabor = new ListLabor();
                 try {
                     boolean getStatus = dao.getStatusTask(wonum);
-                    if (getStatus == true) {
+                    if (getStatus) {
                         if (!laborcode.isEmpty()) {
                             boolean validLabor = dao.validateLabor(laborcode);
                             
@@ -153,7 +153,7 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                                 response.put("response", data);
                                 response.writeJSONString(hsr1.getWriter());
                             }
-                        } else {
+                        } else if (!amcrew.isEmpty()) {
                             boolean validCrew = dao.validateCrew(amcrew);
                             
                             if (validCrew) {
@@ -193,7 +193,18 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                                 response.put("response", data);
                                 response.writeJSONString(hsr1.getWriter());
                             }
-                        } 
+                        } else {
+                            LogUtil.info(getClass().getName(), "Laborcode and amcrew is null");
+                            hsr1.setStatus(421);
+                            String statusHeaders = "421";
+                            String statusRequest = "Failed";
+                            JSONObject response = new JSONObject();
+                            JSONObject data = new JSONObject();
+                            response.put("status", statusHeaders);
+                            response.put("message", "Laborcode and amcrew is null");
+                            response.put("response", data);
+                            response.writeJSONString(hsr1.getWriter());
+                        }
                     } else {
                         LogUtil.info(getClass().getName(), "Status parent task is not STARTWA");
                         hsr1.setStatus(420);
