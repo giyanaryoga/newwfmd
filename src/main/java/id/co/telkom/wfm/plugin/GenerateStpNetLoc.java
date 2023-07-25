@@ -114,7 +114,7 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                         res1.put("message", "No Device found!.");
                         res1.writeJSONString(hsr1.getWriter());
                     } else {
-                        dao.moveFirst(wonum);
+//                        dao.moveFirst(wonum);
                         dao.insertToDeviceTable(wonum);
                         JSONObject res = new JSONObject();
                         res.put("code", 4000);

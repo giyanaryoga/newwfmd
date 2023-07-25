@@ -214,14 +214,14 @@ public class UpdateTaskStatusEbisDao {
         JSONArray listAttr = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 //        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
-        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND (a.C_WONUM = ? OR (a.C_WONUM = ? AND EXISTS(SELECT 1 FROM APP APP_FD_WORKORDER WHERE C_WONUM = ? AND C_DESCRIPTION = 'Survei On Desk')))";
+        String query = "SELECT C_WONUM, C_VALUE, C_ASSETATTRID, C_ISSHARED FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND (a.C_WONUM = ? OR (a.C_WONUM = ? AND EXISTS (SELECT 1 FROM app_fd_workorder WHERE c_wonum = ? AND c_description = 'Survey On Desk')))";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             String newwonum = wonum;
             String a = newwonum.substring(0, newwonum.length() - 1);
             int b = Integer.parseInt(newwonum.substring(newwonum.length() - 1)) - 1;
             String result = a + b;
-//            LogUtil.info(getClass().getName(), wonum + " Wonum : " + newWonum);
+            LogUtil.info(getClass().getName(), " Wonum : " + a+b);
 
             ps.setString(1, wonum);
             ps.setString(2, result);
@@ -262,15 +262,16 @@ public class UpdateTaskStatusEbisDao {
             attributeObj.put("Attribute", getListAttribute(wonum));
         }
         // Checking attribute
-//        JSONObject attributes = new JSONObject();
-//        if (name.equals("Survey-Ondesk")) {
-//            attributeObj.put("Attribute", "");
-//        } else {
-//            attributes.put("Attributes", attributeObj);
-//        }
+        if (name.equals("Survey-Ondesk")) {
+            attributeObj.put("Attribute", "");
+        }
+            
+        JSONObject attributes = new JSONObject();
+        attributes.put("Attributes", attributeObj);
 
         JSONObject serviceDetail = new JSONObject();
-        serviceDetail.put("ServiceDetail", attributeObj);
+//        serviceDetail.put("ServiceDetail", attributeObj);
+        serviceDetail.put("ServiceDetail", attributes);
 
         itemObj.put("ServiceDetails", serviceDetail);
         return itemObj;
