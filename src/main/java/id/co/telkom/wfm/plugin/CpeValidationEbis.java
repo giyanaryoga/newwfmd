@@ -143,7 +143,7 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         boolean isDeviceInTech = false;
                         if (locationCode.equals(chiefCode)) {
                             isDeviceInTech = true;
-                            LogUtil.info(getClassName(), "Device in Chief");
+                            LogUtil.info(getClassName(), "Device in Technician " + locationCode);
                         } 
     //                    else if (locationCode.equals(partnerCode)) {
     //                        isDeviceInTech = true;
