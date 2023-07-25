@@ -31,7 +31,7 @@ import org.json.simple.parser.ParseException;
 public class CpeValidationEbis extends Element implements PluginWebSupport {
 
     String pluginName = "Telkom New WFM - CPE Validation - Web Service";
-    
+
     @Override
     public String renderTemplate(FormData fd, Map map) {
         return "";
@@ -73,15 +73,16 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
         LogUtil.info(getClass().getName(), "Start Process: Validate CPE");
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
-            try{
-                 //@Parsing message
+            try {
+                //@Parsing message
                 //HttpServletRequest get JSON Post data
                 StringBuffer jb = new StringBuffer();
                 String line = null;
                 try {//read the response JSON to string buffer
                     BufferedReader reader = hsr.getReader();
-                    while((line = reader.readLine()) !=null)
+                    while ((line = reader.readLine()) != null) {
                         jb.append(line);
+                    }
                 } catch (Exception e) {
                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                 }
@@ -89,12 +90,13 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 //Parse JSON String to JSON Object
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
-                JSONObject data_obj = (JSONObject)parser.parse(bodyParam);//JSON Object
+                JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
                 String cpeVendor = data_obj.get("cpeVendor").toString();
                 String cpeModel = data_obj.get("cpeModel").toString();
                 String cpeSerialNumber = data_obj.get("cpeSerialNumber").toString();
+                String description = data_obj.get("description").toString();
 //                String laborCode = data_obj.get("laborCode").toString();
                 //Get EAI Token for access scmt
                 ScmtIntegrationEbisDao scmtIntegrationDao = new ScmtIntegrationEbisDao();
@@ -108,8 +110,8 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 } catch (SQLException ex) {
                     Logger.getLogger(CpeValidationEbis.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                JSONObject apiItem = (JSONObject)data.get("apiItemResponse");
-                JSONObject eaiStatus = (JSONObject)apiItem.get("eaiStatus");
+                JSONObject apiItem = (JSONObject) data.get("apiItemResponse");
+                JSONObject eaiStatus = (JSONObject) apiItem.get("eaiStatus");
                 String statusCode = eaiStatus.get("srcResponseCode").toString();
                 switch (statusCode) {
                     case "200":
@@ -121,20 +123,32 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
 //                    }
                         //Validate CPE
 //                    if (locationCode.equals(laborCode)){
-                        boolean updateValidation = dao.updateCpeValidation(wonum, cpeVendor, cpeModel, cpeSerialNumber);
-                        if (updateValidation){
-                            JSONObject res = new JSONObject();
-                            res.put("message", "validasi berhasil!");
-                            res.writeJSONString(hsr1.getWriter());
-                            LogUtil.info(getClassName(), "CPE validation success for " + wonum);
-                            hsr1.setStatus(200);
-                        } else {
-                            JSONObject res = new JSONObject();
-                            res.put("message", "validasi gagal!");
-                            res.writeJSONString(hsr1.getWriter());
-                            LogUtil.info(getClassName(), "CPE validation error for " + wonum);
-                            hsr1.setStatus(422);
+                        // Checking Task
+                        if (description.equals("Pickup AP From SCM Wifi")
+                                || description.equals("Install AP")
+                                || description.equals("Pickup NTE from SCM Wifi")
+                                || description.equals("Install NTE Wifi")
+                                || description.equals("Pickup NTE from SCM")
+                                || description.equals("Pickup NTE from SCM Manual")
+                                || description.equals("Install NTE")
+                                || description.equals("Install NTE Manual")) {
+
+                            boolean updateValidation = dao.updateCpeValidation(wonum, cpeVendor, cpeModel, cpeSerialNumber);
+                            if (updateValidation) {
+                                JSONObject res = new JSONObject();
+                                res.put("message", "validasi berhasil!");
+                                res.writeJSONString(hsr1.getWriter());
+                                LogUtil.info(getClassName(), "CPE validation success for " + wonum);
+                                hsr1.setStatus(200);
+                            } else {
+                                JSONObject res = new JSONObject();
+                                res.put("message", "validasi gagal!");
+                                res.writeJSONString(hsr1.getWriter());
+                                LogUtil.info(getClassName(), "CPE validation error for " + wonum);
+                                hsr1.setStatus(422);
+                            }
                         }
+
 //                    } else {
 //                        hsr1.setStatus(265);
 //                        JSONObject res = new JSONObject();
@@ -149,16 +163,16 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         hsr1.sendError(465, "error, silahkan kontak administrator");
                         break;
                 }
-            } catch (ParseException e){
+            } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
-        } else if (!"POST".equals(hsr.getMethod())){
+        } else if (!"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
             } catch (IOException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-            } 
+            }
         }
     }
-    
+
 }

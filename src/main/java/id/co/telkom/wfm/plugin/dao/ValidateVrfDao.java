@@ -44,7 +44,7 @@ public class ValidateVrfDao {
         return resultObj;
     }
 
-    public boolean updateSto(String wonum, String sto, String region, String witel, String datel) throws SQLException {
+    public boolean updateVrf(String wonum, String sto, String region, String witel, String datel) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();

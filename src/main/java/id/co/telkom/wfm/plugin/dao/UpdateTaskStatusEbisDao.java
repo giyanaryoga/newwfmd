@@ -10,10 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -177,7 +173,7 @@ public class UpdateTaskStatusEbisDao {
                 //Milestone input
                 milestoneInput.put("JMSCorrelationID", rs.getString("c_jmscorrelationid"));
                 milestoneInput.put("WFMWOId", wonum);
-                milestoneInput.put("WoRevisionNo", rs.getString("c_worevisionno"));
+                milestoneInput.put("WoRevisionNo", rs.getString("c_worevisionno") == null ? "" : rs.getString("c_worevisionno"));
                 milestoneInput.put("WOStatus", rs.getString("c_status"));
                 milestoneInput.put("item", itemArrayObj);
             }
@@ -214,13 +210,22 @@ public class UpdateTaskStatusEbisDao {
         return completeJson;
     }
 
-    private JSONObject getListAttribute(String wonum) throws SQLException {
+    private JSONArray getListAttribute(String wonum) throws SQLException {
         JSONArray listAttr = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
+//        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
+        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND (a.C_WONUM = ? OR (a.C_WONUM = ? AND EXISTS(SELECT 1 FROM APP APP_FD_WORKORDER WHERE C_WONUM = ? AND C_DESCRIPTION = 'Survei On Desk')))";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
+            String newwonum = wonum;
+            String a = newwonum.substring(0, newwonum.length() - 1);
+            int b = Integer.parseInt(newwonum.substring(newwonum.length() - 1)) - 1;
+            String result = a + b;
+//            LogUtil.info(getClass().getName(), wonum + " Wonum : " + newWonum);
+
             ps.setString(1, wonum);
+            ps.setString(2, result);
+            ps.setString(3, result);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 JSONObject attributeObject = new JSONObject();
@@ -233,13 +238,13 @@ public class UpdateTaskStatusEbisDao {
         } finally {
             ds.getConnection().close();
         }
-        JSONObject attributeObj = new JSONObject();
-        if (listAttr.isEmpty()) {
-            attributeObj.put("Attribute", "");
-        } else {
-            attributeObj.put("Attribute", listAttr);
-        }
-        return attributeObj;
+//        JSONObject attributeObj = new JSONObject();
+//        if (listAttr.isEmpty()) {
+//            attributeObj.put("Attribute", "");
+//        } else {
+//            attributeObj.put("Attribute", listAttr);
+//        }
+        return listAttr;
     }
 
     private JSONObject buildTaskAttribute(String wonum, String name, String sequence, String correlation, String status) throws SQLException {
@@ -249,12 +254,23 @@ public class UpdateTaskStatusEbisDao {
         itemObj.put("Correlation", correlation);
         itemObj.put("Status", status);
 
-        // Wrapper
-        JSONObject attributes = new JSONObject();
-        attributes.put("Attributes", getListAttribute(wonum));
+        // checking attribute
+        JSONObject attributeObj = new JSONObject();
+        if (getListAttribute(wonum).isEmpty()) {
+            attributeObj.put("Attribute", "");
+        } else {
+            attributeObj.put("Attribute", getListAttribute(wonum));
+        }
+        // Checking attribute
+//        JSONObject attributes = new JSONObject();
+//        if (name.equals("Survey-Ondesk")) {
+//            attributeObj.put("Attribute", "");
+//        } else {
+//            attributes.put("Attributes", attributeObj);
+//        }
 
         JSONObject serviceDetail = new JSONObject();
-        serviceDetail.put("ServiceDetail", attributes);
+        serviceDetail.put("ServiceDetail", attributeObj);
 
         itemObj.put("ServiceDetails", serviceDetail);
         return itemObj;

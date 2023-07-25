@@ -50,6 +50,26 @@ public class GenerateSidConnectivityDao {
         }
     }
 
+    public String getScorderno(String wonum) throws SQLException {
+        String orderid = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_scorderno FROM app_fd_Workorder where c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String scorderno = "";
+                scorderno = rs.getString("c_scorderno");
+                String[] part = scorderno.split("_");
+                orderid = part[0];
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return orderid;
+    }
+
     //=========================================================
     // Call API Surrounding Generate SID CONNECTIVITY for SDWAN
     //=========================================================
@@ -124,7 +144,6 @@ public class GenerateSidConnectivityDao {
         }
 //        ListGenerateAttributes attr = new ListGenerateAttributes();
         return null;
-
     }
 
     public String moveFirst(String wonum) throws SQLException {
