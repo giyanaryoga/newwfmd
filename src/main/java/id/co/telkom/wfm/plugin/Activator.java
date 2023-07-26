@@ -28,6 +28,7 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(FalloutIncident.class.getName(), new FalloutIncident(), null));
         registrationList.add(context.registerService(GenerateSidConnectivity.class.getName(), new GenerateSidConnectivity(), null));
         registrationList.add(context.registerService(ValidateSto.class.getName(), new ValidateSto(), null));
+        registrationList.add(context.registerService(ValidateVrf.class.getName(), new ValidateVrf(), null));
         registrationList.add(context.registerService(GenerateIPReservation.class.getName(), new GenerateIPReservation(), null));
         registrationList.add(context.registerService(GenerateUplinkPort.class.getName(), new GenerateUplinkPort(), null));
     }

@@ -106,62 +106,46 @@ public class ValidateVrfDao {
         return result;
     }
 
-    public JSONObject callUimaxValidateVrf(String wonum, String vrfName, String deviceName) throws MalformedURLException, IOException, JSONException {
-        String rd = "";
-        if (rd != "") {
-            LogUtil.info(this.getClass().getName(), "RD is already generated. Refresh/Reopen order to view the RD, RT Import, RT Export detail.");
-        } else {
-            try {
-                String url = "https://api-emas.telkom.co.id:8443/api/vrf/find?" + "vrfName=" + getAssetattrid(wonum).get("VRF_NAME").toString() + "&deviceName=" + getAssetattrid(wonum).get("PE_NAME").toString();
+    public JSONObject callUimaxValidateVrf(String vrfName, String deviceName) throws MalformedURLException, IOException, JSONException {
+        try {
+//            String url = "https://api-emas.telkom.co.id:8443/api/vrf/find?" + "vrfName=" + getAssetattrid(wonum).get("VRF_NAME").toString() + "&deviceName=" + getAssetattrid(wonum).get("PE_NAME").toString();
+            String url = "https://api-emas.telkom.co.id:8443/api/vrf/find?" + "vrfName=" + vrfName + "&deviceName=" + deviceName;
 
-                URL obj = new URL(url);
-                HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            URL obj = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
-                con.setRequestMethod("GET");
-                con.setRequestProperty("Accept", "application/json");
-                int responseCode = con.getResponseCode();
-                LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + url);
-                LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Accept", "application/json");
+            int responseCode = con.getResponseCode();
+            LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + url);
+            LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
 
-                if (responseCode == 400) {
-                    LogUtil.info(this.getClass().getName(), "Generate VRF Failed.");
-                } else if (responseCode == 200) {
-                    BufferedReader in = new BufferedReader(
-                            new InputStreamReader(con.getInputStream()));
-                    String inputLine;
-                    StringBuffer response = new StringBuffer();
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-                    LogUtil.info(this.getClass().getName(), "STO : " + response);
-                    in.close();
-
-                    // 'response' contains the JSON data as a string
-                    String jsonData = response.toString();
-
-                    // parse the JSON data using org.json library
-                    JSONObject jsonObject = new JSONObject(jsonData);
-                    // Access data from the JSON object as needed
-                    String sto = jsonObject.getString("name");
-                    String stodesc = jsonObject.getString("description");
-                    JSONObject witelObj = jsonObject.getJSONObject("witel");
-                    String witel = witelObj.getString("name");
-                    JSONObject regionObj = jsonObject.getJSONObject("region");
-                    String region = regionObj.getString("name");
-                    JSONObject datelObj = jsonObject.getJSONObject("datel");
-                    String datel = datelObj.getString("name");
-                    LogUtil.info(this.getClass().getName(), "STO : " + sto);
-                    LogUtil.info(this.getClass().getName(), "STO Description : " + stodesc);
-                    LogUtil.info(this.getClass().getName(), "Region : " + region);
-                    LogUtil.info(this.getClass().getName(), "Witel : " + witel);
-                    LogUtil.info(this.getClass().getName(), "Datel : " + datel);
-
-                    // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
-//                updateSto(wonum, sto, region, witel, datel);
+            if (responseCode == 400) {
+                LogUtil.info(this.getClass().getName(), "Generate VRF Failed.");
+            } else if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
                 }
-            } catch (Exception e) {
-                LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
+                LogUtil.info(this.getClass().getName(), "STO : " + response);
+                in.close();
+
+                // 'response' contains the JSON data as a string
+                String jsonData = response.toString();
+
+                // parse the JSON data using org.json library
+                JSONObject jsonObject = new JSONObject(jsonData);
+                // Access data from the JSON object as needed
+                LogUtil.info(this.getClass().getName(), "Data : " + jsonObject);
+
+                // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
+//                updateSto(wonum, sto, region, witel, datel);
             }
+        } catch (Exception e) {
+            LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
         }
         return null;
     }
