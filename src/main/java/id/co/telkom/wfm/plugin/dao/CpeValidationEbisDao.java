@@ -251,4 +251,23 @@ public class CpeValidationEbisDao {
         }
         return cpeModel;
     }
+    
+    public String getDescModel(String model) throws SQLException {
+        String cpeModel = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_description FROM app_fd_cpemodel WHERE c_model = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, model);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+//                cpeVendor = true;
+                cpeModel = rs.getString("c_description");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return cpeModel;
+    }
 }
