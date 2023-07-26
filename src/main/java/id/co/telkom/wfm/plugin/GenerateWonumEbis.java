@@ -176,7 +176,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 LogUtil.info(getClass().getName(), "Start Process: Generate task | Wonum: " + parent);
                 //Getting Owner group from tkmapping
                 String ownerGroup = dao2.getOwnerGroup(workZone);
-                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, description, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate);
                 
                 //@Work Order attribute
                 JSONArray attr_array = (JSONArray)body.get("WORKORDERATTRIBUTE");
@@ -212,6 +211,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 act.setTaskId(10);
                 int counter = 1;
                 
+                String TaskDescription;
+                
                 String[] splittedJms = jmsCorrelationId.split("_");
                 String orderId = splittedJms[0];
                 JSONArray oss_item = new JSONArray();
@@ -224,6 +225,10 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     oss_item = (JSONArray) ossitem_arrayObj;
 //                    LogUtil.info(getClass().getName(), "TASK :" + oss_item);
                 }
+                
+                JSONObject oss = (JSONObject)((JSONArray) oss_item).get(0);
+                TaskDescription = oss.get("ITEMNAME").toString();
+                LogUtil.info(getClass().getName(), "TASK DESCRIPTION :" + TaskDescription);
                 
                 for(int j = 0; j < ((JSONArray) oss_item).size(); j++) {
                     JSONObject oss_itemObj = (JSONObject)((JSONArray) oss_item).get(j);
@@ -324,49 +329,14 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                                 LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
                             }
                         }
-                        
                         //@insert Oss Item Attribute
                         dao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
-                        
-//                        switch (attrName) {
-//                            case "NTE_MODEL":
-//                                cpeValidated.setModel(listOssItemAtt.getAttrValue());
-//                                LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
-//                                break;
-//                            case "NTE_MANUFACTUR":
-//                                cpeValidated.setVendor(listOssItemAtt.getAttrValue());
-//                                LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
-//                                break;
-//                            case "NTE_SERIALNUMBER":
-//                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
-//                                LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
-//                                break;
-//                            case "AP_SERIALNUMBER":
-//                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
-//                                LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
-//                                break;
-//                            default:
-//                                cpeValidated.setModel(null);
-//                                cpeValidated.setVendor(null);
-//                                cpeValidated.setSerial_number(null);
-//                                break;
-//                        }
-//                        String cpeValidate = "";
-//                        LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + ", " +cpeValidate+ " done");
-//                        if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
-//                            if (cpeValidated.getSerial_number().isEmpty()) {
-//                                cpeValidate = "";
-//                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
-//                                cpeValidated.setUpdateCpeValidate(updateCpe);
-//                            } else {
-//                                cpeValidate = "PASS";
-//                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
-//                                cpeValidated.setUpdateCpeValidate(updateCpe);
-//                            }
-//                        }
                     }
                 }
                 
+//                description = 
+                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, TaskDescription, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate);
+
                 //@@End
                 //@Response
                 if (wonum != null && insertWoStatus){

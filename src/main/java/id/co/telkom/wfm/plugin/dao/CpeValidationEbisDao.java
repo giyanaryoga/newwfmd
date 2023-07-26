@@ -78,7 +78,59 @@ public class CpeValidationEbisDao {
                     ps.setString(1, cpeVendor);
                     ps.setString(2, cpeModel);
                     ps.setString(3, cpeSerialNumber);
-                    ps.setString(4, wonum);
+                    ps.setTimestamp(4, getTimeStamp());
+                    ps.setString(5, wonum);
+                    int exe = ps.executeUpdate();
+                    //Checking insert status
+                    if (exe > 0) {
+                        updateStatus = true;
+                        LogUtil.info(getClass().getName(), "CPE Validation: PASS | wonum: " + wonum);
+                    }   
+                    if (ps != null)
+                        ps.close();
+                } catch (Throwable throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (Throwable throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (Throwable throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+        return updateStatus;
+    }
+
+    public boolean updateAttribute(String wonum, String attrName, String attrValue){
+        boolean updateStatus = false;    
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        // change 22
+        String update = "UPDATE app_fd_workorderspec SET c_assetattrid = ?, c_value = ?, datemodified = ? WHERE c_wonum = ? AND c_assetattrid = ?";
+        // change 22
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(update);
+                try {
+                    ps.setString(1, attrName);
+                    ps.setString(2, attrValue);
+                    ps.setString(3, wonum);
+                    ps.setString(4, attrName);
                     ps.setTimestamp(5, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
@@ -115,7 +167,7 @@ public class CpeValidationEbisDao {
         }
         return updateStatus;
     }
-    
+
     public boolean[] cpeModelCheck(boolean[] arrayBoolean, String cpeVendor, String cpeModel, int snLength, List<String> taskList) throws SQLException {
         Arrays.fill(arrayBoolean, Boolean.FALSE);
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -160,5 +212,43 @@ public class CpeValidationEbisDao {
             ds.getConnection().close();
         }
         return cpeVendor;
+    }
+    
+    public String getCpeVendor(String wonum) throws SQLException {
+        String cpeVendor = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = 'NTE_MANUFACTUR'";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+//                cpeVendor = true;
+                cpeVendor = rs.getString("c_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return cpeVendor;
+    }
+    
+    public String getCpeModel(String wonum) throws SQLException {
+        String cpeModel = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = 'NTE_MODEL'";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+//                cpeVendor = true;
+                cpeModel = rs.getString("c_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return cpeModel;
     }
 }

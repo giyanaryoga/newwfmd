@@ -93,10 +93,11 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
+                CpeValidationEbisDao dao = new CpeValidationEbisDao();
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-//                String cpeVendor = data_obj.get("cpeVendor").toString();
-//                String cpeModel = data_obj.get("cpeModel").toString();
+                String vendor = dao.getCpeVendor(wonum);
+                String model = dao.getCpeModel(wonum);
                 String cpeSerialNumber = data_obj.get("cpeSerialNumber").toString();
                 String chiefCode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
 //                String partnerCode = (data_obj.get("partnerCode") == null ? "" : data_obj.get("partnerCode").toString());
@@ -105,7 +106,7 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 String eaiToken = scmtIntegrationDao.getScmtToken();
                 LogUtil.info(getClassName(), "Token: " + eaiToken);
                 //Get Query NTE
-                CpeValidationEbisDao dao = new CpeValidationEbisDao();
+//                CpeValidationEbisDao dao = new CpeValidationEbisDao();
                 JSONObject data = null;
                 try {
                     data = (JSONObject) dao.getQueryNte(cpeSerialNumber, eaiToken);
@@ -121,8 +122,8 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         hsr1.setStatus(200);
                         JSONArray item_array = (JSONArray)apiItem.get("eaiBody");
                         String locationCode = "";
-                        String cpeModel = "";
-                        String cpeVendor = "";
+                        String cpeModel = model;
+                        String cpeVendor = vendor;
                         int snLength = cpeSerialNumber.length();
                         List<String> taskList = new ArrayList<>();
                         
