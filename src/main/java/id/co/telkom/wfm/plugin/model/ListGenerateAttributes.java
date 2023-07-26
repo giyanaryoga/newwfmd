@@ -15,7 +15,8 @@ public class ListGenerateAttributes {
     private String description;
     private String attrType;
     private String attrName;
-    private Integer statusCode;
+    public int statusCode;
+    public String statusCodeTest;
 
     // Generate IPv4
     private String gatewayAddress;
@@ -64,14 +65,21 @@ public class ListGenerateAttributes {
         this.attrName = attrName;
     }
 
-    public Integer getStatusCode() {
+    public int getStatusCode() {
         return statusCode;
     }
 
-    public void setStatusCode(Integer statusCode) {
+    public void setStatusCode(int statusCode) {
         this.statusCode = statusCode;
     }
-
+    
+    public void setStatusCodeTest(String statusCodeTest) {
+        this.statusCodeTest = statusCodeTest;
+    }
+    public String getStatusCodeTest() {
+        return statusCodeTest;
+    }
+    
     //===================================
     // Generate IPv4
     //===================================

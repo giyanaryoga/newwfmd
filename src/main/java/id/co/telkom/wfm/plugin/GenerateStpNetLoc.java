@@ -94,7 +94,6 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
 
-                ListAttributes attribute = new ListAttributes();
                 //Parse JSON String to JSON Object
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
@@ -105,9 +104,12 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                 try {
                     // dao.callGenerateStpNetLoc(wonum, latitude, longitude);
                     LogUtil.info(getClassName(), "Call Generate STP Net Loc");
-                    dao.callGenerateStpNetLoc(wonum);
-
+                    
                     ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+                    dao.callGenerateStpNetLoc(wonum, listAttribute);
+                    
+
+                    LogUtil.info(getClassName(), "Status Code Loc: " + listAttribute.getStatusCode());
                     if (listAttribute.getStatusCode() == 4001) {
                         LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
 
@@ -115,13 +117,15 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                         res1.put("code", 4001);
                         res1.put("message", "No Device found!.");
                         res1.writeJSONString(hsr1.getWriter());
-                    } else {
+                    } else if (listAttribute.getStatusCode() == 4000) {
                         LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
 
                         JSONObject res = new JSONObject();
                         res.put("code", 4000);
                         res.put("message", "update data successfully");
                         res.writeJSONString(hsr1.getWriter());
+                    } else {
+                        LogUtil.info(getClass().getName(), "Call Failed");
                     }
                 } catch (Exception ex) {
                     Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);

@@ -50,19 +50,19 @@ public class GenerateStpNetLocDao {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
         return resultObj;
-   
+
     }
 
     // ==========================================
     // Call API Surrounding Generate STP Net Loc
     //===========================================
-    public JSONObject callGenerateStpNetLoc(String wonum) throws JSONException, IOException, MalformedURLException, Exception, Throwable {
+    public JSONObject callGenerateStpNetLoc(String wonum, ListGenerateAttributes listGenerate) throws JSONException, IOException, MalformedURLException, Exception, Throwable {
         // Temp response data
 //        JSONObject getResponse = new JSONObject();
-        ListGenerateAttributes listAttribute = new ListGenerateAttributes();
 
         // Request Structure
         try {
+//            ListGenerateAttributes listAttribute = new ListGenerateAttributes();
             String latitude = getAssetattrid(wonum).get("LATITUDE").toString();
             String longitude = getAssetattrid(wonum).get("LONGITUDE").toString();
             LogUtil.info(this.getClass().getName(), "Latitude : " + latitude + "Longitude : " + longitude);
@@ -121,13 +121,17 @@ public class GenerateStpNetLocDao {
             JSONObject envelope = temp.getJSONObject("env:Envelope").getJSONObject("env:Body");
             JSONObject device = envelope.getJSONObject("ent:findDeviceByCriteriaResponse");
             int statusCode = device.getInt("statusCode");
-
+//            listAttribute.setStatusCodeTest(statusCode);
+            listGenerate.setStatusCode(statusCode);
             LogUtil.info(this.getClass().getName(), "Response Status : " + statusCode);
-
+            LogUtil.info(getClass().getName(), "Status CodeTest: " + listGenerate.getStatusCode());
             if (statusCode == 4001) {
                 LogUtil.info(this.getClass().getName(), "No Device found.");
-                listAttribute.setStatusCode(statusCode);
+
+                LogUtil.info(getClass().getName(), "Status Code: " + listGenerate.getStatusCode());
+                listGenerate.setStatusCode(statusCode);
             } else if (statusCode == 4000) {
+                listGenerate.setStatusCode(statusCode);
                 // Clear data
                 deleteTkDeviceattribute(wonum);
                 // Parse the JSONArray data and Insert into tk_device_attribute
@@ -140,7 +144,6 @@ public class GenerateStpNetLocDao {
                     LogUtil.info(this.getClass().getName(), "Name : " + name + "Type : " + type);
                     insertToDeviceTable(wonum, type, name);
                 }
-//                LogUtil.info(this.getClass().getName(), "Device : " + deviceInfo);
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Call Failed." + e);
