@@ -227,7 +227,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 }
                 
                 JSONObject oss = (JSONObject)((JSONArray) oss_item).get(0);
-                TaskDescription = oss.get("ITEMNAME").toString();
+                JSONObject detailAct1 = dao2.getDetailTask(((JSONObject) oss).get("ITEMNAME").toString());
+                TaskDescription = (String) detailAct1.get("description");
                 LogUtil.info(getClass().getName(), "TASK DESCRIPTION :" + TaskDescription);
                 
                 for(int j = 0; j < ((JSONArray) oss_item).size(); j++) {
