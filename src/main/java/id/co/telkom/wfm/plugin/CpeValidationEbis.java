@@ -6,6 +6,7 @@ package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.CpeValidationEbisDao;
 import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
+import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -93,11 +94,12 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
+//                TaskActivityDao daoTask = new TaskActivityDao();
                 CpeValidationEbisDao dao = new CpeValidationEbisDao();
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-                String vendor = (dao.getCpeVendor(wonum) == null ? data_obj.get("cpeVendor").toString() : dao.getCpeVendor(wonum));
-                String model = (dao.getCpeModel(wonum) == null ? data_obj.get("cpeModel").toString() : dao.getCpeModel(wonum));
+//                String vendor = (dao.getCpeVendor(wonum) == null ? data_obj.get("cpeVendor").toString() : dao.getCpeVendor(wonum));
+//                String model = (dao.getCpeModel(wonum) == null ? data_obj.get("cpeModel").toString() : dao.getCpeModel(wonum));
                 String cpeSerialNumber = data_obj.get("cpeSerialNumber").toString();
                 String chiefCode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
 //                String partnerCode = (data_obj.get("partnerCode") == null ? "" : data_obj.get("partnerCode").toString());
@@ -127,12 +129,15 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         int snLength = cpeSerialNumber.length();
                         List<String> taskList = new ArrayList<>();
                         
+                        taskList.add("ONT");
+                        
                         for (Object object : item_array){
                             JSONObject obj = (JSONObject)object;
                             locationCode = (obj.get("location_code") == null) ? "" : obj.get("location_code").toString();
                             cpeVendor = (obj.get("brand") == null ? "" : obj.get("brand").toString());
                             cpeModel = (obj.get("item_description") == null ? "" : obj.get("item_description").toString());
                         }
+                        dao.getDescModel(cpeModel);
                         
                         final boolean isVendorExist = dao.checkCpeVendor(cpeVendor);
                         boolean[] arrayBoolean = new boolean[4];
