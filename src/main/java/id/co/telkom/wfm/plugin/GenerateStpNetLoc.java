@@ -101,21 +101,23 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-                String latitude = attribute.getLatitude(dao.getDeviceLocation(wonum).get("LATITUDE").toString());
-                String longitude = attribute.getLongitude(dao.getDeviceLocation(wonum).get("LONGITUDE").toString());
 
                 try {
-                    dao.callGenerateStpNetLoc(latitude, longitude);
+                    // dao.callGenerateStpNetLoc(wonum, latitude, longitude);
+                    LogUtil.info(getClassName(), "Call Generate STP Net Loc");
+                    dao.callGenerateStpNetLoc(wonum);
 
                     ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                     if (listAttribute.getStatusCode() == 4001) {
+                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
+
                         JSONObject res1 = new JSONObject();
                         res1.put("code", 4001);
                         res1.put("message", "No Device found!.");
                         res1.writeJSONString(hsr1.getWriter());
                     } else {
-//                        dao.moveFirst(wonum);
-                        dao.insertToDeviceTable(wonum);
+                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
+
                         JSONObject res = new JSONObject();
                         res.put("code", 4000);
                         res.put("message", "update data successfully");
@@ -127,10 +129,6 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                     Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } catch (ParseException ex) {
-                Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException ex) {
-                Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (JSONException ex) {
                 Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (!"POST".equals(hsr.getMethod())) {

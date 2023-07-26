@@ -20,6 +20,7 @@ import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
@@ -30,15 +31,42 @@ import org.json.XML;
  */
 public class GenerateStpNetLocDao {
 
+    //=================================
+    //  Get Location From WORKORDERSPEC
+    //=================================    
+    public JSONObject getAssetattrid(String wonum) throws SQLException, JSONException {
+        JSONObject resultObj = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid IN ('LATITUDE','LONGITUDE')";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                resultObj.put(rs.getString("c_assetattrid"), rs.getString("c_value"));
+                LogUtil.info(this.getClass().getName(), "Location : " + resultObj);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return resultObj;
+   
+    }
+
     // ==========================================
     // Call API Surrounding Generate STP Net Loc
     //===========================================
-    public JSONObject callGenerateStpNetLoc(String latitude, String longitude) throws JSONException, IOException, MalformedURLException, Exception {
+    public JSONObject callGenerateStpNetLoc(String wonum) throws JSONException, IOException, MalformedURLException, Exception, Throwable {
         // Temp response data
 //        JSONObject getResponse = new JSONObject();
         ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+
         // Request Structure
         try {
+            String latitude = getAssetattrid(wonum).get("LATITUDE").toString();
+            String longitude = getAssetattrid(wonum).get("LONGITUDE").toString();
+            LogUtil.info(this.getClass().getName(), "Latitude : " + latitude + "Longitude : " + longitude);
+
             String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
                     + "   <soapenv:Header/>\n"
                     + "   <soapenv:Body>\n"
@@ -96,18 +124,23 @@ public class GenerateStpNetLocDao {
 
             LogUtil.info(this.getClass().getName(), "Response Status : " + statusCode);
 
-            if (statusCode == 4000) {
+            if (statusCode == 4001) {
                 LogUtil.info(this.getClass().getName(), "No Device found.");
                 listAttribute.setStatusCode(statusCode);
-            } else if (statusCode == 4001) {
-                JSONObject deviceInfo = device.getJSONObject("DeviceInfo");
-                String name = deviceInfo.getString("name");
-                String type = deviceInfo.getString("networkLocation");
+            } else if (statusCode == 4000) {
+                // Clear data
+                deleteTkDeviceattribute(wonum);
+                // Parse the JSONArray data and Insert into tk_device_attribute
+                JSONArray deviceInfo = device.getJSONArray("DeviceInfo");
+                for (int i = 0; i < deviceInfo.length(); i++) {
+                    JSONObject data = deviceInfo.getJSONObject(i);
+                    String name = data.getString("name");
+                    String type = data.getString("networkLocation");
 
-                listAttribute.setAttrName(name);
-                listAttribute.setAttrType(type);
-
-                LogUtil.info(this.getClass().getName(), "Device : " + name + type);
+                    LogUtil.info(this.getClass().getName(), "Name : " + name + "Type : " + type);
+                    insertToDeviceTable(wonum, type, name);
+                }
+//                LogUtil.info(this.getClass().getName(), "Device : " + deviceInfo);
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Call Failed." + e);
@@ -115,66 +148,31 @@ public class GenerateStpNetLocDao {
         return null;
     }
 
-    //==========================================
-    //  Get Location From WORKORDERATTRIBUTE
-    //==========================================
-    public JSONObject getDeviceLocation(String wonum) throws SQLException, JSONException {
-        JSONObject resultObj = new JSONObject();
+    public String deleteTkDeviceattribute(String wonum) throws SQLException {
+        String moveFirst = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT C_ATTR_NAME, C_ATTR_VALUE FROM APP_FD_WORKORDERATTRIBUTE WHERE C_WONUM = ? AND C_ATTR_NAME IN ('LONGITUDE', 'LATITUDE')";
+        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ? AND c_attr_name in ('STP_NETWORKLOCATION')";
         try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query);) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                resultObj.put(rs.getString("C_ATTR_NAME"), rs.getString("C_ATTR_VALUE"));
+            if (rs != null) {
+                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE";
+                ResultSet del = ps.executeQuery(delete);
+                moveFirst = "Deleted data";
+                LogUtil.info(getClass().getName(), "Berhasil menghapus data" + del);
+            } else {
+                LogUtil.info(getClass().getName(), "Gagal menghapus data");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close();
         }
-        return resultObj;
+        return moveFirst;
     }
 
-//    public String moveFirst(String wonum) throws SQLException {
-//        String moveFirst = "";
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ? AND c_attr_name in ('STP_NETWORKLOCATION')";
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(query);) {
-//            ps.setString(1, wonum);
-//            ResultSet rs = ps.executeQuery();
-//            if (rs != null) {
-//                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE";
-//                ResultSet del = ps.executeQuery(delete);
-//                moveFirst = "Deleted data";
-//                LogUtil.info(getClass().getName(), "Berhasil menghapus data" + del);
-//            } else {
-//                LogUtil.info(getClass().getName(), "Gagal menghapus data");
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//        return moveFirst;
-//    }
-
-    public boolean deletetkDeviceattribute(String wonum, Connection con) throws SQLException {
-        boolean status = false;
-        String queryDelete = "DELETE FROM app_fd_tk_deviceattribute WHERE c_ref_num = ?";
-        PreparedStatement ps = con.prepareStatement(queryDelete);
-        ps.setString(1, wonum);
-        int count = ps.executeUpdate();
-        if (count > 0) {
-            status = true;
-        }
-        LogUtil.info(getClass().getName(), "Status Delete : " + status);
-        return status;
-    }
-
-    public void insertToDeviceTable(String wonum) throws Throwable {
+    public void insertToDeviceTable(String wonum, String type, String name) throws Throwable {
         ListGenerateAttributes listAttribute = new ListGenerateAttributes();
         // Generate UUID
         String uuId = UuidGenerator.getInstance().getUuid();
@@ -186,8 +184,8 @@ public class GenerateStpNetLocDao {
             ps.setString(1, uuId);
             ps.setString(2, wonum);
             ps.setString(3, "STP_NETWORKLOCATION");
-            ps.setString(4, listAttribute.getAttrType());
-            ps.setString(5, listAttribute.getAttrName());
+            ps.setString(4, type);
+            ps.setString(5, name);
 
             int exe = ps.executeUpdate();
 
