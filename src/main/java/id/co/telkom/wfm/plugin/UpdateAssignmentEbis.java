@@ -206,14 +206,14 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                             response.writeJSONString(hsr1.getWriter());
                         }
                     } else {
-                        LogUtil.info(getClass().getName(), "Status parent task is not STARTWA");
+                        LogUtil.info(getClass().getName(), "Status parent task is COMPWA");
                         hsr1.setStatus(420);
                         String statusHeaders = "420";
                         String statusRequest = "Failed";
                         JSONObject response = new JSONObject();
                         JSONObject data = new JSONObject();
                         response.put("status", statusHeaders);
-                        response.put("message", "Status parent task is not STARTWA");
+                        response.put("message", "Status parent task is COMPWA");
                         response.put("response", data);
                         response.writeJSONString(hsr1.getWriter());
                     }
