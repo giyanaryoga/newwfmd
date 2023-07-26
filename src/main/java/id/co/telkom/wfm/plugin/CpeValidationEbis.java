@@ -96,8 +96,8 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 CpeValidationEbisDao dao = new CpeValidationEbisDao();
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-                String vendor = dao.getCpeVendor(wonum);
-                String model = dao.getCpeModel(wonum);
+                String vendor = (dao.getCpeVendor(wonum) == null ? data_obj.get("cpeVendor").toString() : dao.getCpeVendor(wonum));
+                String model = (dao.getCpeModel(wonum) == null ? data_obj.get("cpeModel").toString() : dao.getCpeModel(wonum));
                 String cpeSerialNumber = data_obj.get("cpeSerialNumber").toString();
                 String chiefCode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
 //                String partnerCode = (data_obj.get("partnerCode") == null ? "" : data_obj.get("partnerCode").toString());

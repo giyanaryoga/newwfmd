@@ -44,7 +44,7 @@ public class UpdateAssignmentEbisDao {
             ResultSet rs = ps.executeQuery();
             if (rs.next()){
                 String statusParent = rs.getString("c_status");
-                if (statusParent.equals("LABASSIGN")) {
+                if (statusParent != "COMPWA") {
                     status = true;
                     LogUtil.info(getClass().getName(), "Status laborname = " +status);
                 } else {
