@@ -122,8 +122,8 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         hsr1.setStatus(200);
                         JSONArray item_array = (JSONArray)apiItem.get("eaiBody");
                         String locationCode = "";
-                        String cpeModel = model;
-                        String cpeVendor = vendor;
+                        String cpeModel = "";
+                        String cpeVendor = "";
                         int snLength = cpeSerialNumber.length();
                         List<String> taskList = new ArrayList<>();
                         

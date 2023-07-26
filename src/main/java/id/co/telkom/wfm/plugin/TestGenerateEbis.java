@@ -323,6 +323,47 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
 //                                dao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
                             }
                         }
+                        
+                        switch (attrName) {
+                            case "NTE_MODEL":
+                                cpeValidated.setModel(listOssItemAtt.getAttrValue());
+                                LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
+                                break;
+                            case "NTE_MANUFACTUR":
+                                cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+                                LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
+                                break;
+                            case "NTE_SERIALNUMBER":
+                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                                LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
+                                break;
+                            case "AP_SERIALNUMBER":
+                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                                LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
+                                break;
+                            default:
+                                cpeValidated.setModel(null);
+                                cpeValidated.setVendor(null);
+                                cpeValidated.setSerial_number(null);
+                                break;
+                        }
+                        String cpeValidate = "";
+                        LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + ", " +cpeValidate+ " done");
+                        if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
+                            if (cpeValidated.getSerial_number() == null) {
+                                cpeValidate = "";
+                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                                cpeValidated.setUpdateCpeValidate(updateCpe);
+                            } else {
+                                cpeValidate = "PASS";
+                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                                cpeValidated.setUpdateCpeValidate(updateCpe);
+                            }
+                        } else {
+                            cpeValidate = "";
+                            boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                            cpeValidated.setUpdateCpeValidate(updateCpe);
+                        }
                     }
                 }
                 
