@@ -76,60 +76,73 @@ public class ScmtIntegrationEbisDao {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder query = new StringBuilder();
         query
-                .append(" SELECT ")
-                .append(" parent.c_wonum, ")
-                .append(" parent.c_scorderno, ")
-                .append(" parent.c_customer_name,  ")
-                .append(" parent.c_serviceaddress,  ")
-                .append(" parent.c_workzone,  ")
-                .append(" parent.c_servicenum, ")
-                .append(" parent.c_siteid,  ")
-                .append(" parent.c_description, ")
-                .append(" child.c_laborcode,  ")
-                .append(" item.c_alnvalue ")
-                .append(" FROM app_fd_workorder parent  ")
-                .append(" JOIN app_fd_workorder child  ")
-                .append(" ON parent.c_wonum = child.c_parent  ")
-                .append(" JOIN app_fd_workorderspec item ")
-                .append(" ON child.c_wonum = item.c_wonum ")
-                .append(" WHERE ")
-                .append(" parent.c_wonum = ? ")
-                .append(" AND ")
-                .append(" child.c_description ")
-                .append(" IN ('Registration Suplychain', 'Registration Suplychain Wifi') ")
-                .append(" AND ")
-                .append(" item.c_attribute_name = 'NTE_SERIALNUMBER' ")
-                .append(" AND ")
-                .append(" child.c_wfmdoctype = 'NEW' ");
+                .append("SELECT DISTINCT ")
+                .append("MAX(CASE WHEN item.c_assetattrid = 'NTE_SERIALNUMBER' THEN item.c_value END) NTE_SERIALNUMBER, ")
+                .append("MAX(CASE WHEN item.c_assetattrid = 'SERVICE_ID' THEN item.c_value END) SERVICE_ID, ")
+                .append("child.c_parent, ")
+                .append("parent.c_scorderno, ")
+                .append("parent.c_customer_name, ")
+                .append("parent.c_serviceaddress, ")
+                .append("parent.c_workzone, ")
+                .append("parent.c_siteid, ")
+                .append("child.c_description, ")
+                .append("child.c_chief_code, ")
+                .append("child.c_wonum ")
+                .append("FROM app_fd_workorder parent ")
+                .append("JOIN app_fd_workorder child ")
+                .append("ON parent.c_wonum = child.c_parent ")
+                .append("JOIN app_fd_workorderspec item ")
+                .append("ON child.c_wonum = item.c_wonum ")
+                .append("WHERE parent.c_wonum = ? ")
+                .append("AND child.c_description IN ('Registration Suplychain', 'Registration Suplychain Wifi') ")
+                .append("AND child.c_wfmdoctype = 'NEW' ")
+                .append("GROUP BY ")
+                .append("child.c_parent, ")
+                .append("parent.c_scorderno, ")
+                .append("parent.c_customer_name, ")
+                .append("parent.c_serviceaddress, ")
+                .append("parent.c_workzone, ")
+                .append("parent.c_siteid, ")
+                .append("child.c_description, ")
+                .append("child.c_chief_code, ")
+                .append("child.c_wonum ")
+                .append("ORDER BY MAX(parent.dateCreated) DESC ")
+                .append("FETCH FIRST 1 ROW ONLY");
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query.toString())) {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
 
+            ListScmtIntegrationParam scmtParam = new ListScmtIntegrationParam();
+            JSONObject installMessage = new JSONObject();
             while (rs.next()) {
-                ListScmtIntegrationParam scmtParam = new ListScmtIntegrationParam();
+//                ListScmtIntegrationParam scmtParam = new ListScmtIntegrationParam();
 
                 ListAttributes attribute = new ListAttributes();
-                scmtParam.setWonum((rs.getString("c_wonum") == null) ? "" : rs.getString("c_wonum"));
+                scmtParam.setWonum((rs.getString("c_parent") == null) ? "" : rs.getString("c_parent"));
                 scmtParam.setScOrderNo((rs.getString("c_scorderno") == null) ? "" : rs.getString("c_scorderno"));
-                scmtParam.setLaborCode((rs.getString("c_laborcode") == null) ? "" : rs.getString("c_laborcode"));
+                scmtParam.setLaborCode((rs.getString("c_chief_code") == null) ? "" : rs.getString("c_chief_code"));
                 scmtParam.setCustomerName((rs.getString("c_customer_name") == null) ? "" : rs.getString("c_customer_name"));
                 scmtParam.setServiceAddress((rs.getString("c_serviceaddress") == null) ? "" : rs.getString("c_serviceaddress"));
                 scmtParam.setWorkzone((rs.getString("c_workzone") == null) ? "" : rs.getString("c_workzone"));
-                scmtParam.setServiceNum((rs.getString("c_servicenum") == null) ? "" : rs.getString("c_servicenum"));
-                scmtParam.setCpeSerialNumber((rs.getString("c_alnvalue") == null) ? "" : rs.getString("c_alnvalue"));
+                scmtParam.setServiceNum(rs.getString("SERVICE_ID"));
+                scmtParam.setCpeSerialNumber(rs.getString("NTE_SERIALNUMBER"));
                 attribute.setLongitude((getWoAttribute(parent).get("LONGITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LONGITUDE").toString());
                 attribute.setLatitude((getWoAttribute(parent).get("LATITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LATITUDE").toString());
                 scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
                 scmtParam.setSiteId((rs.getString("c_siteid") == null) ? "" : rs.getString("c_siteid"));
+                LogUtil.info(this.getClass().getName(), "data : " + rs.getString("c_wonum"));
 
                 //Send install message to kafka
-                JSONObject installMessage = buildInstallMessage(scmtParam, attribute);
-                String kafkaRes = installMessage.toJSONString();
-                KafkaProducerTool kaf = new KafkaProducerTool();
-                kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL_ENTERPRISE", "");
+                installMessage = buildInstallMessage(scmtParam, attribute);
+//                String kafkaRes = installMessage.toJSONString();
+//                KafkaProducerTool kaf = new KafkaProducerTool();
+//                kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL_ENTERPRISE", "");
                 LogUtil.info(getClass().getName(), " " + scmtParam + " keluar!!! ");
             }
+            String kafkaRes = installMessage.toJSONString();
+            KafkaProducerTool kaf = new KafkaProducerTool();
+            kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL_ENTERPRISE", "");
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {

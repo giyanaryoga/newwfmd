@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -140,6 +141,15 @@ public class ValidateVrfDao {
                 JSONObject jsonObject = new JSONObject(jsonData);
                 // Access data from the JSON object as needed
                 LogUtil.info(this.getClass().getName(), "Data : " + jsonObject);
+                
+                JSONArray deviceList = jsonObject.getJSONArray("deviceList");
+                
+                JSONArray rtImport = jsonObject.getJSONArray("rtImport");
+                JSONArray rtExport = jsonObject.getJSONArray("rtExport");
+                LogUtil.info(this.getClass().getName(), "DEVICE LIST : " + deviceList);
+                LogUtil.info(this.getClass().getName(), "RT IMPORT : " + rtImport);
+                LogUtil.info(this.getClass().getName(), "RT EXPORT : " + rtExport);
+                
 
                 // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
 //                updateSto(wonum, sto, region, witel, datel);

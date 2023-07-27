@@ -16,6 +16,7 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**
