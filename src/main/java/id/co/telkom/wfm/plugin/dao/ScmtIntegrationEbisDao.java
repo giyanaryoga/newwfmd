@@ -53,24 +53,24 @@ public class ScmtIntegrationEbisDao {
         return token;
     }
 
-    public JSONObject getWoAttribute(String wonum) throws SQLException {
-        JSONObject resultObj = new JSONObject();
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT C_ATTR_NAME, C_ATTR_VALUE FROM APP_FD_WORKORDERATTRIBUTE WHERE C_WONUM = ? AND C_ATTR_NAME IN ('LONGITUDE', 'LATITUDE')";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                resultObj.put(rs.getString("C_ATTR_NAME"), rs.getString("C_ATTR_VALUE"));
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return resultObj;
-    }
+//    public JSONObject getWoAttribute(String wonum) throws SQLException {
+//        JSONObject resultObj = new JSONObject();
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String query = "SELECT C_ATTR_NAME, C_ATTR_VALUE FROM APP_FD_WORKORDERATTRIBUTE WHERE C_WONUM = ? AND C_ATTR_NAME IN ('LONGITUDE', 'LATITUDE')";
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(query)) {
+//            ps.setString(1, wonum);
+//            ResultSet rs = ps.executeQuery();
+//            while (rs.next()) {
+//                resultObj.put(rs.getString("C_ATTR_NAME"), rs.getString("C_ATTR_VALUE"));
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//        return resultObj;
+//    }
 
     public void sendInstall(String parent) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -79,6 +79,8 @@ public class ScmtIntegrationEbisDao {
                 .append("SELECT DISTINCT ")
                 .append("MAX(CASE WHEN item.c_assetattrid = 'NTE_SERIALNUMBER' THEN item.c_value END) NTE_SERIALNUMBER, ")
                 .append("MAX(CASE WHEN item.c_assetattrid = 'SERVICE_ID' THEN item.c_value END) SERVICE_ID, ")
+                .append("MAX(CASE WHEN attr.c_attr_name = 'Latitude' THEN attr.c_attr_value END) LATITUDE, ")
+                .append("MAX(CASE WHEN attr.c_attr_name = 'Longitude' THEN attr.c_attr_value END) LONGITUDE, ")
                 .append("child.c_parent, ")
                 .append("parent.c_scorderno, ")
                 .append("parent.c_customer_name, ")
@@ -93,6 +95,8 @@ public class ScmtIntegrationEbisDao {
                 .append("ON parent.c_wonum = child.c_parent ")
                 .append("JOIN app_fd_workorderspec item ")
                 .append("ON child.c_wonum = item.c_wonum ")
+                .append("JOIN app_workorderattribute attr ")
+                .append("ON attr.c_wonum = parent.c_wonum ")
                 .append("WHERE parent.c_wonum = ? ")
                 .append("AND child.c_description IN ('Registration Suplychain', 'Registration Suplychain Wifi') ")
                 .append("AND child.c_wfmdoctype = 'NEW' ")
@@ -125,8 +129,8 @@ public class ScmtIntegrationEbisDao {
                 scmtParam.setWorkzone((rs.getString("c_workzone") == null) ? "" : rs.getString("c_workzone"));
                 scmtParam.setServiceNum((rs.getString("SERVICE_ID") == null) ? "" : rs.getString("SERVICE_ID"));
                 scmtParam.setCpeSerialNumber((rs.getString("NTE_SERIALNUMBER") == null) ? "" : rs.getString("NTE_SERIALNUMBER"));
-                attribute.setLongitude((getWoAttribute(parent).get("LONGITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LONGITUDE").toString());
-                attribute.setLatitude((getWoAttribute(parent).get("LATITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LATITUDE").toString());
+                attribute.setLongitude((rs.getString("LATITUDE") == null) ? "" : rs.getString("LATITUDE"));
+                attribute.setLatitude((rs.getString("LONGITUDE") == null) ? "" : rs.getString("LONGITUDE"));
                 scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
                 scmtParam.setSiteId((rs.getString("c_siteid") == null) ? "" : rs.getString("c_siteid"));
                 LogUtil.info(this.getClass().getName(), "data : " + rs.getString("c_wonum"));
