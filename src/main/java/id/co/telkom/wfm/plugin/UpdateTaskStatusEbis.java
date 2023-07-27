@@ -151,7 +151,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                     } else if ("COMPWA".equals(body.get("status"))) {
                         // update task status
                         updateTaskStatusEbisDao.updateTask(wonum, status);
-                        if (description.equals("Registration Suplychain") || description.equals("Replace NTE")) {
+                        if (description.equals("Registration Suplychain") || description.equals("Replace NTE") || description.equals("Registration Suplychain Wifi")) {
                             // Start of Set Install/Set Dismantle
                             ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
                             scmtIntegrationEbisDao.sendInstall(parent);
@@ -164,6 +164,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                             if (nextAssign) {
                                 hsr1.setStatus(200);
+                                updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
                             }
 //                            updateTaskStatusEbisDao.updateTask(wonum, status);
                         } else {
