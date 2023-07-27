@@ -116,8 +116,6 @@ public class ScmtIntegrationEbisDao {
             ListScmtIntegrationParam scmtParam = new ListScmtIntegrationParam();
             JSONObject installMessage = new JSONObject();
             while (rs.next()) {
-//                ListScmtIntegrationParam scmtParam = new ListScmtIntegrationParam();
-
                 ListAttributes attribute = new ListAttributes();
                 scmtParam.setWonum((rs.getString("c_parent") == null) ? "" : rs.getString("c_parent"));
                 scmtParam.setScOrderNo((rs.getString("c_scorderno") == null) ? "" : rs.getString("c_scorderno"));
@@ -125,8 +123,8 @@ public class ScmtIntegrationEbisDao {
                 scmtParam.setCustomerName((rs.getString("c_customer_name") == null) ? "" : rs.getString("c_customer_name"));
                 scmtParam.setServiceAddress((rs.getString("c_serviceaddress") == null) ? "" : rs.getString("c_serviceaddress"));
                 scmtParam.setWorkzone((rs.getString("c_workzone") == null) ? "" : rs.getString("c_workzone"));
-                scmtParam.setServiceNum(rs.getString("SERVICE_ID"));
-                scmtParam.setCpeSerialNumber(rs.getString("NTE_SERIALNUMBER"));
+                scmtParam.setServiceNum((rs.getString("SERVICE_ID") == null) ? "" : rs.getString("SERVICE_ID"));
+                scmtParam.setCpeSerialNumber((rs.getString("NTE_SERIALNUMBER") == null) ? "" : rs.getString("NTE_SERIALNUMBER"));
                 attribute.setLongitude((getWoAttribute(parent).get("LONGITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LONGITUDE").toString());
                 attribute.setLatitude((getWoAttribute(parent).get("LATITUDE").toString() == null) ? "" : getWoAttribute(parent).get("LATITUDE").toString());
                 scmtParam.setDescription((rs.getString("c_description") == null) ? "" : rs.getString("c_description"));
@@ -135,9 +133,6 @@ public class ScmtIntegrationEbisDao {
 
                 //Send install message to kafka
                 installMessage = buildInstallMessage(scmtParam, attribute);
-//                String kafkaRes = installMessage.toJSONString();
-//                KafkaProducerTool kaf = new KafkaProducerTool();
-//                kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL_ENTERPRISE", "");
                 LogUtil.info(getClass().getName(), " " + scmtParam + " keluar!!! ");
             }
             String kafkaRes = installMessage.toJSONString();
