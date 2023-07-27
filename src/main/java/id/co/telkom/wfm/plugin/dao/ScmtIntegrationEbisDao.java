@@ -95,7 +95,7 @@ public class ScmtIntegrationEbisDao {
                 .append("ON parent.c_wonum = child.c_parent ")
                 .append("JOIN app_fd_workorderspec item ")
                 .append("ON child.c_wonum = item.c_wonum ")
-                .append("JOIN app_workorderattribute attr ")
+                .append("JOIN app_fd_workorderattribute attr ")
                 .append("ON attr.c_wonum = parent.c_wonum ")
                 .append("WHERE parent.c_wonum = ? ")
                 .append("AND child.c_description IN ('Registration Suplychain', 'Registration Suplychain Wifi') ")
