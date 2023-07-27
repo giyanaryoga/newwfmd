@@ -377,7 +377,7 @@ public class TaskActivityDao {
                 .append(" c_assetattrid, ")
                 .append(" c_description, ")
                 .append(" c_sequence, ")
-                .append(" c_domainid, ")
+//                .append(" c_domainid, ")
                 .append(" c_readonly, ")
                 .append(" c_isrequired, ") //joinan dari classspecusewith
                 .append(" c_isshared ")
@@ -391,7 +391,7 @@ public class TaskActivityDao {
                 //TEMPLATE CONFIGURATION
                 .append(" id, dateCreated, createdBy, createdByName,  ")
                 //TASK ATTRIBUTE
-                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
+                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, c_displaysequence, ")
                 //PERMISSION
                 .append(" c_readonly, c_isrequired, c_isshared ")
                 .append(" ) ")
@@ -400,7 +400,7 @@ public class TaskActivityDao {
                 //VALUES TEMPLATE CONFIGURATION
                 .append(" ?, ?, 'admin', 'Admin admin', ")
                 //VALUES TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ?, ?, ")
+                .append(" ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
                 .append(" ?, ?, ? ")
                 .append(" ) ");
@@ -423,10 +423,10 @@ public class TaskActivityDao {
                     psInsert.setString(6, rs.getString("c_classspecid"));
                     psInsert.setString(7, orderId);
                     psInsert.setString(8, rs.getString("c_sequence"));
-                    psInsert.setString(9, rs.getString("c_domainid"));
-                    psInsert.setString(10, rs.getString("c_readonly"));
-                    psInsert.setString(11, rs.getString("c_isrequired"));
-                    psInsert.setString(12, rs.getString("c_isshared"));
+//                    psInsert.setString(9, rs.getString("c_domainid"));
+                    psInsert.setString(9, rs.getString("c_readonly"));
+                    psInsert.setString(10, rs.getString("c_isrequired"));
+                    psInsert.setString(11, rs.getString("c_isshared"));
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();
