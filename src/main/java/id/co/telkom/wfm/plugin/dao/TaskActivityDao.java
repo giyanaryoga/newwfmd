@@ -400,7 +400,7 @@ public class TaskActivityDao {
                 //VALUES TEMPLATE CONFIGURATION
                 .append(" ?, ?, 'admin', 'Admin admin', ")
                 //VALUES TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ?, ?, ")
+                .append(" ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
                 .append(" ?, ?, ? ")
                 .append(" ) ");

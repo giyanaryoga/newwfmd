@@ -301,7 +301,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //GENERATE TASK
                     dao2.generateActivityTask(parent, siteId, sortedTask.get("correlation").toString(), ownerGroup, sortedTask);
                     //GENERATE ASSIGNMENT
-                    dao2.generateAssignment(sortedTask.get("description").toString(), schedStart, parent);
+                    dao2.generateAssignment(sortedTask.get("activity").toString(), schedStart, parent);
 
                     //TASK ATTRIBUTE GENERATE
                     dao2.GenerateTaskAttribute((String) sortedTask.get("activity"), (String) sortedTask.get("wonum"), orderId);
