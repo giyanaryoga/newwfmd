@@ -5,6 +5,9 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.IOException;
@@ -102,7 +105,7 @@ public class GenerateDownlinkPortDao {
         }
     }
 
-    public JSONObject callGenerateDownlinkPort(String wonum, String bandwidth, String odpName, String downlinkPortName, String downlinkPortID, String sto, ListGenerateAttributes listGenerate) throws MalformedURLException, IOException, Throwable {
+    public JSONObject callGenerateDownlinkPort(String bandwidth, String odpName, String downlinkPortName, String downlinkPortID, String sto, ListGenerateAttributes listGenerate) throws MalformedURLException, IOException, Throwable {
         String msg = "";
         try {
             String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
@@ -150,6 +153,7 @@ public class GenerateDownlinkPortDao {
             StringBuilder result = response;
             org.json.JSONObject temp = XML.toJSONObject(result.toString());
             System.out.println("temp " + temp.toString());
+            LogUtil.info(this.getClass().getName(), "INI REQUEST XML : " + request);
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
 
             //Parsing response data
@@ -163,10 +167,9 @@ public class GenerateDownlinkPortDao {
             if (statusCode == 4001) {
                 LogUtil.info(this.getClass().getName(), "DownlinkPort Not found!");
                 listGenerate.setStatusCode(statusCode);
-            } else {
+            } else if (statusCode == 4000) {
                 JSONObject getDeviceInformation = device.getJSONObject("AccessDeviceInformation");
 
-                JSONArray downlinkPort = getDeviceInformation.getJSONArray("DownlinkPort");
                 String manufacture = getDeviceInformation.getString("Manufacturer");
                 String name = getDeviceInformation.getString("Name");
                 String ipAddress = getDeviceInformation.getString("IPAddress");
@@ -174,7 +177,7 @@ public class GenerateDownlinkPortDao {
                 String sTO = getDeviceInformation.getString("STO");
                 String id = getDeviceInformation.getString("Id");
 
-                LogUtil.info(this.getClass().getName(), "DownlinkPort :" + downlinkPort);
+//                LogUtil.info(this.getClass().getName(), "DownlinkPort :" + downlinkPort);
                 LogUtil.info(this.getClass().getName(), "Manufacture :" + manufacture);
                 LogUtil.info(this.getClass().getName(), "Name :" + name);
                 LogUtil.info(this.getClass().getName(), "IPAddress :" + ipAddress);
@@ -183,53 +186,98 @@ public class GenerateDownlinkPortDao {
                 LogUtil.info(this.getClass().getName(), "ID :" + id);
 
                 // Clear data from table APP_FD_TK_DEVICEATTRIBUTE
-                deleteTkDeviceattribute(wonum);
-
+//                deleteTkDeviceattribute(wonum);
                 if (id != null) {
                     msg = msg + "AN Device Id: " + id + "\n";
-                    insertToDeviceTable(wonum, "AN_DEVICE_ID", "", id);
+                    insertToDeviceTable("", "AN_DEVICE_ID", "", id);
                 }
                 if (sTO != null) {
                     msg = msg + "STO: " + sTO + "\n";
-                    insertToDeviceTable(wonum, "STO", "", sTO);
+                    insertToDeviceTable("", "STO", "", sTO);
                 }
                 if (ipAddress != null) {
                     msg = msg + "IP Address: " + ipAddress + "\n";
-                    insertToDeviceTable(wonum, "IPADDRESS", "", ipAddress);
+                    insertToDeviceTable("", "IPADDRESS", "", ipAddress);
                 }
                 if (nmsIpaddress != null) {
                     msg = msg + "NMS IP Address: " + nmsIpaddress + "\n";
-                    insertToDeviceTable(wonum, "NMSIPADDRESS", "", nmsIpaddress);
+                    insertToDeviceTable("", "NMSIPADDRESS", "", nmsIpaddress);
                 }
                 if (name != null) {
                     msg = msg + "AN Downlink Name: " + name + "\n";
-                    insertToDeviceTable(wonum, "NAME", "", name);
+                    insertToDeviceTable("", "NAME", "", name);
                 }
                 if (manufacture != null) {
                     msg = msg + "Manufacture: " + manufacture + "\n";
-                    insertToDeviceTable(wonum, "MANUFACTURE", "", manufacture);
+                    insertToDeviceTable("", "MANUFACTURE", "", manufacture);
                 }
+                
+                boolean dlport = isDownlinkPortArray(temp.toString());
+                JSONObject downlinkPort = new JSONObject();
+                JSONArray downlinkPortArray = new JSONArray();       
+                LogUtil.info(this.getClass().getName(), "DownlinkPort :" + downlinkPort);                
+                
+                if (dlport == true) {
+                    downlinkPortArray = getDeviceInformation.getJSONArray("DownlinkPort");
 
-                for (int i = 0; i < downlinkPort.length(); i++) {
-                    JSONObject downlinkport = downlinkPort.getJSONObject(i);
+                    for (int i = 0; i < downlinkPortArray.length(); i++) {
+                        JSONObject hasil = downlinkPortArray.getJSONObject(i);
 
-                    String downlinkportName = downlinkport.getString("name");
-                    String downlinkPortId = downlinkport.getString("id");
+                        String downlinkportName = hasil.getString("name");
+                        String downlinkPortId = hasil.getString("id");
+
+                        msg = msg + "DownlinkPort: " + downlinkPort + "\n";
+                        msg = msg + "Name: " + downlinkportName + "\n";
+                        msg = msg + "Id: " + downlinkPortId + "\n";
+
+                        insertToDeviceTable("", "AN_DOWNLINK_PORTNAME", "downlinkPortName", downlinkportName);
+
+                        insertToDeviceTable("", "AN_DOWNLINK_PORTID", downlinkportName, downlinkPortId);
+
+                    }
+                }
+                if (dlport == false) {
+                    downlinkPort = getDeviceInformation.getJSONObject("DownlinkPort");
+                    String downlinkportName = downlinkPort.getString("name");
+                    String downlinkPortId = downlinkPort.getString("id");
 
                     msg = msg + "DownlinkPort: " + downlinkPort + "\n";
                     msg = msg + "Name: " + downlinkportName + "\n";
                     msg = msg + "Id: " + downlinkPortId + "\n";
 
-                    insertToDeviceTable(wonum, "AN_DOWNLINK_PORTNAME", "downlinkPortName", downlinkportName);
-                    
-                    insertToDeviceTable(wonum, "AN_DOWNLINK_PORTID", downlinkportName, downlinkPortId);
+                    insertToDeviceTable("", "AN_DOWNLINK_PORTNAME", "downlinkPortName", downlinkportName);
+                    insertToDeviceTable("", "AN_DOWNLINK_PORTID", downlinkportName, downlinkPortId);
                 }
 
             }
 
         } catch (Exception e) {
-            LogUtil.error(getClass().getName(), e, "Call Failed. No Device Found." + "\n"+ e);
+            LogUtil.error(getClass().getName(), e, "Call Failed. No Device Found." + "\n" + e);
         }
         return null;
+    }
+
+    public boolean isDownlinkPortArray(String jsonString) {
+        boolean result = false;
+        try {
+            JsonParser jsonParser = new JsonParser();
+            JsonElement rootElement = jsonParser.parse(jsonString);
+
+            JsonObject downlinkPortObject = rootElement.getAsJsonObject().getAsJsonObject("env:Envelope")
+                    .getAsJsonObject("env:Body").getAsJsonObject("ent:getAccessNodeDeviceResponse")
+                    .getAsJsonObject("AccessDeviceInformation").getAsJsonObject("DownlinkPort");
+
+            if (downlinkPortObject.isJsonArray()) {
+                LogUtil.info(this.getClass().getName(), "ARRAy :");                
+                result = true;
+            } else if (downlinkPortObject.isJsonObject()) {
+                LogUtil.info(this.getClass().getName(), "OBject :");                
+                result = false;
+            }
+        } catch (Exception e) {
+                LogUtil.info(this.getClass().getName(), "excep :"+e.getMessage());
+            return false; // Jika terjadi exception, kembalikan false
+        }
+        return result;
     }
 }
