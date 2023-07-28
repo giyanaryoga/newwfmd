@@ -68,7 +68,7 @@ public class GenerateUplinkPort extends Element implements PluginWebSupport {
 
 
         //@Authorization
-        if ("GET".equals(hsr.getMethod())) {
+        if ("POST".equals(hsr.getMethod())) {
             try {
                 GenerateUplinkPortDao dao = new GenerateUplinkPortDao();
 
@@ -83,7 +83,7 @@ public class GenerateUplinkPort extends Element implements PluginWebSupport {
             } catch (Exception e) {
                 LogUtil.error(getClassName(), e, "Trace Error Here : " + e.getMessage());
             }
-        } else if (!"GET".equals(hsr.getMethod())) {
+        } else if (!"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
             } catch (Exception e) {
