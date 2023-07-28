@@ -70,7 +70,7 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         GenerateDownlinkPortDao dao = new GenerateDownlinkPortDao();
-
+        ListGenerateAttributes listAttribute = new ListGenerateAttributes();
         //@@Start..
         LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE DOWNLINK PORT ###############");
 
@@ -96,17 +96,29 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
-                String bandwidth = data_obj.get("bandwidth").toString();
-                String odpName = data_obj.get("odpName").toString();
-                String downlinkPortName = data_obj.get("downlinkPortName").toString();
-                String downlinkPortID = data_obj.get("downlinkPortID").toString();
-                String sto = data_obj.get("sto").toString();
-                
+//                String bandwidth = data_obj.get("bandwidth").toString();
+//                String odpName = data_obj.get("odpName").toString();
+//                String downlinkPortName = data_obj.get("downlinkPortName").toString();
+//                String downlinkPortID = data_obj.get("downlinkPortID").toString();
+//                String sto = data_obj.get("sto").toString();
+                String result = "";
+                String wonum = data_obj.get("odpName").toString();
+                String stpName = dao.getAssetattrid(wonum).getString("STP_NAME_ALN");
+                String stpPortName = dao.getAssetattrid(wonum).getString("STP_PORT_NAME_ALN");
+                String stpPortId = dao.getAssetattrid(wonum).getString("STP_PORT_ID");
+                String nteName = dao.getAssetattrid(wonum).getString("NTE_NAME");
+                String nteDownlinkPort = dao.getAssetattrid(wonum).getString("NTE_DOWNLINK_PORT");
+                String anSto = dao.getAssetattrid(wonum).getString("AN_STO");
+
 //                String orderId = data_obj.get("orderId").toString();
-                ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                 try {
-                    dao.callGenerateDownlinkPort(bandwidth, odpName, downlinkPortName, downlinkPortID, sto, listAttribute);
-//                    LogUtil.info(this.getClassName(), "get data: " + listAttribute.getStatusCode3());
+                    if (nteName.isEmpty()) {
+                        result = dao.callGenerateDownlinkPort(wonum, "10", stpName, stpPortName, stpPortId, anSto, listAttribute).toString();
+                        LogUtil.info(getClass().getName(), "Message: " + "\n" + stpName + "\n" + stpPortId + "\n" + result);
+                    } else if (nteName != null) {
+                        result = dao.callGenerateDownlinkPort(wonum, "10", nteName, "", nteDownlinkPort, anSto, listAttribute).toString();
+                        LogUtil.info(getClass().getName(), "Message: " + "\n" + nteName + "\n" + nteDownlinkPort + "\n" + result);
+                    }
 
                     if (listAttribute.getStatusCode3() == 404) {
                         JSONObject res1 = new JSONObject();
@@ -125,6 +137,8 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Throwable ex) {
+                    Logger.getLogger(GenerateDownlinkPort.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } catch (Exception ex) {
                 Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
