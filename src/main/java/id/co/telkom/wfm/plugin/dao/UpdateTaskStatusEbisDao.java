@@ -111,26 +111,24 @@ public class UpdateTaskStatusEbisDao {
         boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_description FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ?";
-        String update = "UPDATE app_fd_workorder SET c_description = ?, dateModified = sysdate WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_description = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps1 = con.prepareStatement(query);
                 PreparedStatement ps2 = con.prepareStatement(update)) {
             ps1.setString(1, parent);
-            ps2.setString(2, nextTaskId);
+            ps1.setString(2, nextTaskId);
             ResultSet rs = ps1.executeQuery();
             if (rs.next()) {
                 ps2.setString(1, rs.getString("c_description"));
                 ps2.setString(2, parent);
-                ps2.setString(3, nextTaskId);
-            }
-            con.commit();
-            int exe = ps2.executeUpdate();
-            if (exe > 0) {
-                LogUtil.info(getClass().getName(), "description parent is updated");
-                nextAssign = true;
-            } else {
-                LogUtil.info(getClass().getName(), "description parent is not updated");
-            }
+                int exe = ps2.executeUpdate();
+                if (exe > 0) {
+                    LogUtil.info(getClass().getName(), "description parent is updated");
+                    nextAssign = true;
+                } else {
+                    LogUtil.info(getClass().getName(), "description parent is not updated");
+                }
+            } else con.commit();
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
