@@ -174,11 +174,12 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 
                 ListAttributes listAttr = new ListAttributes();
                 //Loop getting each attribute
-                for (int i = 0 ; i < attr_array.size() ; i++){
-                    JSONObject attr_arrayObj = (JSONObject)attr_array.get(i);
+                for (Object objAttr: attr_array){
+                    JSONObject attr_arrayObj = (JSONObject)objAttr;
                     JSONObject woAttribute = new JSONObject();
+                    
                     //Store attribute
-                    listAttr.setTlkwoAttrName(attr_arrayObj.get("ATTR_NAME").toString());
+                    listAttr.setTlkwoAttrName(attr_arrayObj.get("ATTR_NAME").toString() == null ? "" : attr_arrayObj.get("ATTR_NAME").toString());
                     listAttr.setTlkwoAttrValue(attr_arrayObj.get("ATTR_VALUE").toString() == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString());
                     String sequence = (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString());
                     listAttr.setSequence(sequence);
@@ -236,21 +237,23 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     task.put("classStructureId", detailAct.get("classstructureid"));
                     task.put("orgid", detailAct.get("orgid"));
 
+                    JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
+                    
                     if (detailAct.get("attributes").equals(1)) {
                         JSONArray taskAttrList = new JSONArray();
-                        JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
+//                        JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
                         for (Object ossItemAttr : ossitem_attr) {
-                            JSONObject arrayObj2 = (JSONObject)ossItemAttr;
-                            JSONObject taskAttrItem = new JSONObject();
+                                JSONObject arrayObj2 = (JSONObject)ossItemAttr;
+                                JSONObject taskAttrItem = new JSONObject();
 
-                            listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
-                            String attrName = listOssItemAtt.getAttrName();
-                            listOssItemAtt.setAttrValue(arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
-                            String attrValue = listOssItemAtt.getAttrValue();
+                                listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
+                                String attrName = listOssItemAtt.getAttrName();
+                                listOssItemAtt.setAttrValue(arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
+                                String attrValue = listOssItemAtt.getAttrValue();
 
-                            taskAttrItem.put("attrName", attrName);
-                            taskAttrItem.put("attrValue", attrValue);
-                            taskAttrList.add(taskAttrItem);
+                                taskAttrItem.put("attrName", attrName);
+                                taskAttrItem.put("attrValue", attrValue);
+                                taskAttrList.add(taskAttrItem);
                         }
 
                         task.put("task_attr", taskAttrList);
