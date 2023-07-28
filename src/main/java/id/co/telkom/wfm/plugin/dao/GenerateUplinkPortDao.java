@@ -36,63 +36,6 @@ public class GenerateUplinkPortDao {
         return resultObj;
     }
 
-    public boolean updateDeviceAttribute(String wonum, String sto, String region, String witel, String datel) throws SQLException {
-        boolean result = false;
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        StringBuilder update = new StringBuilder();
-        update.append("UPDATE APP_FD_WORKORDERSPEC")
-                .append("SET c_value = CASE c_assetattrid")
-                .append("WHEN 'STO_ALN' THEN ?")
-                .append("WHEN 'REGION' THEN ?")
-                .append("WHEN 'WITEL' THEN ?")
-                .append("WHEN 'DATEL' THEN ?")
-                .append("ELSE 'Missing' END")
-                .append("WHERE c_wonum = ?");
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update.toString());
-                try {
-                    ps.setString(1, sto);
-                    ps.setString(2, region);
-                    ps.setString(3, witel);
-                    ps.setString(4, datel);
-                    ps.setString(5, wonum);
-
-                    int exe = ps.executeUpdate();
-                    if(exe > 0) {
-                        result = true;
-                        LogUtil.info(getClass().getName(), "STO updated to " + wonum);
-                    }
-                    if (ps != null)
-                        ps.close();
-                } catch (Throwable throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (Throwable throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
-                }
-                if (con != null)
-                    con.close();
-            } catch (Throwable throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (Throwable throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        }
-        return result;
-    }
     public boolean deletetkDeviceattribute(String wonum, Connection con) throws SQLException{
         boolean status = false;
         String queryDelete = "DELETE FROM app_fd_tk_deviceattribute WHERE c_ref_num = ?";
