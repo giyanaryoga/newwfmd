@@ -161,7 +161,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             res.put("code", "255");
                             res.put("message", "Success");
                             res.writeJSONString(hsr1.getWriter());
-
+                            hsr1.setStatus(255);
                             final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                             if (nextAssign) {
                                 hsr1.setStatus(200);

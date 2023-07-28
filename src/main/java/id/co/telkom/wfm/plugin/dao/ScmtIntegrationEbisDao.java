@@ -71,7 +71,6 @@ public class ScmtIntegrationEbisDao {
 //        }
 //        return resultObj;
 //    }
-
     public void sendInstall(String parent) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder query = new StringBuilder();
@@ -141,7 +140,9 @@ public class ScmtIntegrationEbisDao {
             }
             String kafkaRes = installMessage.toJSONString();
             KafkaProducerTool kaf = new KafkaProducerTool();
-            kaf.generateMessage(kafkaRes, "WFM_NEWSCMT_INSTALL_ENTERPRISE", "");
+            
+            String topic = "WFM_NEWSCMT_INSTALL_ENTERPRISE_" + scmtParam.getSiteId().replaceAll("\\s+", "");
+            kaf.generateMessage(kafkaRes, topic, "");
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {

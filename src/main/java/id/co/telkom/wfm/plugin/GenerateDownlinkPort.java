@@ -105,7 +105,7 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
 //                String orderId = data_obj.get("orderId").toString();
                 ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                 try {
-                    dao.callGenerateDownlinkPort(bandwidth, odpName, downlinkPortName, downlinkPortID, sto);
+                    dao.callGenerateDownlinkPort(bandwidth, odpName, downlinkPortName, downlinkPortID, sto, listAttribute);
 //                    LogUtil.info(this.getClassName(), "get data: " + listAttribute.getStatusCode3());
 
                     if (listAttribute.getStatusCode3() == 404) {
