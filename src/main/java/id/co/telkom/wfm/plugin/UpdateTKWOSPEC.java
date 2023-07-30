@@ -28,7 +28,7 @@ import org.json.simple.parser.ParseException;
  *
  * @author User
  */
-public class UpdateTKWOSPEC extends Element implements PluginWebSupport {
+public class UpdateTkWoSpec extends Element implements PluginWebSupport {
     String pluginName = "Telkom New WFM - Update Task Attribute MyStaff - Web Service";
     
     @Override
@@ -138,8 +138,9 @@ public class UpdateTKWOSPEC extends Element implements PluginWebSupport {
             } catch (ParseException e){
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             } catch (SQLException ex) {
-                Logger.getLogger(UpdateTKWOSPEC.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(UpdateTkWoSpec.class.getName()).log(Level.SEVERE, null, ex);
             }
+        //Authorization failed    
         //Authorization failed    
         } else if (!methodStatus) {
             try {
