@@ -32,6 +32,8 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(GenerateIPReservation.class.getName(), new GenerateIPReservation(), null));
         registrationList.add(context.registerService(GenerateUplinkPort.class.getName(), new GenerateUplinkPort(), null));
         registrationList.add(context.registerService(GenerateDownlinkPort.class.getName(), new GenerateDownlinkPort(), null));
+        registrationList.add(context.registerService(GenerateMeService.class.getName(), new GenerateMeService(), null));
+        
     }
 
     @Override
