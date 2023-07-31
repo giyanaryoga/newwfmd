@@ -4,7 +4,8 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import java.util.Map;
+import java.util.*;
+import javafx.scene.control.TextField;
 import org.joget.commons.util.UuidGenerator;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 
@@ -17,7 +18,6 @@ public class RevisedTask extends DefaultApplicationPlugin {
     
     @Override
     public Object execute(Map map) {
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         return "";
     }
 
@@ -57,7 +57,14 @@ public class RevisedTask extends DefaultApplicationPlugin {
 //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public static void main(String[] args) {
-        String id = UuidGenerator.getInstance().getUuid();//generating uuid
-    }
+//    private void PropertiesObj(String wonum, String assetAttrId, String value) {
+//        Properties pps = new Properties();
+//        pps.setProperty("wonum", wonum);
+//        pps.setProperty("assetAttrId", assetAttrId);
+//        pps.setProperty("value", value);
+//        
+//         TextField textField = new TextField();
+//         textField.
+//    }
+    
 }
