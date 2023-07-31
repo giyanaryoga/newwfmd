@@ -214,8 +214,9 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                                 if (nextAssign) {
                                     hsr1.setStatus(200);
-                                    updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
+//                                    updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
                                 }
+                                updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
                                 updateTaskStatusEbisDao.updateTask(wonum, status);
                             }
                         }

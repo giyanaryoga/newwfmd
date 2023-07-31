@@ -65,6 +65,7 @@ public class UpdateTaskStatusEbisDao {
                 final String result = rs.getString("c_wosequence");
                 if (result.equals("10") || result.equals("20") || result.equals("30") || result.equals("40") || result.equals("50") || result.equals("60")) {
                     nextMove = "ASSIGNTASK";
+//                    updateWoDesc(parent, nextTaskId);
                 } else {
                     nextMove = "COMPLETE";
                 }
@@ -96,6 +97,7 @@ public class UpdateTaskStatusEbisDao {
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "next assign berhasil");
                 nextAssign = true;
+                updateWoDesc(parent, nextTaskId);
             } else {
                 LogUtil.info(getClass().getName(), "next assign gagal");
             }
@@ -107,11 +109,11 @@ public class UpdateTaskStatusEbisDao {
         return nextAssign;
     }
     
-    public boolean updateWoDesc(String parent, String nextTaskId) throws SQLException {
-        boolean nextAssign = false;
+    public void updateWoDesc(String parent, String nextTaskId) throws SQLException {
+//        boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_description FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ?";
-        String update = "UPDATE app_fd_workorder SET c_description = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_description = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps1 = con.prepareStatement(query);
                 PreparedStatement ps2 = con.prepareStatement(update)) {
@@ -124,7 +126,7 @@ public class UpdateTaskStatusEbisDao {
                 int exe = ps2.executeUpdate();
                 if (exe > 0) {
                     LogUtil.info(getClass().getName(), "description parent is updated");
-                    nextAssign = true;
+//                    nextAssign = true;
                 } else {
                     LogUtil.info(getClass().getName(), "description parent is not updated");
                 }
@@ -134,7 +136,7 @@ public class UpdateTaskStatusEbisDao {
         } finally {
             ds.getConnection().close();
         }
-        return nextAssign;
+//        return nextAssign;
     }
 
     //========================================
