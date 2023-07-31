@@ -5,6 +5,8 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -20,6 +22,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 //import org.json.simple.JSONArray;
+//import com.fasterxml.jackson.databind.JsonNode;
+//import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
@@ -177,87 +181,90 @@ public class GenerateMeServiceDao {
             URL getDeviceLinkPort = new URL(url);
             URL getDeviceLinkPortByIp = new URL(urlByIp);
 
-            if (getAssetattridType(wonum).getString("NTE_TYPE") != null) {
+//            if (getAssetattridType(wonum).getString("NTE_TYPE") != null) {
+//                if (getAssetattridType(wonum).getString("NTE_TYPE") == "DirectME") {
+            HttpURLConnection con = (HttpURLConnection) getDeviceLinkPortByIp.openConnection();
 
-                if (getAssetattridType(wonum).getString("NTE_TYPE") == "DirectME") {
-                    HttpURLConnection con = (HttpURLConnection) getDeviceLinkPortByIp.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Accept", "application/json");
+            int responseCode = con.getResponseCode();
+            LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + urlByIp);
+            LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
 
-                    con.setRequestMethod("GET");
-                    con.setRequestProperty("Accept", "application/json");
-                    int responseCode = con.getResponseCode();
-                    LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + urlByIp);
-                    LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
+            if (responseCode == 400) {
+                LogUtil.info(this.getClass().getName(), "ME Service Not found!");
 
-                    if (responseCode == 400) {
-                        LogUtil.info(this.getClass().getName(), "STO not found");
-
-                    } else if (responseCode == 200) {
-                        BufferedReader in = new BufferedReader(
-                                new InputStreamReader(con.getInputStream()));
-                        String inputLine;
-                        StringBuffer response = new StringBuffer();
-                        while ((inputLine = in.readLine()) != null) {
-                            response.append(inputLine);
-                        }
-                        LogUtil.info(this.getClass().getName(), "ME Service : " + response);
-                        in.close();
-
-                        // At this point, 'response' contains the JSON data as a string
-                        String jsonData = response.toString();
-
-                        // Now, parse the JSON data using org.json library
-                        JSONArray jsonArr = new JSONArray(jsonData);
-
-                    }
-                } else {
-                    HttpURLConnection con = (HttpURLConnection) getDeviceLinkPort.openConnection();
-
-                    con.setRequestMethod("GET");
-                    con.setRequestProperty("Accept", "application/json");
-                    int responseCode = con.getResponseCode();
-                    LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + url);
-                    LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
-
-                    if (responseCode == 400) {
-                        LogUtil.info(this.getClass().getName(), "STO not found");
-
-                    } else if (responseCode == 200) {
-                        BufferedReader in = new BufferedReader(
-                                new InputStreamReader(con.getInputStream()));
-                        String inputLine;
-                        StringBuffer response = new StringBuffer();
-                        while ((inputLine = in.readLine()) != null) {
-                            response.append(inputLine);
-                        }
-                        LogUtil.info(this.getClass().getName(), "STO : " + response);
-                        in.close();
-
-                        // At this point, 'response' contains the JSON data as a string
-                        String jsonData = response.toString();
-
-                        // Now, parse the JSON data using org.json library
-                        JSONObject jsonObject = new JSONObject(jsonData);
-                        JSONObject jsonObj = jsonObject.getJSONObject("device");
-                        // Access data from the JSON object as needed
-                        String manufactur = jsonObj.getString("manufacturer");
-                        String name = jsonObj.getString("name");
-                        String ipAddress = jsonObj.getString("ipAddress");
-                        String mtu = jsonObject.getString("mtu");
-                        String key = jsonObject.getString("key");
-                        String portName = jsonObject.getString("name");
-
-                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_MANUFACTUR : " + manufactur);
-                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_NAME : " + name);
-                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_IPADDRESS : " + ipAddress);
-                        LogUtil.info(this.getClass().getName(), "ME_SERVICEC_PORT_MTU : " + mtu);
-                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_KEY : " + key);
-                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_PORTNAME : " + portName);
-
-                        // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
-                        updateDeviceLinkPort(wonum, manufactur, name, ipAddress, mtu, key, name);
-                    }
+            } else if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
                 }
+                LogUtil.info(this.getClass().getName(), "ME Service : " + response);
+                in.close();
+
+                // At this point, 'response' contains the JSON data as a string
+                String jsonData = response.toString();
+                
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode portArrayNode = objectMapper.readTree(jsonData);
+                LogUtil.info(this.getClass().getName(), "Parsing data : " + portArrayNode);
+                
+                // Now, parse the JSON data using org.json library
+                JSONArray jsonArr = new JSONArray(jsonData);
+
             }
+//                } else {
+//                    HttpURLConnection con = (HttpURLConnection) getDeviceLinkPort.openConnection();
+//
+//                    con.setRequestMethod("GET");
+//                    con.setRequestProperty("Accept", "application/json");
+//                    int responseCode = con.getResponseCode();
+//                    LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + url);
+//                    LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
+//
+//                    if (responseCode == 400) {
+//                        LogUtil.info(this.getClass().getName(), "STO not found");
+//
+//                    } else if (responseCode == 200) {
+//                        BufferedReader in = new BufferedReader(
+//                                new InputStreamReader(con.getInputStream()));
+//                        String inputLine;
+//                        StringBuffer response = new StringBuffer();
+//                        while ((inputLine = in.readLine()) != null) {
+//                            response.append(inputLine);
+//                        }
+//                        LogUtil.info(this.getClass().getName(), "STO : " + response);
+//                        in.close();
+//
+//                        // At this point, 'response' contains the JSON data as a string
+//                        String jsonData = response.toString();
+//
+//                        // Now, parse the JSON data using org.json library
+//                        JSONObject jsonObject = new JSONObject(jsonData);
+//                        JSONObject jsonObj = jsonObject.getJSONObject("device");
+//                        // Access data from the JSON object as needed
+//                        String manufactur = jsonObj.getString("manufacturer");
+//                        String name = jsonObj.getString("name");
+//                        String ipAddress = jsonObj.getString("ipAddress");
+//                        String mtu = jsonObject.getString("mtu");
+//                        String key = jsonObject.getString("key");
+//                        String portName = jsonObject.getString("name");
+//
+//                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_MANUFACTUR : " + manufactur);
+//                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_NAME : " + name);
+//                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_IPADDRESS : " + ipAddress);
+//                        LogUtil.info(this.getClass().getName(), "ME_SERVICEC_PORT_MTU : " + mtu);
+//                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_KEY : " + key);
+//                        LogUtil.info(this.getClass().getName(), "ME_SERVICE_PORTNAME : " + portName);
+//
+//                        // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
+//                        updateDeviceLinkPort(wonum, manufactur, name, ipAddress, mtu, key, name);
+//                    }
+//                }
+//            }
 
         } catch (Exception e) {
             LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
