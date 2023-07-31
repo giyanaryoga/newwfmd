@@ -17,7 +17,7 @@ import org.joget.plugin.base.PluginWebSupport;
  *
  * @author User
  */
-public class QueryTKWOSPEC extends Element implements PluginWebSupport {
+public class QueryTkWoSpec extends Element implements PluginWebSupport {
     String pluginName = "Telkom New WFM - Query Get Task Attribute MyStaff - Web Service";
     
     @Override
