@@ -14,7 +14,7 @@ public class Activator implements BundleActivator {
     public void start(BundleContext context) {
         registrationList = new ArrayList<>();
         //DEFAULT APPLICATION PLUGIN
-//        registrationList.add(context.registerService(RevisedTask.class.getName(), new RevisedTask(), null));
+        registrationList.add(context.registerService(RevisedTask.class.getName(), new RevisedTask(), null));
         //TEST PLUGIN
         registrationList.add(context.registerService(TestGenerateEbis.class.getName(), new TestGenerateEbis(), null));
         //REGISTER PLUGIN HERE
@@ -32,8 +32,6 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(GenerateIPReservation.class.getName(), new GenerateIPReservation(), null));
         registrationList.add(context.registerService(GenerateUplinkPort.class.getName(), new GenerateUplinkPort(), null));
         registrationList.add(context.registerService(GenerateDownlinkPort.class.getName(), new GenerateDownlinkPort(), null));
-//        registrationList.add(context.registerService(UpdateTkWoSpec.class.getName(), new UpdateTkWoSpec(), null));
-//        registrationList.add(context.registerService(QueryTkWoSpec.class.getName(), new QueryTkWoSpec(), null));
     }
 
     @Override

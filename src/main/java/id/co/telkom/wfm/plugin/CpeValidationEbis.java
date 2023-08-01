@@ -6,7 +6,7 @@ package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.CpeValidationEbisDao;
 import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
-import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
+//import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -94,21 +94,17 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
-//                TaskActivityDao daoTask = new TaskActivityDao();
                 CpeValidationEbisDao dao = new CpeValidationEbisDao();
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-//                String vendor = (dao.getCpeVendor(wonum) == null ? data_obj.get("cpeVendor").toString() : dao.getCpeVendor(wonum));
-//                String model = (dao.getCpeModel(wonum) == null ? data_obj.get("cpeModel").toString() : dao.getCpeModel(wonum));
                 String cpeSerialNumber = data_obj.get("cpeSerialNumber").toString();
                 String chiefCode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
-//                String partnerCode = (data_obj.get("partnerCode") == null ? "" : data_obj.get("partnerCode").toString());
+                String crew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
                 //Get EAI Token for access scmt
                 ScmtIntegrationEbisDao scmtIntegrationDao = new ScmtIntegrationEbisDao();
                 String eaiToken = scmtIntegrationDao.getScmtToken();
                 LogUtil.info(getClassName(), "Token: " + eaiToken);
                 //Get Query NTE
-//                CpeValidationEbisDao dao = new CpeValidationEbisDao();
                 JSONObject data = null;
                 try {
                     data = (JSONObject) dao.getQueryNte(cpeSerialNumber, eaiToken);
@@ -127,9 +123,9 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         String cpeModel = "";
                         String cpeVendor = "";
                         int snLength = cpeSerialNumber.length();
-                        List<String> taskList = new ArrayList<>();
-                        
-                        taskList.add("ONT");
+//                        List<String> taskList = new ArrayList<>();
+//                        
+//                        taskList.add("ONT");
                         
                         for (Object object : item_array){
                             JSONObject obj = (JSONObject)object;
@@ -141,25 +137,26 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         
                         final boolean isVendorExist = dao.checkCpeVendor(cpeVendor);
                         boolean[] arrayBoolean = new boolean[4];
-                        boolean[] checkedArrayBoolean = dao.cpeModelCheck(arrayBoolean, cpeVendor, cpeModel, snLength, taskList);
+                        boolean[] checkedArrayBoolean = dao.cpeModelCheck(arrayBoolean, cpeVendor, cpeModel, snLength);
                         final boolean isModelExist = checkedArrayBoolean[0];
                         final boolean isModelVendorMatch = checkedArrayBoolean[1];
                         final boolean isSerialNumMatch = checkedArrayBoolean[2];
-                        final boolean isCpeTaskMatch = checkedArrayBoolean[3];
+//                        final boolean isCpeTaskMatch = checkedArrayBoolean[3];
                         boolean isDeviceInTech = false;
                         if (locationCode.equals(chiefCode)) {
                             isDeviceInTech = true;
                             LogUtil.info(getClassName(), "Device in Technician " + locationCode);
                         } 
-    //                    else if (locationCode.equals(partnerCode)) {
-    //                        isDeviceInTech = true;
-    //                        LogUtil.info(getClassName(), "Device in Partner");
-    //                    }
+                        else if (locationCode.equals(crew)) {
+                            isDeviceInTech = true;
+                            LogUtil.info(getClassName(), "Device in Crew " + locationCode);
+                        }
                         //Validate CPE
                         JSONObject res = new JSONObject();
                         res.put("cpeVendor", cpeVendor);
                         res.put("cpeModel", cpeModel);
-                        if (isDeviceInTech && isVendorExist && isModelExist && isModelVendorMatch && isSerialNumMatch && isCpeTaskMatch){
+//                        if (isDeviceInTech && isVendorExist && isModelExist && isModelVendorMatch && isSerialNumMatch && isCpeTaskMatch){
+                        if (isDeviceInTech && isVendorExist && isModelExist && isModelVendorMatch && isSerialNumMatch){
                             boolean updateValidation = dao.updateCpeValidation(wonum, cpeVendor, cpeModel, cpeSerialNumber);
                             if (updateValidation){
                                 LogUtil.info(getClassName(), "CPE validation success for " + wonum);
@@ -187,10 +184,10 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                             res.put("status", "nok5");
                             res.put("message", "panjang serial number tidak sesuai");
                             res.writeJSONString(hsr1.getWriter());
-                        } else if (!isCpeTaskMatch) {
-                            res.put("status", "nok6");
-                            res.put("message", "tipe perangkat tidak sesuai dengan task");
-                            res.writeJSONString(hsr1.getWriter());
+//                        } else if (!isCpeTaskMatch) {
+//                            res.put("status", "nok6");
+//                            res.put("message", "tipe perangkat tidak sesuai dengan task");
+//                            res.writeJSONString(hsr1.getWriter());
                         }
                         break;
                     case "404":

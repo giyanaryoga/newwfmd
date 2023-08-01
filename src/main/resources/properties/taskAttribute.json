@@ -1,0 +1,20 @@
+[{
+    "title": "Get Data Task Attribute",
+    "properties": [
+        {
+            "name": "wonum",
+            "label": "Wonum",
+            "type": "textfield"
+        },
+        {
+            "name": "assetattrid",
+            "label": "Attribute Name",
+            "type": "textfield"
+        },
+        {
+            "name": "value",
+            "label": "Attribute Value",
+            "type": "textfield"
+        }
+    ]
+}]
