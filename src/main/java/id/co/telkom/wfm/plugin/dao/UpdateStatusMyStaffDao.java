@@ -25,7 +25,7 @@ public class UpdateStatusMyStaffDao {
     public boolean getApiAttribute(String apiId, String apiKey) {
         boolean  isAuthSuccess = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_api_id, c_api_key FROM app_fd_api_wfm WHERE c_use_of_api = 'mytech_integration'";
+        String query = "SELECT c_api_id, c_api_key FROM app_fd_api_wfm WHERE c_use_of_api = 'mystaff_integration'";
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ResultSet rs = ps.executeQuery();

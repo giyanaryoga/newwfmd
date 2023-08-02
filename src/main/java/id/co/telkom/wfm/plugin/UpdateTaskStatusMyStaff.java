@@ -73,7 +73,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
         UpdateStatusMyStaffDao dao = new UpdateStatusMyStaffDao();
         boolean isAuthSuccess = dao.getApiAttribute(hsr.getHeader("api_id"), hsr.getHeader("api_key"));
         boolean methodStatus = false;
-        LogUtil.info(getClass().getName(), "Start Process: Update Task Status");
+        LogUtil.info(getClass().getName(), "Start Process: Update Task Status MyStaff");
         //@Authorization
         if ("POST".equals(hsr.getMethod()))
             methodStatus = true;
