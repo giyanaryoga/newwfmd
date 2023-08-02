@@ -4,8 +4,14 @@
  */
 package id.co.telkom.wfm.plugin;
 
+import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
+import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.control.TextField;
+import org.joget.apps.app.service.AppUtil;
+import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 
@@ -18,53 +24,46 @@ public class RevisedTask extends DefaultApplicationPlugin {
     
     @Override
     public Object execute(Map map) {
-        return "";
+        RevisedTaskDao dao = new RevisedTaskDao();
+        
+        String wonum = getPropertyString("wonum");
+        String attrName = getPropertyString("assetattrid");
+        String attrValue = getPropertyString("value");
+        
+        LogUtil.info(this.getClassName(), "WONUM: "+ wonum);
+        LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: "+ attrName);
+        LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: "+ attrValue);
+        
+        return null;
     }
 
     @Override
     public String getName() {
         return this.pluginName;
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public String getVersion() {
         return "7.00";
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public String getDescription() {
         return this.pluginName;
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public String getLabel() {
         return this.pluginName;
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public String getClassName() {
         return getClass().getName();
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public String getPropertyOptions() {
-        return "";
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return AppUtil.readPluginResource(getClassName(), "properties/taskAttribute.json", null, true, null);
     }
-    
-//    private void PropertiesObj(String wonum, String assetAttrId, String value) {
-//        Properties pps = new Properties();
-//        pps.setProperty("wonum", wonum);
-//        pps.setProperty("assetAttrId", assetAttrId);
-//        pps.setProperty("value", value);
-//        
-//         TextField textField = new TextField();
-//         textField.
-//    }
-    
 }

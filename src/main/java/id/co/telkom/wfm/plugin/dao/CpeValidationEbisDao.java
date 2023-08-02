@@ -168,7 +168,7 @@ public class CpeValidationEbisDao {
         return updateStatus;
     }
 
-    public boolean[] cpeModelCheck(boolean[] arrayBoolean, String cpeVendor, String cpeModel, int snLength, List<String> taskList) throws SQLException {
+    public boolean[] cpeModelCheck(boolean[] arrayBoolean, String cpeVendor, String cpeModel, int snLength) throws SQLException {
         Arrays.fill(arrayBoolean, Boolean.FALSE);
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_vendor, c_description, c_serialnumlength  FROM app_fd_cpemodel WHERE c_model = ?";
@@ -184,9 +184,9 @@ public class CpeValidationEbisDao {
                 if (snLength == rs.getInt("c_serialnumlength")) {
                     arrayBoolean[2] = true;
                 }
-                if (taskList.contains((rs.getString("c_description") == null ? "" : rs.getString("c_description").toString()))) {
-                    arrayBoolean[3] = true;
-                }
+//                if (taskList.contains((rs.getString("c_description") == null ? "" : rs.getString("c_description").toString()))) {
+//                    arrayBoolean[3] = true;
+//                }
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

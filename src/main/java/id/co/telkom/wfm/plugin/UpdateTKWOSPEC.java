@@ -171,6 +171,7 @@ public class UpdateTKWOSPEC extends Element implements PluginWebSupport {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             } catch (SQLException ex) {
                 Logger.getLogger(UpdateTKWOSPEC.class.getName()).log(Level.SEVERE, null, ex);
+
             }
         //Authorization failed    
         //Authorization failed    

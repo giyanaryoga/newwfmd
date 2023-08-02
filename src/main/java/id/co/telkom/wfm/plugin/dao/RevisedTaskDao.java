@@ -30,7 +30,7 @@ public class RevisedTaskDao {
         return ts;
     }
     
-    public void reviseTask(String parent){
+    public void reviseTask(String parent) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ?";
         try {
@@ -58,7 +58,7 @@ public class RevisedTaskDao {
                 }
                 if (con != null)
                     con.close();
-            } catch (Throwable throwable) {
+            } catch (SQLException throwable) {
                 try {
                     if (con != null)
                         con.close();
@@ -72,6 +72,44 @@ public class RevisedTaskDao {
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
+    }
+    
+    public boolean checkAttrName(String attrName, String wonum) throws SQLException {
+        boolean isTrue = false;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid FROM app_fd_workorderspec WHERE c_assetattrid = ? AND c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, attrName);
+            ps.setString(2, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                isTrue = true;
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return isTrue;
+    }
+    
+    public boolean checkAttrValue(String attrValue, String wonum) throws SQLException {
+        boolean isTrue = false;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_value FROM app_fd_workorderspec WHERE c_assetattrid = ? AND c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, attrValue);
+            ps.setString(2, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                isTrue = true;
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return isTrue;
     }
     
     public JSONObject getTask(String task, String parent) throws SQLException {
@@ -100,7 +138,7 @@ public class RevisedTaskDao {
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query.toString())) {
             ps.setString(1, task);
-            ps.setString(1, parent);
+            ps.setString(2, parent);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 activityProp.put("taskid", rs.getString("c_taskid"));
@@ -127,13 +165,13 @@ public class RevisedTaskDao {
         return activityProp;
     }
     
-    public String getTaskName(String parent) throws SQLException {
+    public String getTaskName(String wonum) throws SQLException {
         String taskName = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_itemname FROM app_fd_ossitem WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, parent);
+            ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 taskName = rs.getString("c_itemname");
@@ -187,7 +225,6 @@ public class RevisedTaskDao {
                 .append(" ? ")
                 .append(" ) ");
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//            String query = "SELECT c_description, c_sequence, c_actplace, c_classstructureid FROM app_fd_detailactivity WHERE c_activity = ? AND c_sequence = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(insert.toString());){
             ps.setString(1, UuidGenerator.getInstance().getUuid());
@@ -220,44 +257,6 @@ public class RevisedTaskDao {
         }
     }
     
-    public boolean checkAttrName(String attrName, String wonum) throws SQLException {
-        boolean isTrue = false;
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid FROM app_fd_workorderspec WHERE c_assetattrid = ? AND c_wonum = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, attrName);
-            ps.setString(2, wonum);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                isTrue = true;
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return isTrue;
-    }
-    
-    public boolean checkAttrValue(String attrValue, String wonum) throws SQLException {
-        boolean isTrue = false;
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_value FROM app_fd_workorderspec WHERE c_assetattrid = ? AND c_wonum = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, attrValue);
-            ps.setString(2, wonum);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                isTrue = true;
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return isTrue;
-    }
-    
     public JSONObject getTaskAttr(String wonum) throws SQLException {
         JSONObject activityProp = new JSONObject();
         StringBuilder query = new StringBuilder();
@@ -273,22 +272,11 @@ public class RevisedTaskDao {
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query.toString())) {
             ps.setString(1, wonum);
-//            ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                activityProp.put("taskid", rs.getString("c_taskid"));
                 activityProp.put("wonum", rs.getString("c_wonum"));
-                activityProp.put("parent", rs.getString("c_parent"));
-                activityProp.put("orgid", rs.getString("c_orgid"));
-                activityProp.put("description", rs.getString("c_description"));
-                activityProp.put("detailActCode", rs.getInt("c_detailactcode"));
-                activityProp.put("actPlace", rs.getString("c_actplace"));
-                activityProp.put("woSequence", rs.getInt("c_wosequence"));
-                activityProp.put("correlation", rs.getInt("c_correlation"));
-                activityProp.put("ownerGroup", rs.getInt("c_ownergroup"));
-                activityProp.put("siteid", rs.getInt("c_siteid"));
-                activityProp.put("woClass", rs.getInt("c_woclass"));
-                activityProp.put("workType", rs.getInt("c_worktype"));
+                activityProp.put("attrName", rs.getString("c_attr_name"));
+                activityProp.put("attrValue", rs.getString("c_attr_value"));
             } else {
                 activityProp = null;
             }
@@ -299,79 +287,49 @@ public class RevisedTaskDao {
         }
         return activityProp;
     }
-
-    public void GenerateTaskAttribute(String activity, String wonum, String orderId) throws SQLException {
-        StringBuilder query = new StringBuilder();
-        query
-                .append(" SELECT ")
-                .append(" c_classspecid, ")
-                .append(" c_orgid, ")
-                .append(" c_assetattrid, ")
-                .append(" c_description, ")
-                .append(" c_sequence, ")
-                .append(" c_readonly, ")
-                .append(" c_isrequired, ")
-                .append(" c_isshared ")
-                .append(" FROM app_fd_classspec WHERE ")
-                .append(" c_activity = ? ");
-        
-        StringBuilder insert = new StringBuilder();
-        insert
-                .append(" INSERT INTO app_fd_workorderspec ")
-                .append(" ( ")
-                //TEMPLATE CONFIGURATION
-                .append(" id, dateCreated, createdBy, createdByName,  ")
-                //TASK ATTRIBUTE
-                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, c_displaysequence, ")
-                //PERMISSION
-                .append(" c_readonly, c_isrequired, c_isshared ")
-                .append(" ) ")
-                .append(" VALUES ")
-                .append(" ( ")
-                //VALUES TEMPLATE CONFIGURATION
-                .append(" ?, ?, 'admin', 'Admin admin', ")
-                //VALUES TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ?, ")
-                //VALUES PERMISSION
-                .append(" ?, ?, ? ")
-                .append(" ) ");
-        
+    
+    public void updateNullAttrValue(String assetAttrId, String wonum) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        try(Connection con = ds.getConnection()) {
-            boolean oldAutoCommit = con.getAutoCommit();
-            LogUtil.info(getClass().getName(), "'start' auto commit state: " + oldAutoCommit);
-            con.setAutoCommit(false);
-            try(PreparedStatement ps = con.prepareStatement(query.toString());
-                PreparedStatement psInsert = con.prepareStatement(insert.toString())) {
-                    ps.setString(1, activity);
-                    ResultSet rs = ps.executeQuery();
-                while (rs.next()) {
-                    psInsert.setString(1, UuidGenerator.getInstance().getUuid());
-                    psInsert.setTimestamp(2, getTimeStamp());
-                    psInsert.setString(3, wonum);
-                    psInsert.setString(4, rs.getString("c_description"));
-                    psInsert.setString(5, rs.getString("c_orgid"));
-                    psInsert.setString(6, rs.getString("c_classspecid"));
-                    psInsert.setString(7, orderId);
-                    psInsert.setString(8, rs.getString("c_sequence"));
-                    psInsert.setString(9, rs.getString("c_readonly"));
-                    psInsert.setString(10, rs.getString("c_isrequired"));
-                    psInsert.setString(11, rs.getString("c_isshared"));
-                    psInsert.addBatch();
+        String update = "UPDATE app_fd_workorderspec SET c_value = ?, datemodified = ? WHERE c_wonum = ? AND c_assetattrid = ?";
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(update);
+                try {
+                    ps.setString(1, "");
+                    ps.setTimestamp(2, getTimeStamp());
+                    ps.setString(3, wonum);
+                    ps.setString(4, assetAttrId);
+                    int exe = ps.executeUpdate();
+                    //Checking insert status
+                    if (exe > 0) 
+                        LogUtil.info(getClass().getName(), "Older task attribute value is null");
+                    if (ps != null)
+                        ps.close();
+                } catch (SQLException throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (SQLException throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
                 }
-                int[] exe = psInsert.executeBatch();
-                if (exe.length > 0) {
-                    LogUtil.info(getClass().getName(), "Success generated task attributes, for " + activity);
+                if (con != null)
+                    con.close();
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (SQLException throwable1) {
+                    throwable.addSuppressed(throwable1);
                 }
-                con.commit();
-            } catch(SQLException e) {
-                LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
-                con.rollback();
+                throw throwable;
             } finally {
-                con.setAutoCommit(oldAutoCommit);
+                ds.getConnection().close();
             }
-        } catch(SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
     }
 }

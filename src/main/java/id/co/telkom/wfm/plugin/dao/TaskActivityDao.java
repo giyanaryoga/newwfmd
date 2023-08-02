@@ -179,49 +179,6 @@ public class TaskActivityDao {
         }
         return taskAttrName;
     }
-    
-//    public void reviseTask(String parent){
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ? WHERE c_parent = ?";
-//        try {
-//            Connection con = ds.getConnection();
-//            try {
-//                PreparedStatement ps = con.prepareStatement(update);
-//                try {
-//                    ps.setString(1, "REVISED");
-//                    ps.setString(2, parent);
-//                    int exe = ps.executeUpdate();
-//                    //Checking insert status
-//                    if (exe > 0) 
-//                        LogUtil.info(getClass().getName(), "Older activity task has been revised, will be deactivated task");
-//                    if (ps != null)
-//                        ps.close();
-//                } catch (SQLException throwable) {
-//                    try {
-//                        if (ps != null)
-//                            ps.close();
-//                    } catch (SQLException throwable1) {
-//                        throwable.addSuppressed(throwable1);
-//                    }
-//                    throw throwable;
-//                }
-//                if (con != null)
-//                    con.close();
-//            } catch (Throwable throwable) {
-//                try {
-//                    if (con != null)
-//                        con.close();
-//                } catch (SQLException throwable1) {
-//                    throwable.addSuppressed(throwable1);
-//                }
-//                throw throwable;
-//            } finally {
-//                ds.getConnection().close();
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-//        }
-//    }
 
     public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String parent, ActivityTask act){
 //        ActivityTask act = new ActivityTask();
