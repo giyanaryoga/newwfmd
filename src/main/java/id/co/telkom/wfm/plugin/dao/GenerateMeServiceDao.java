@@ -62,10 +62,10 @@ public class GenerateMeServiceDao {
             try {
                 PreparedStatement ps = con.prepareStatement(update.toString());
                 try {
-//                    ps.setString(1, manufacture.toJSONString());
-//                    ps.setString(2, name.toJSONString());
-//                    ps.setString(3, ipAddress.toJSONString());
-                    ps.setString(5, wonum);
+                    ps.setString(1, manufacture);
+                    ps.setString(2, name);
+                    ps.setString(3, ipAddress);
+                    ps.setString(4, wonum);
 
                     int exe = ps.executeUpdate();
                     if (exe > 0) {
@@ -220,7 +220,7 @@ public class GenerateMeServiceDao {
                         LogUtil.info(this.getClass().getName(), "ME SERVICE IPADDRESS :" + ipAddress);
 
                         // Update Data ME SERVICE BY IPADDRESS
-//                        updateDeviceLinkPortByIp(wonum, manufactur, name, ipAddress);
+                        updateDeviceLinkPortByIp(wonum, manufactur, name, ipAddress);
                     }
                 } else {
                     HttpURLConnection con = (HttpURLConnection) getDeviceLinkPort.openConnection();
@@ -268,7 +268,7 @@ public class GenerateMeServiceDao {
                         LogUtil.info(this.getClass().getName(), "ME_SERVICE_PORTNAME : " + portName);
 
                         // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
-//                        updateDeviceLinkPort(wonum, manufactur, name, ipAddress, mtu, key, portName);
+                        updateDeviceLinkPort(wonum, manufactur, name, ipAddress, mtu, key, portName);
                     }
                 }
             }

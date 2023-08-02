@@ -99,11 +99,6 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
                 String result = "";
-//                String bandwidth = data_obj.get("bandwidth").toString();
-//                String odpName = data_obj.get("odpName").toString();
-//                String downlinkPortName = data_obj.get("downlinkPortName").toString();
-//                String downlinkPortID = data_obj.get("downlinkPortID").toString();
-//                String sto = data_obj.get("sto").toString();
                 String wonum = data_obj.get("wonum").toString();
 
                 try {

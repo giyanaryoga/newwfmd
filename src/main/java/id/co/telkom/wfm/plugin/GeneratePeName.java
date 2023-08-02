@@ -6,6 +6,8 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.GenerateMeAccessDao;
+import id.co.telkom.wfm.plugin.dao.GeneratePeNameDao;
+import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -15,14 +17,15 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
+import org.json.simple.JSONObject;
 
 /**
  *
  * @author ASUS
  */
-public class GenerateMeAccess extends Element implements PluginWebSupport {
+public class GeneratePeName extends Element implements PluginWebSupport {
 
-    String pluginName = "Telkom New WFM - Generate ME Access - Web Service";
+    String pluginName = "Telkom New WFM - Generate PE Name - Web Service";
 
     @Override
     public String renderTemplate(FormData fd, Map map) {
@@ -61,17 +64,36 @@ public class GenerateMeAccess extends Element implements PluginWebSupport {
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
-        //@@Start..
+//@@Start..
         LogUtil.info(getClass().getName(), "Start Process: Generate ME Service");
 
         //@Authorization
         if ("GET".equals(hsr.getMethod())) {
             try {
-                GenerateMeAccessDao dao = new GenerateMeAccessDao();
+                LogUtil.info(getClassName(), "Call Generate PE Name");
+
+                GeneratePeNameDao dao = new GeneratePeNameDao();
+                ListGenerateAttributes listAttribute = new ListGenerateAttributes();
 
                 if (hsr.getParameterMap().containsKey("wonum")) {
                     String wonum = hsr.getParameter("wonum");
-                    dao.callGenerateMeAccess(wonum);
+                    dao.callGeneratePeName(wonum, listAttribute);
+                    
+                    if (listAttribute.getStatusCode() == 404) {
+                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
+
+                        JSONObject res1 = new JSONObject();
+                        res1.put("code", 4001);
+                        res1.put("message", "No PE Name found!.");
+                        res1.writeJSONString(hsr1.getWriter());
+                    } else if (listAttribute.getStatusCode() == 200) {
+                        JSONObject res = new JSONObject();
+                        res.put("code", 4000);
+                        res.put("message", "update data successfully");
+                        res.writeJSONString(hsr1.getWriter());
+                    } else {
+                        LogUtil.info(getClass().getName(), "Call Failed");
+                    }
                 }
             } catch (Exception e) {
                 LogUtil.error(getClassName(), e, "Trace Error Here : " + e.getMessage());
