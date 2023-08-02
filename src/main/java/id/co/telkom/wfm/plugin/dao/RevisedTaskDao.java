@@ -93,13 +93,13 @@ public class RevisedTaskDao {
         return isTrue;
     }
     
-    public boolean checkAttrValue(String attrValue, String wonum) throws SQLException {
+    public boolean checkAttrValue(String attrName, String wonum) throws SQLException {
         boolean isTrue = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_value FROM app_fd_workorderspec WHERE c_assetattrid = ? AND c_wonum = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, attrValue);
+            ps.setString(1, attrName);
             ps.setString(2, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs.next())
@@ -112,7 +112,7 @@ public class RevisedTaskDao {
         return isTrue;
     }
     
-    public JSONObject getTask(String task, String parent) throws SQLException {
+    public JSONObject getTask(String parent) throws SQLException {
         JSONObject activityProp = new JSONObject();
         StringBuilder query = new StringBuilder();
         query
@@ -131,16 +131,16 @@ public class RevisedTaskDao {
                 .append(" c_woclass, ")
                 .append(" c_worktype ")
                 .append(" FROM app_fd_workorder WHERE ")
-                .append(" c_detailactcode = ? AND ")
+                .append(" c_woclass = 'ACTIVITY' AND ")
                 .append(" c_parent = ? ");
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query.toString())) {
-            ps.setString(1, task);
-            ps.setString(2, parent);
+//            ps.setString(1, task);
+            ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
+            while (rs.next()) {
                 activityProp.put("taskid", rs.getString("c_taskid"));
                 activityProp.put("wonum", rs.getString("c_wonum"));
                 activityProp.put("parent", rs.getString("c_parent"));
@@ -154,8 +154,6 @@ public class RevisedTaskDao {
                 activityProp.put("siteid", rs.getInt("c_siteid"));
                 activityProp.put("woClass", rs.getInt("c_woclass"));
                 activityProp.put("workType", rs.getInt("c_worktype"));
-            } else {
-                activityProp = null;
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -182,8 +180,46 @@ public class RevisedTaskDao {
         }
         return taskName;
     }
+    
+    public Integer getTaskId(String wonum) throws SQLException {
+        int taskid = 0;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_taskid FROM app_fd_workorder WHERE c_parent = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                taskid = rs.getInt("c_taskid");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return taskid;
+    }
 
-    public void generateActivityTask(String parent, String siteId, String correlationId, String ownerGroup, JSONObject taskObj) throws SQLException {
+    public void generateActivityTask(String parent) throws SQLException {
+        StringBuilder query = new StringBuilder();
+        query
+                .append(" SELECT ")
+                .append(" c_taskid, ")
+                .append(" c_wonum, ")
+                .append(" c_parent, ")
+                .append(" c_orgid, ")
+                .append(" c_detailactcode, ")
+                .append(" c_description, ")
+                .append(" c_actplace, ")
+                .append(" c_wosequence, ")
+                .append(" c_correlation, ")
+                .append(" c_ownergroup, ")
+                .append(" c_siteid, ")
+                .append(" c_woclass, ")
+                .append(" c_worktype ")
+                .append(" FROM app_fd_workorder WHERE ")
+                .append(" c_woclass = 'ACTIVITY' AND ")
+                .append(" c_parent = ? ");
+        
         StringBuilder insert = new StringBuilder();
         insert
                 .append(" INSERT INTO app_fd_workorder ( ")
@@ -226,30 +262,40 @@ public class RevisedTaskDao {
                 .append(" ) ");
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(insert.toString());){
-            ps.setString(1, UuidGenerator.getInstance().getUuid());
-            ps.setTimestamp(2, getTimeStamp());
-            ps.setString(3, taskObj.get("parent").toString());
-            ps.setString(4, taskObj.get("wonum").toString());
-            ps.setString(5, taskObj.get("activity").toString()); //activity
-            ps.setString(6, taskObj.get("description").toString());   //activity
-            ps.setString(7, taskObj.get("sequence").toString());
-            ps.setString(8, taskObj.get("actplace").toString());
-            ps.setString(9, taskObj.get("status").toString());
-            ps.setString(10, "NEW");
-            ps.setString(11, taskObj.get("orgid").toString());     
-            ps.setString(12, taskObj.get("siteid").toString());
-            ps.setString(13, taskObj.get("workType").toString());
-            ps.setString(14, taskObj.get("woClass").toString());       
-            ps.setString(15, taskObj.get("taskid").toString());
-            ps.setString(16, taskObj.get("correlation").toString());    
-            ps.setString(17, taskObj.get("ownerGroup").toString());
-            
-            int exe = ps.executeUpdate();
-            //Checking insert status
-            if (exe > 0) {
-                LogUtil.info(getClass().getName(), "'" + taskObj.get("description") + "' generated as task");
-            }
+            PreparedStatement ps1 = con.prepareStatement(query.toString());
+            PreparedStatement ps2 = con.prepareStatement(insert.toString());){
+                ps1.setString(1, parent);
+                ResultSet rs = ps1.executeQuery();
+                while (rs.next()) {
+                    ps2.setString(1, UuidGenerator.getInstance().getUuid());
+                    ps2.setTimestamp(2, getTimeStamp());
+                    ps2.setString(3, parent);
+                    ps2.setString(4, rs.getString("c_wonum"));
+                    ps2.setString(5, rs.getString("c_detailactcode")); //activity
+                    ps2.setString(6, rs.getString("c_description"));   //activity
+                    ps2.setInt(7, rs.getInt("c_wosequence"));
+                    ps2.setString(8, rs.getString("c_actplace"));
+                    if (rs.getInt("c_taskid") == 10) {
+                        ps2.setString(9, "LABASSIGN");
+                    } else {
+                        ps2.setString(9, "APPR");
+                    }
+                    ps2.setString(10, "NEW");
+                    ps2.setString(11, rs.getString("c_orgid"));     
+                    ps2.setString(12, rs.getString("c_siteid"));
+                    ps2.setString(13, rs.getString("c_worktype"));
+                    ps2.setString(14, rs.getString("c_woclass"));       
+                    ps2.setInt(15, rs.getInt("c_taskid"));
+                    ps2.setString(16, rs.getString("c_correlation"));  
+                    ps2.setString(17, rs.getString("c_ownergroup"));
+                    ps2.addBatch();
+                }
+
+                int[] exe = ps2.executeBatch();
+                //Checking insert status
+                if (exe.length > 0) {
+                    LogUtil.info(getClass().getName(), "Success generate new task!");
+                }
         } catch(SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         } finally {
