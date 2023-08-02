@@ -5,11 +5,10 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.GenerateDownlinkPortDao;
+import id.co.telkom.wfm.plugin.dao.AbortOrderDao;
 import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,17 +19,17 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
  * @author ASUS
  */
-public class GenerateDownlinkPort extends Element implements PluginWebSupport {
+public class AbortOrder extends Element implements PluginWebSupport {
 
-    String pluginName = "Telkom New WFM - Generate Downlink Port - Web Service";
+    String pluginName = "Telkom New WFM - Abort Order Enterprise - Web Service";
 
     @Override
     public String renderTemplate(FormData fd, Map map) {
@@ -69,12 +68,9 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
-
+        AbortOrderDao dao = new AbortOrderDao();
         //@@Start..
-        LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE DOWNLINK PORT ###############");
-
-        GenerateDownlinkPortDao dao = new GenerateDownlinkPortDao();
-        ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+        LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE STP NETWORK LOCATION ###############");
 
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
@@ -88,7 +84,7 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
                     while ((line = reader.readLine()) != null) {
                         jb.append(line);
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
@@ -98,41 +94,46 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
-                String result = "";
-//                String bandwidth = data_obj.get("bandwidth").toString();
-//                String odpName = data_obj.get("odpName").toString();
-//                String downlinkPortName = data_obj.get("downlinkPortName").toString();
-//                String downlinkPortID = data_obj.get("downlinkPortID").toString();
-//                String sto = data_obj.get("sto").toString();
                 String wonum = data_obj.get("wonum").toString();
+                String parent = wonum.substring(0, 11);
 
                 try {
-                    dao.formatRequest(wonum);
-//                    LogUtil.info(getClassName(), "Status Code :" + listAttribute.getStatusCode());
-//                    if (listAttribute.getStatusCode() == 4001) {
-//                        JSONObject res1 = new JSONObject();
-//                        res1.put("code", 404);
-//                        res1.put("message", "No Service found!.");
-//                        res1.put("Data res", result);
-//                        res1.writeJSONString(hsr1.getWriter());
-//                    } else {
-//                        JSONObject res = new JSONObject();
-//                        res.put("code", 200);
-//                        res.put("message", "update data successfully");
-//                        res.put("Data res", result);
-//                        res.writeJSONString(hsr1.getWriter());
-//                    }
-                } catch (Throwable ex) {
-                    Logger.getLogger(GenerateDownlinkPort.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } catch (Throwable ex) {
-                Logger.getLogger(GenerateDownlinkPort.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                    // dao.callGenerateStpNetLoc(wonum, latitude, longitude);
+                    LogUtil.info(getClassName(), "Call Generate STP Net Loc");
 
+                    ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+                    dao.AbortOrder(wonum, parent);
+
+//                    LogUtil.info(getClassName(), "Status Code Loc: " + listAttribute.getStatusCode());
+//                    if (listAttribute.getStatusCode() == 4001) {
+//                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
+//
+//                        JSONObject res1 = new JSONObject();
+//                        res1.put("code", 4001);
+//                        res1.put("message", "No Device found!.");
+//                        res1.writeJSONString(hsr1.getWriter());
+//                    } else if (listAttribute.getStatusCode() == 4000) {
+//                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
+//
+//                        JSONObject res = new JSONObject();
+//                        res.put("code", 4000);
+//                        res.put("message", "update data successfully");
+//                        res.writeJSONString(hsr1.getWriter());
+//                    } else {
+//                        LogUtil.info(getClass().getName(), "Call Failed");
+//                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Throwable ex) {
+                    Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } catch (ParseException ex) {
+                Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         }

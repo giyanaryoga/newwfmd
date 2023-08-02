@@ -33,6 +33,10 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(GenerateUplinkPort.class.getName(), new GenerateUplinkPort(), null));
         registrationList.add(context.registerService(GenerateDownlinkPort.class.getName(), new GenerateDownlinkPort(), null));
         registrationList.add(context.registerService(UpdateTaskStatusMyStaff.class.getName(), new UpdateTaskStatusMyStaff(), null));
+        registrationList.add(context.registerService(GenerateMeService.class.getName(), new GenerateMeService(), null));
+        registrationList.add(context.registerService(GenerateMeAccess.class.getName(), new GenerateMeAccess(), null));
+        registrationList.add(context.registerService(AbortOrder.class.getName(), new AbortOrder(), null));
+        
     }
 
     @Override
