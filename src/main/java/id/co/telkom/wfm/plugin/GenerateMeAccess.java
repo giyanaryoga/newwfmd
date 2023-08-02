@@ -5,7 +5,8 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.ValidateStoDao;
+import id.co.telkom.wfm.plugin.dao.GenerateMeAccessDao;
+import id.co.telkom.wfm.plugin.dao.GenerateMeServiceDao;
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -20,9 +21,9 @@ import org.joget.plugin.base.PluginWebSupport;
  *
  * @author ASUS
  */
-public class ValidateSto extends Element implements PluginWebSupport {
+public class GenerateMeAccess extends Element implements PluginWebSupport {
 
-    String pluginName = "Telkom New WFM - Validate STO - Web Service";
+    String pluginName = "Telkom New WFM - Generate ME Access - Web Service";
 
     @Override
     public String renderTemplate(FormData fd, Map map) {
@@ -61,19 +62,17 @@ public class ValidateSto extends Element implements PluginWebSupport {
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
-        //@@Start..
-        LogUtil.info(getClass().getName(), "Start Process: Generate Validate STO");
+//@@Start..
+        LogUtil.info(getClass().getName(), "Start Process: Generate ME Service");
 
         //@Authorization
         if ("GET".equals(hsr.getMethod())) {
             try {
-                ValidateStoDao dao = new ValidateStoDao();
+                GenerateMeAccessDao dao = new GenerateMeAccessDao();
 
                 if (hsr.getParameterMap().containsKey("wonum")) {
                     String wonum = hsr.getParameter("wonum");
-//                    String lon = hsr.getParameter("lon");
-//                    String serviceType = hsr.getParameter("serviceType");
-                    dao.callUimaxStoValidation(wonum);
+                    dao.callGenerateMeAccess(wonum);
                 }
             } catch (Exception e) {
                 LogUtil.error(getClassName(), e, "Trace Error Here : " + e.getMessage());
@@ -85,7 +84,6 @@ public class ValidateSto extends Element implements PluginWebSupport {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         }
-
     }
 
 }

@@ -127,14 +127,14 @@ public class GenerateDownlinkPortDao {
 
             String result = "";
 
-            if (nteName.isEmpty()) {
+            if (nteName=="") {
                 String stpName = getAssetattrid(wonum).get("STP_NAME_ALN").toString();
                 String stpPortName = getAssetattrid(wonum).get("STP_PORT_NAME_ALN").toString();
                 String stpPortId = getAssetattrid(wonum).get("STP_PORT_ID").toString();
                 callGenerateDownlinkPort(wonum, "10", stpName, stpPortName, stpPortId, anSto, listAttribute);
 //                callGenerateDownlinkPort(wonum, "10", nteName, "", nteDownlinkPort, anSto, listAttribute);
 //                LogUtil.info(getClass().getName(), "Message: " + "\n" + stpName + "\n" + stpPortId + "\n" + result);
-            } else{
+            } else if(nteName!=""){
                 String nteDownlinkPort = getAssetattrid(wonum).get("NTE_DOWNLINK_PORT").toString();
                 callGenerateDownlinkPort(wonum, "10", nteName, "", nteDownlinkPort, anSto, listAttribute);
                 LogUtil.info(getClass().getName(), "Message: " + "\n" + nteName + "\n" + nteDownlinkPort + "\n" + result);
