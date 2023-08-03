@@ -36,6 +36,7 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(GenerateMeAccess.class.getName(), new GenerateMeAccess(), null));
         registrationList.add(context.registerService(AbortOrder.class.getName(), new AbortOrder(), null));
         registrationList.add(context.registerService(GenerateVRF.class.getName(), new GenerateVRF(), null));
+        registrationList.add(context.registerService(GenerateVRFNameExisting.class.getName(), new GenerateVRFNameExisting(), null));
 
 
     }
