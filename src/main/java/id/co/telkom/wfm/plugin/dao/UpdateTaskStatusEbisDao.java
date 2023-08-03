@@ -180,7 +180,8 @@ public class UpdateTaskStatusEbisDao {
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
             int index = 0;
             ps.setString(1 + index, status);
-            ps.setString(2 + index, statusDate);
+//            ps.setString(2 + index, statusDate);
+            ps.setTimestamp(2 + index, Timestamp.valueOf(statusDate));
             ps.setString(3 + index, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
@@ -530,7 +531,8 @@ public class UpdateTaskStatusEbisDao {
                     ps.setString(5, wonum);
                     ps.setString(6, siteId);
                     ps.setString(7, wonum);
-                    ps.setString(8, statusDate);
+//                    ps.setString(8, statusDate);
+                    ps.setTimestamp(8, Timestamp.valueOf(statusDate));
 
                     int exe = ps.executeUpdate();
                     if (exe > 0) {

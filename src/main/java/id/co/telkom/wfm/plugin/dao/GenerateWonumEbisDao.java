@@ -185,7 +185,7 @@ public class GenerateWonumEbisDao {
 //        StringBuilder insert = new StringBuilder();
 //        insert
         String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, "
-                + "c_schedstart1, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate1, dateCreated) "
+                + "c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, dateCreated) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         //c_schedstart1 dan c_statusdate1 TEMPORARY masih, angka 1 dihilangkan jika sudah di hapus column di table
         try {
