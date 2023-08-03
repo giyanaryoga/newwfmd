@@ -62,7 +62,6 @@ public class GenerateStpNetLocDao {
 
         // Request Structure
         try {
-//            ListGenerateAttributes listAttribute = new ListGenerateAttributes();
             String latitude = getAssetattrid(wonum).get("LATITUDE").toString();
             String longitude = getAssetattrid(wonum).get("LONGITUDE").toString();
             LogUtil.info(this.getClass().getName(), "Latitude : " + latitude + "Longitude : " + longitude);
@@ -160,7 +159,7 @@ public class GenerateStpNetLocDao {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs != null) {
-                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE";
+                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_WONUM = ?";
                 ResultSet del = ps.executeQuery(delete);
                 moveFirst = "Deleted data";
                 LogUtil.info(getClass().getName(), "Berhasil menghapus data" + del);

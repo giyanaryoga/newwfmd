@@ -216,27 +216,27 @@ public class GenerateDownlinkPortDao {
                 deleteTkDeviceattribute(wonum);
                 if (id != null) {
                     msg = msg + "AN Device Id: " + id + "\n";
-                    insertToDeviceTable("", "AN_DEVICE_ID", "", id);
+                    insertToDeviceTable(wonum, "AN_DEVICE_ID", "", id);
                 }
                 if (sTO != null) {
                     msg = msg + "STO: " + sTO + "\n";
-                    insertToDeviceTable("", "STO", "", sTO);
+                    insertToDeviceTable(wonum, "STO", "", sTO);
                 }
                 if (ipAddress != null) {
                     msg = msg + "IP Address: " + ipAddress + "\n";
-                    insertToDeviceTable("", "IPADDRESS", "", ipAddress);
+                    insertToDeviceTable(wonum, "IPADDRESS", "", ipAddress);
                 }
                 if (nmsIpaddress != null) {
                     msg = msg + "NMS IP Address: " + nmsIpaddress + "\n";
-                    insertToDeviceTable("", "NMSIPADDRESS", "", nmsIpaddress);
+                    insertToDeviceTable(wonum, "NMSIPADDRESS", "", nmsIpaddress);
                 }
                 if (name != null) {
                     msg = msg + "AN Downlink Name: " + name + "\n";
-                    insertToDeviceTable("", "NAME", "", name);
+                    insertToDeviceTable(wonum, "NAME", "", name);
                 }
                 if (manufacture != null) {
                     msg = msg + "Manufacture: " + manufacture + "\n";
-                    insertToDeviceTable("", "MANUFACTURE", "", manufacture);
+                    insertToDeviceTable(wonum, "MANUFACTURE", "", manufacture);
                 }
 
                 Object downlinkPortObj = getDeviceInformation.get("DownlinkPort");
@@ -249,8 +249,8 @@ public class GenerateDownlinkPortDao {
                     LogUtil.info(this.getClass().getName(), "Downlinkport Name :" + downlinkportName);
                     LogUtil.info(this.getClass().getName(), "Downlinkport ID :" + downlinkPortId);
 
-                    insertToDeviceTable("", "AN_DOWNLINK_PORTNAME", downlinkPortName, downlinkportName);
-                    insertToDeviceTable("", "AN_DOWNLINK_PORTID", downlinkportName, downlinkPortId);
+                    insertToDeviceTable(wonum, "AN_DOWNLINK_PORTNAME", downlinkPortName, downlinkportName);
+                    insertToDeviceTable(wonum, "AN_DOWNLINK_PORTID", downlinkportName, downlinkPortId);
 
                     msg = msg + "DownlinkPort: " + downlinkPort + "\n";
                     msg = msg + "Name: " + downlinkportName + "\n";
@@ -268,9 +268,9 @@ public class GenerateDownlinkPortDao {
                         msg = msg + "Name: " + downlinkportName + "\n";
                         msg = msg + "Id: " + downlinkPortId + "\n";
 
-                        insertToDeviceTable("", "AN_DOWNLINK_PORTNAME", downlinkPortName, downlinkportName);
+                        insertToDeviceTable(wonum, "AN_DOWNLINK_PORTNAME", downlinkPortName, downlinkportName);
 
-                        insertToDeviceTable("", "AN_DOWNLINK_PORTID", downlinkportName, downlinkPortId);
+                        insertToDeviceTable(wonum, "AN_DOWNLINK_PORTID", downlinkportName, downlinkPortId);
                     }
                 }
             }

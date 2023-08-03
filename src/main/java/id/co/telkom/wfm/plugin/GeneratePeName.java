@@ -10,6 +10,8 @@ import id.co.telkom.wfm.plugin.dao.GeneratePeNameDao;
 import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -64,7 +66,7 @@ public class GeneratePeName extends Element implements PluginWebSupport {
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
-//@@Start..
+        //@@Start..
         LogUtil.info(getClass().getName(), "Start Process: Generate ME Service");
 
         //@Authorization
@@ -97,6 +99,8 @@ public class GeneratePeName extends Element implements PluginWebSupport {
                 }
             } catch (Exception e) {
                 LogUtil.error(getClassName(), e, "Trace Error Here : " + e.getMessage());
+            } catch (Throwable ex) {
+                Logger.getLogger(GeneratePeName.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (!"GET".equals(hsr.getMethod())) {
             try {

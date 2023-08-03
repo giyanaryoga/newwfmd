@@ -66,6 +66,19 @@ public class GeneratePeNameDao {
         return result;
     }
 
+    public boolean deletetkDeviceattribute(String wonum, Connection con) throws SQLException {
+        boolean status = false;
+        String queryDelete = "DELETE FROM app_fd_tk_deviceattribute WHERE c_ref_num = ?";
+        PreparedStatement ps = con.prepareStatement(queryDelete);
+        ps.setString(1, wonum);
+        int count = ps.executeUpdate();
+        if (count > 0) {
+            status = true;
+        }
+        LogUtil.info(getClass().getName(), "Status Delete : " + status);
+        return status;
+    }
+
     public boolean updateCommunityTransit(String wonum, String community) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -148,7 +161,7 @@ public class GeneratePeNameDao {
         }
     }
 
-    public JSONObject callGeneratePeName(String wonum, ListGenerateAttributes listGenerate) throws MalformedURLException {
+    public JSONObject callGeneratePeName(String wonum, ListGenerateAttributes listGenerate) throws MalformedURLException, Throwable {
         try {
             String deviceType = getAssetattridType(wonum).get("DEVICETYPE").toString();
             String areaName = getAssetattridType(wonum).get("AREANAME").toString();
@@ -158,7 +171,6 @@ public class GeneratePeNameDao {
             String url = "https://api-emas.telkom.co.id:8443/api/device/byServiceArea?" + "deviceType=" + deviceType + "&areaName=" + areaName + "&areaType=" + areaType + "&serviceType=" + serviceType;
 
             URL getUrlServiveByArea = new URL(url);
-
             HttpURLConnection con = (HttpURLConnection) getUrlServiveByArea.openConnection();
 
             con.setRequestMethod("GET");
@@ -172,6 +184,10 @@ public class GeneratePeNameDao {
                 listGenerate.setStatusCode(responseCode);
             } else if (responseCode == 200) {
                 listGenerate.setStatusCode(responseCode);
+                
+                DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+                Connection connection = ds.getConnection();
+
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(con.getInputStream()));
                 String inputLine;
@@ -185,43 +201,34 @@ public class GeneratePeNameDao {
                 // At this point, 'response' contains the JSON data as a string
                 String jsonData = response.toString();
 
-                // Now, parse the JSON data using org.json library
+                // Now, parse the JSON data using jackson
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode portArrayNode = objectMapper.readTree(jsonData);
-                LogUtil.info(this.getClass().getName(), "PE Name : " + portArrayNode);
 
                 String community = portArrayNode.get(0).get("community").asText();
                 String name = portArrayNode.get(0).get("name").asText();
                 String manufactur = portArrayNode.get(0).get("manufacturer").asText();
                 String ipAddress = portArrayNode.get(0).get("ipAddress").asText();
                 String model = portArrayNode.get(0).get("model").asText();
-                
-                LogUtil.info(this.getClass().getName(), "COMMUNITY_TRANSIT" + community);
-                LogUtil.info(this.getClass().getName(), "PE_NAME" + name);
-                LogUtil.info(this.getClass().getName(), "PE_MANUFACTUR" + manufactur);
-                LogUtil.info(this.getClass().getName(), "PE_IPADDRESS" + ipAddress);
-                LogUtil.info(this.getClass().getName(), "PE_MODEL" + model);
-               
-//                if (getDetailactcode(wonum).get("detailactcode").toString() == "Populate PE Port IP Transit") {
-//                    updateCommunityTransit(wonum, community);
-//                }
 
-                // Access data from the JSON object as needed
-//                String manufactur = jsonObj.getString("manufacturer");
-//                String name = jsonObj.getString("name");
-//                String ipAddress = jsonObj.getString("ipAddress");
-//                String mtu = jsonObject.getString("mtu");
-//                String key = jsonObject.getString("key");
-//                String portName = jsonObject.getString("name");
-//                LogUtil.info(this.getClass().getName(), "===============PARSING DATA==============");
-//                LogUtil.info(this.getClass().getName(), "ME_MANUFACTUR : " + manufactur);
-//                LogUtil.info(this.getClass().getName(), "ME_NAME : " + name);
-//                LogUtil.info(this.getClass().getName(), "ME_IPADDRESS : " + ipAddress);
-//                LogUtil.info(this.getClass().getName(), "ME_PORT_MTU : " + mtu);
-//                LogUtil.info(this.getClass().getName(), "ME_PORTID : " + key);
-//                LogUtil.info(this.getClass().getName(), "ME_PORTNAME : " + portName);
-                // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
-//                        updateDeviceLinkPort(wonum, manufactur, name, ipAddress, mtu, key, portName);
+                LogUtil.info(this.getClass().getName(), "COMMUNITY_TRANSIT : " + community);
+                LogUtil.info(this.getClass().getName(), "PE_NAME : " + name);
+                LogUtil.info(this.getClass().getName(), "PE_MANUFACTUR : " + manufactur);
+                LogUtil.info(this.getClass().getName(), "PE_IPADDRESS : " + ipAddress);
+                LogUtil.info(this.getClass().getName(), "PE_MODEL : " + model);
+
+                // Checking if detailactcode == Populate PE Port IP Transit -> update value COMMUNITY_TRANSIT
+                if (getDetailactcode(wonum).get("detailactcode").toString() == "Populate PE Port IP Transit") {
+                    updateCommunityTransit(wonum, community);
+                }
+                // Clear Data
+                deletetkDeviceattribute(wonum, connection);
+
+                // insert response data to table APP_FD_TK_DEVICEATTRIBUTE
+                insertToDeviceTable(wonum, "PE_NAME", "", name);
+                insertToDeviceTable(wonum, "PE_MANUFACTUR", name, manufactur);
+                insertToDeviceTable(wonum, "PE_IPADDRESS", name, ipAddress);
+                insertToDeviceTable(wonum, "PE_MODEL", name, model);
             }
 
         } catch (Exception e) {

@@ -7,6 +7,7 @@ package id.co.telkom.wfm.plugin.dao;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -172,13 +173,13 @@ public class GenerateMeServiceDao {
         return result;
     }
 
-    public JSONArray callGenerateMeService(String wonum) {
+    public JSONArray callGenerateMeService(String wonum, ListGenerateAttributes listGenerate) {
         try {
             String url = "https://api-emas.telkom.co.id:8443/api/device/linkedPort?" + "deviceName=" + getAssetattridType(wonum).get("PE_NAME").toString() + "&portName=" + getAssetattridType(wonum).get("PE_PORTNAME").toString().replace("/", "%2F") + "&deviceLink=" + "PE_METROE" + "&portStatus=ACTIVE";
             String urlByIp = "https://api-emas.telkom.co.id:8443/api/device/find?" + "ipAddress=" + getAssetattridType(wonum).get("ME_SERVICE_IPADDRESS").toString();
             URL getDeviceLinkPort = new URL(url);
             URL getDeviceLinkPortByIp = new URL(urlByIp);
-            
+
             String nteType = getAssetattridType(wonum).getString("NTE_TYPE");
 
             if (nteType != null) {
@@ -233,8 +234,9 @@ public class GenerateMeServiceDao {
 
                     if (responseCode == 400) {
                         LogUtil.info(this.getClass().getName(), "ME Service not found!");
-
+                        listGenerate.setStatusCode(responseCode);
                     } else if (responseCode == 200) {
+                        listGenerate.setStatusCode(responseCode);
                         BufferedReader in = new BufferedReader(
                                 new InputStreamReader(con.getInputStream()));
                         String inputLine;

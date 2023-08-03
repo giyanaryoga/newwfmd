@@ -7,6 +7,7 @@ package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.GenerateUplinkPortDao;
 import id.co.telkom.wfm.plugin.dao.ValidateVrfDao;
+import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -69,20 +70,31 @@ public class ValidateVrf extends Element implements PluginWebSupport {
 
         //@@Start..
         LogUtil.info(this.getClass().getName(), "############## START PROCESS VALIDATE VRF ###############");
-        
-                //@Authorization
+        ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+        //@Authorization
         if ("GET".equals(hsr.getMethod())) {
             try {
-
                 if (hsr.getParameterMap().containsKey("vrfName") || hsr.getParameterMap().containsKey("deviceName")) {
+//                    String wonum = hsr.getParameter("wonum");
                     String vrfName = hsr.getParameter("vrfName");
                     String deviceName = hsr.getParameter("deviceName");
-                    org.json.JSONObject data = dao.callUimaxValidateVrf(vrfName, deviceName);
+                    dao.callUimaxValidateVrf(vrfName, deviceName, listAttribute);
+//                    dao.callUimaxValidateVrf(wonum, listAttribute);
                     
-                    JSONObject res = new JSONObject();
-                    res.put("code", 200);
-                    res.put("Data", data);
-                    res.writeJSONString(hsr1.getWriter());
+                    if (listAttribute.getStatusCode() == 404) {
+                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
+                        JSONObject res1 = new JSONObject();
+                        res1.put("code", 404);
+                        res1.put("message", "Generate VRF Failed");
+                        res1.writeJSONString(hsr1.getWriter());
+                    } else if (listAttribute.getStatusCode() == 200) {
+                        JSONObject res = new JSONObject();
+                        res.put("code", 4000);
+                        res.put("message", "update data successfully");
+                        res.writeJSONString(hsr1.getWriter());
+                    } else {
+                        LogUtil.info(getClass().getName(), "Call Failed");
+                    }
                 }
             } catch (Exception e) {
                 LogUtil.error(getClassName(), e, "Trace Error Here : " + e.getMessage());

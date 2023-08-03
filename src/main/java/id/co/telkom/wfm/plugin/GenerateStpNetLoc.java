@@ -117,6 +117,7 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                         res1.put("code", 4001);
                         res1.put("message", "No Device found!.");
                         res1.writeJSONString(hsr1.getWriter());
+                        hsr1.setStatus(404);
                     } else if (listAttribute.getStatusCode() == 4000) {
                         LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
 
@@ -124,6 +125,7 @@ public class GenerateStpNetLoc extends Element implements PluginWebSupport {
                         res.put("code", 4000);
                         res.put("message", "update data successfully");
                         res.writeJSONString(hsr1.getWriter());
+                        hsr1.setStatus(200);
                     } else {
                         LogUtil.info(getClass().getName(), "Call Failed");
                     }

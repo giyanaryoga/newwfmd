@@ -103,7 +103,7 @@ public class ValidateStoDao {
     public JSONObject callUimaxStoValidation(String wonum) {
         try {
             String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + getAssetattrid(wonum).get("LATITUDE").toString() + "&lon=" + getAssetattrid(wonum).get("LONGITUDE").toString() + "&serviceType=" + getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
-//            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + lat + "&lon=" + lon + "&serviceType=" + serviceType;
+
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 

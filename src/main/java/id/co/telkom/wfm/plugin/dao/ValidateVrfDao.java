@@ -5,6 +5,9 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -107,9 +110,11 @@ public class ValidateVrfDao {
         return result;
     }
 
-    public JSONObject callUimaxValidateVrf(String vrfName, String deviceName) throws MalformedURLException, IOException, JSONException {
+    public JSONObject callUimaxValidateVrf(String vrfName, String deviceName, ListGenerateAttributes listGenerate) throws MalformedURLException, IOException, JSONException {
         try {
-//            String url = "https://api-emas.telkom.co.id:8443/api/vrf/find?" + "vrfName=" + getAssetattrid(wonum).get("VRF_NAME").toString() + "&deviceName=" + getAssetattrid(wonum).get("PE_NAME").toString();
+//            String vrfName = getAssetattrid(wonum).get("VRF_NAME").toString();
+//            String deviceName = getAssetattrid(wonum).get("PE_NAME").toString() == null ? "" : getAssetattrid(wonum).get("PE_NAME").toString();
+
             String url = "https://api-emas.telkom.co.id:8443/api/vrf/find?" + "vrfName=" + vrfName + "&deviceName=" + deviceName;
 
             URL obj = new URL(url);
@@ -121,9 +126,12 @@ public class ValidateVrfDao {
             LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + url);
             LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
 
-            if (responseCode == 400) {
+            if (responseCode == 404) {
                 LogUtil.info(this.getClass().getName(), "Generate VRF Failed.");
+                listGenerate.setStatusCode(responseCode);
             } else if (responseCode == 200) {
+                listGenerate.setStatusCode(responseCode);
+
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(con.getInputStream()));
                 String inputLine;
@@ -131,26 +139,26 @@ public class ValidateVrfDao {
                 while ((inputLine = in.readLine()) != null) {
                     response.append(inputLine);
                 }
-                LogUtil.info(this.getClass().getName(), "STO : " + response);
+                LogUtil.info(this.getClass().getName(), "VRF : " + response);
                 in.close();
 
                 // 'response' contains the JSON data as a string
                 String jsonData = response.toString();
 
-                // parse the JSON data using org.json library
-                JSONObject jsonObject = new JSONObject(jsonData);
+                // parse the JSON data using Jackson
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode portArrayNode = objectMapper.readTree(jsonData);
+                
                 // Access data from the JSON object as needed
-                LogUtil.info(this.getClass().getName(), "Data : " + jsonObject);
-                
-                JSONArray deviceList = jsonObject.getJSONArray("deviceList");
-                
-                JSONArray rtImport = jsonObject.getJSONArray("rtImport");
-                JSONArray rtExport = jsonObject.getJSONArray("rtExport");
-                LogUtil.info(this.getClass().getName(), "DEVICE LIST : " + deviceList);
-                LogUtil.info(this.getClass().getName(), "RT IMPORT : " + rtImport);
-                LogUtil.info(this.getClass().getName(), "RT EXPORT : " + rtExport);
-                
+                LogUtil.info(this.getClass().getName(), "Data : " + portArrayNode);
 
+//                JSONArray deviceList = jsonObject.getJSONArray("deviceList");
+//
+//                JSONArray rtImport = jsonObject.getJSONArray("rtImport");
+//                JSONArray rtExport = jsonObject.getJSONArray("rtExport");
+//                LogUtil.info(this.getClass().getName(), "DEVICE LIST : " + deviceList);
+//                LogUtil.info(this.getClass().getName(), "RT IMPORT : " + rtImport);
+//                LogUtil.info(this.getClass().getName(), "RT EXPORT : " + rtExport);
                 // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
 //                updateSto(wonum, sto, region, witel, datel);
             }
