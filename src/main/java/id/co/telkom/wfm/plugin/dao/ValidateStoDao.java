@@ -5,6 +5,7 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -25,6 +26,7 @@ import org.json.JSONObject;
  * @author ASUS
  */
 public class ValidateStoDao {
+
     public JSONObject getAssetattrid(String wonum) throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -41,7 +43,7 @@ public class ValidateStoDao {
         }
         return resultObj;
     }
-    
+
     public boolean updateSto(String wonum, String sto, String region, String witel, String datel) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -64,29 +66,33 @@ public class ValidateStoDao {
                     ps.setString(3, witel);
                     ps.setString(4, datel);
                     ps.setString(5, wonum);
-                    
+
                     int exe = ps.executeUpdate();
-                    if(exe > 0) {
+                    if (exe > 0) {
                         result = true;
                         LogUtil.info(getClass().getName(), "STO updated to " + wonum);
                     }
-                    if (ps != null)
+                    if (ps != null) {
                         ps.close();
+                    }
                 } catch (Throwable throwable) {
                     try {
-                        if (ps != null)
+                        if (ps != null) {
                             ps.close();
+                        }
                     } catch (Throwable throwable1) {
                         throwable.addSuppressed(throwable1);
                     }
                     throw throwable;
                 }
-                if (con != null)
+                if (con != null) {
                     con.close();
+                }
             } catch (Throwable throwable) {
                 try {
-                    if (con != null)
+                    if (con != null) {
                         con.close();
+                    }
                 } catch (Throwable throwable1) {
                     throwable.addSuppressed(throwable1);
                 }
@@ -100,7 +106,7 @@ public class ValidateStoDao {
         return result;
     }
 
-    public JSONObject callUimaxStoValidation(String wonum) {
+    public JSONObject callUimaxStoValidation(String wonum, ListGenerateAttributes listGenerate) {
         try {
             String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + getAssetattrid(wonum).get("LATITUDE").toString() + "&lon=" + getAssetattrid(wonum).get("LONGITUDE").toString() + "&serviceType=" + getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
 
@@ -115,8 +121,9 @@ public class ValidateStoDao {
 
             if (responseCode == 400) {
                 LogUtil.info(this.getClass().getName(), "STO not found");
-
+                listGenerate.setStatusCode(responseCode);
             } else if (responseCode == 200) {
+                listGenerate.setStatusCode(responseCode);
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(con.getInputStream()));
                 String inputLine;
@@ -146,7 +153,7 @@ public class ValidateStoDao {
                 LogUtil.info(this.getClass().getName(), "Region : " + region);
                 LogUtil.info(this.getClass().getName(), "Witel : " + witel);
                 LogUtil.info(this.getClass().getName(), "Datel : " + datel);
-                
+
                 // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
                 updateSto(wonum, sto, region, witel, datel);
             }

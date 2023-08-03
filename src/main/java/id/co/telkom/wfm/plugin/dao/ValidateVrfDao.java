@@ -149,9 +149,9 @@ public class ValidateVrfDao {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode portArrayNode = objectMapper.readTree(jsonData);
                 
-                // Access data from the JSON object as needed
+//                String maxRoutes = portArrayNode.get("maxRoutes")
                 LogUtil.info(this.getClass().getName(), "Data : " + portArrayNode);
-
+                
 //                JSONArray deviceList = jsonObject.getJSONArray("deviceList");
 //
 //                JSONArray rtImport = jsonObject.getJSONArray("rtImport");

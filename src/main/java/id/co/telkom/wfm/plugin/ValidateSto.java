@@ -6,6 +6,7 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.ValidateStoDao;
+import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -15,6 +16,7 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -63,6 +65,7 @@ public class ValidateSto extends Element implements PluginWebSupport {
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         //@@Start..
         LogUtil.info(getClass().getName(), "Start Process: Generate Validate STO");
+        ListGenerateAttributes listAttribute = new ListGenerateAttributes();
 
         //@Authorization
         if ("GET".equals(hsr.getMethod())) {
@@ -73,7 +76,22 @@ public class ValidateSto extends Element implements PluginWebSupport {
                     String wonum = hsr.getParameter("wonum");
 //                    String lon = hsr.getParameter("lon");
 //                    String serviceType = hsr.getParameter("serviceType");
-                    dao.callUimaxStoValidation(wonum);
+                    dao.callUimaxStoValidation(wonum, listAttribute);
+                    if (listAttribute.getStatusCode() == 404) {
+                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
+
+                        JSONObject res1 = new JSONObject();
+                        res1.put("code", 404);
+                        res1.put("message", "No PE Name found!.");
+                        res1.writeJSONString(hsr1.getWriter());
+                    } else if (listAttribute.getStatusCode() == 200) {
+                        JSONObject res = new JSONObject();
+                        res.put("code", 200);
+                        res.put("message", "update data successfully");
+                        res.writeJSONString(hsr1.getWriter());
+                    } else {
+                        LogUtil.info(getClass().getName(), "Call Failed");
+                    }
                 }
             } catch (Exception e) {
                 LogUtil.error(getClassName(), e, "Trace Error Here : " + e.getMessage());
