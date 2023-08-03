@@ -25,17 +25,17 @@ public class RevisedTask extends DefaultApplicationPlugin {
     public Object execute(Map map) {
         RevisedTaskDao dao = new RevisedTaskDao();
         
+        String task = getPropertyString("task");
         String wonum = getPropertyString("wonum");
         String attrName = getPropertyString("assetattrid");
         String attrValue = getPropertyString("value");
         String[] parent = wonum.split(" - ");
         
+        LogUtil.info(this.getClassName(), "TASK: "+ task);
         LogUtil.info(this.getClassName(), "WONUM: "+ wonum);
         LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: "+ attrName);
         LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: "+ attrValue);
         String wonumParent = parent[0];
-//        String childWonum = parent[1];
-//        String status = null;
         
         try {
             switch(attrName){
@@ -55,6 +55,96 @@ public class RevisedTask extends DefaultApplicationPlugin {
                         LogUtil.info(this.getClassName(), "Approval Survey is not REJECTED");
                     }
                 break;
+                case "NODE_ID":
+                    if (!attrValue.equalsIgnoreCase("None")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is None");
+                    }
+                break;
+                case "ACCESS REQUIRED 1":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not NO");
+                    }
+                break;
+                case "ACCESS REQUIRED 2":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not NO");
+                    }
+                break;
+                case "APPROVED":
+                    if (attrValue.equalsIgnoreCase("REJECTED")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not REJECTED");
+                    }
+                break;
+                case "TIPE MODIFY":
+                    if (!attrValue.equalsIgnoreCase("Modify Number")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else if (attrValue.equalsIgnoreCase("Modify Concurrent")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else if (attrValue.equalsIgnoreCase("Modify IP")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else if (attrValue.equalsIgnoreCase("Modify Bandwidth") || attrValue.equalsIgnoreCase("Modify Address")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else if (attrValue.equalsIgnoreCase("Modify Concurrent Dan Bandwidth")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else if (attrValue.equalsIgnoreCase("Modify Number, Concurrent, Bandwidth")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not Modify Number");
+                    }
+                break;
+                case "ACCEPT":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not NO");
+                    }
+                break;
+                case "ACCESS_REQUIRED":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not NO");
+                    }
+                break;
+                case "MODIFY_TYPE":
+                    if (attrValue.equalsIgnoreCase("Bandwidth")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else if (attrValue.equalsIgnoreCase("Service (P2P dan P2MP)") || attrValue.equalsIgnoreCase("Port")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not NO");
+                    }
+                break;
+//                case "TIPE MODIFY":
+//                    if (!attrValue.equalsIgnoreCase("")) {
+//                        dao.reviseTask(wonumParent);
+//                        dao.generateActivityTask(wonumParent);
+//                    } else {
+//                        LogUtil.info(this.getClassName(), "Approval Survey is not NO");
+//                    }
+//                break;
                 default:
                     LogUtil.info(this.getClassName(), "Attribute name dan value tidak memenuhi Revised Task");
                 break;

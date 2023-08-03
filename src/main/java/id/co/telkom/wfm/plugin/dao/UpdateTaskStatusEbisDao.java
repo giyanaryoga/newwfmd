@@ -10,6 +10,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -22,6 +26,13 @@ import org.json.simple.JSONObject;
  * @author ASUS
  */
 public class UpdateTaskStatusEbisDao {
+    private Timestamp getTimeStamp() {
+        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"); 
+        Timestamp ts =  Timestamp.valueOf(zdt.toLocalDateTime().format(format));
+        return ts;
+    }
+    
     public String checkMandatory(String wonum) throws SQLException {
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -169,7 +180,8 @@ public class UpdateTaskStatusEbisDao {
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
             int index = 0;
             ps.setString(1 + index, status);
-            ps.setString(2 + index, statusDate);
+//            ps.setString(2 + index, statusDate);
+            ps.setTimestamp(2 + index, Timestamp.valueOf(statusDate));
             ps.setString(3 + index, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
@@ -462,7 +474,7 @@ public class UpdateTaskStatusEbisDao {
     // INSERT TO TABLE APP_FD_WFMMILESTONE
     //====================================
     public void insertToWfmMilestone(String wonum, String siteId, String statusDate) {
-        TimeUtil time = new TimeUtil();
+//        TimeUtil time = new TimeUtil();
 
         // Generate UUID
         String uuId = UuidGenerator.getInstance().getUuid();
@@ -513,13 +525,14 @@ public class UpdateTaskStatusEbisDao {
                 PreparedStatement ps = con.prepareStatement(insert.toString());
                 try {
                     ps.setString(1, uuId);
-                    ps.setTimestamp(2, time.getTimeStamp());
-                    ps.setTimestamp(3, time.getTimeStamp());
+                    ps.setTimestamp(2, getTimeStamp());
+                    ps.setTimestamp(3, getTimeStamp());
                     ps.setString(4, wonum);
                     ps.setString(5, wonum);
                     ps.setString(6, siteId);
                     ps.setString(7, wonum);
-                    ps.setString(8, statusDate);
+//                    ps.setString(8, statusDate);
+                    ps.setTimestamp(8, Timestamp.valueOf(statusDate));
 
                     int exe = ps.executeUpdate();
                     if (exe > 0) {
