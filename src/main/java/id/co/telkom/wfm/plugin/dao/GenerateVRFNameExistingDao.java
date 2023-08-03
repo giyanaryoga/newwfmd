@@ -36,6 +36,41 @@ public class GenerateVRFNameExistingDao {
         return result;
     }
 
+    public boolean deletetkDeviceattribute(String wonum, Connection con) throws SQLException{
+        boolean status = false;
+        String queryDelete = "DELETE FROM app_fd_tk_deviceattribute WHERE c_ref_num = ?";
+        PreparedStatement ps = con.prepareStatement(queryDelete);
+        ps.setString(1, wonum);
+        int count= ps.executeUpdate();
+        if(count>0){
+            status = true;
+        }
+        LogUtil.info(getClass().getName(), "Status Delete : "+status);
+        return status;
+    }
+
+    public boolean inserttkDeviceattribute(String wonum, String description, Connection con) throws SQLException{
+        boolean status = false;
+        Date date = new Date();
+        Timestamp timestamp = new Timestamp(date.getTime());
+
+        String uuId = UuidGenerator.getInstance().getUuid();
+        String queryUpdate = "INSERT INTO app_fd_tk_deviceattribute(id, c_description , c_attr_name, c_ref_num, datecreated, datemodified) VALUES(?,?,?,?,?,?)";
+        PreparedStatement ps = con.prepareStatement(queryUpdate);
+        ps.setString(1, uuId);
+        ps.setString(2, description);
+        ps.setString(3, "VRF_NAME");
+        ps.setString(4, wonum);
+        ps.setTimestamp(5, timestamp);
+        ps.setTimestamp(6, timestamp);
+        int count= ps.executeUpdate();
+        if(count>0){
+            status = true;
+        }
+        LogUtil.info(getClass().getName(), "Status Insert : "+status);
+        return status;
+    }
+
 
     public String callGenerateVRFNameExisting(String wonum) {
         String msg = "";
@@ -56,7 +91,7 @@ public class GenerateVRFNameExistingDao {
             LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
 
             if (responseCode == 400) {
-                LogUtil.info(this.getClass().getName(), "STO not found");
+                LogUtil.info(this.getClass().getName(), "Find VRF Name Not Found");
 
             } else if (responseCode == 200) {
                 DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -75,23 +110,15 @@ public class GenerateVRFNameExistingDao {
                 String jsonData = response.toString();
 
                 // Now, parse the JSON data using org.json library
-//                JSONObject jsonObject = new JSONObject(jsonData);
-////                JSONObject port = jsonObject.getJSONObject("port");
-//                JSONArray arrayPort = jsonObject.getJSONArray("port");
-//                for (int i = 0; i < arrayPort.length(); i++) {
-//                    JSONObject portObject = arrayPort.getJSONObject(i);
-//                    msg=msg+"Portname: "+portObject.getString("name")+"\n";
-//                    msg=msg+"Keyname: "+portObject.getString("key")+"\n";
-//
-//                    LogUtil.info(this.getClass().getName(), "Object Port :" + arrayPort.toString());
-//                    String description = portObject.getString("name");
-//                    String attr_type = "";
-//                    updatetkDeviceattribute(wonum, description, attr_type, "AN_UPLINK_PORTNAME",connection);
-//
-//                    description = portObject.getString("key");
-//                    attr_type = portObject.getString("name");
-//                    updatetkDeviceattribute(wonum, description, attr_type, "AN_UPLINK_PORTID",connection);
-//                }
+                JSONArray jsonArray = new JSONArray(jsonData);
+                deletetkDeviceattribute(wonum, connection);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject responObject = jsonArray.getJSONObject(i);
+                    String vrcNamedesc = responObject.getString("name");
+                    inserttkDeviceattribute(wonum, vrcNamedesc, connection);
+                    msg=msg+"VRF Name: "+vrcNamedesc+"\n";
+                }
+
                 return "VRF Name Existing Found\n"+msg;
             }
         } catch (Exception e) {

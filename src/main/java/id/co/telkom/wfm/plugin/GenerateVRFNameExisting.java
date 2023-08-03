@@ -57,7 +57,7 @@ public class GenerateVRFNameExisting extends Element implements PluginWebSupport
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
 
         //@@Start..
-        LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE UPLINK PORT ###############");
+        LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE VRF NAME EXISTING ###############");
 
 
         //@Authorization
