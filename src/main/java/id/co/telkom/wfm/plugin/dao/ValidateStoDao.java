@@ -48,14 +48,15 @@ public class ValidateStoDao {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
-        update.append("UPDATE APP_FD_WORKORDERSPEC")
-                .append("SET c_value = CASE c_assetattrid")
-                .append("WHEN 'STO' THEN ?")
-                .append("WHEN 'REGION' THEN ?")
-                .append("WHEN 'WITEL' THEN ?")
-                .append("WHEN 'DATEL' THEN ?")
-                .append("ELSE 'Missing' END")
-                .append("WHERE c_wonum = ?");
+        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+                .append("SET c_value = CASE c_assetattrid ")
+                .append("WHEN 'STO' THEN ? ")
+                .append("WHEN 'REGION' THEN ? ")
+                .append("WHEN 'WITEL' THEN ? ")
+                .append("WHEN 'DATEL' THEN ? ")
+                .append("ELSE 'Missing' END ")
+                .append("WHERE c_wonum = ? ")
+                .append("AND c_assetattrid IN ('STO', 'REGION', 'WITEL', 'DATEL') ");
         try {
             Connection con = ds.getConnection();
             try {
@@ -108,8 +109,15 @@ public class ValidateStoDao {
 
     public JSONObject callUimaxStoValidation(String wonum, ListGenerateAttributes listGenerate) {
         try {
-            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + getAssetattrid(wonum).get("LATITUDE").toString() + "&lon=" + getAssetattrid(wonum).get("LONGITUDE").toString() + "&serviceType=" + getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
-
+            String productType = getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
+            String latitude = getAssetattrid(wonum).get("LATITUDE").toString();
+            String longitude = getAssetattrid(wonum).get("LONGITUDE").toString();
+            LogUtil.info(this.getClass().getName(), "PRODUCT_TYPE : " + productType);
+            LogUtil.info(this.getClass().getName(), "LATITUDE : " + latitude);
+            LogUtil.info(this.getClass().getName(), "LONGITUDE : " + longitude);
+            
+            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByCoordinate?" + "lat=" + latitude + "&lon=" + longitude + "&serviceType=" + productType;
+//            String url = "https://api-emas.telkom.co.id:8443/api/area/stoByService?serviceId=1-1147792-0031307299";
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 

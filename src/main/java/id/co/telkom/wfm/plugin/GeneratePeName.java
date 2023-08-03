@@ -68,6 +68,7 @@ public class GeneratePeName extends Element implements PluginWebSupport {
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         //@@Start..
         LogUtil.info(getClass().getName(), "Start Process: Generate ME Service");
+        ListGenerateAttributes listAttribute = new ListGenerateAttributes();
 
         //@Authorization
         if ("GET".equals(hsr.getMethod())) {
@@ -75,7 +76,6 @@ public class GeneratePeName extends Element implements PluginWebSupport {
                 LogUtil.info(getClassName(), "Call Generate PE Name");
 
                 GeneratePeNameDao dao = new GeneratePeNameDao();
-                ListGenerateAttributes listAttribute = new ListGenerateAttributes();
 
                 if (hsr.getParameterMap().containsKey("wonum")) {
                     String wonum = hsr.getParameter("wonum");
