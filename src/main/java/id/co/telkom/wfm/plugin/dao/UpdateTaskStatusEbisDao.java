@@ -22,7 +22,28 @@ import org.json.simple.JSONObject;
  * @author ASUS
  */
 public class UpdateTaskStatusEbisDao {
-
+    public String checkMandatory(String wonum) throws SQLException {
+        String value = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String update = "SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update)) {
+            ps.setString(1, wonum);
+            ps.setInt(2, 1);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                LogUtil.info(getClass().getName(), "Task attribute value is mandatory");
+                value = rs.getString("c_value");
+            } else {
+                LogUtil.info(getClass().getName(), "Task attribute value is not mandatory");
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return value;
+    }
     //===========================
     // Function Update Task
     //===========================
@@ -65,7 +86,6 @@ public class UpdateTaskStatusEbisDao {
                 final String result = rs.getString("c_wosequence");
                 if (result.equals("10") || result.equals("20") || result.equals("30") || result.equals("40") || result.equals("50") || result.equals("60")) {
                     nextMove = "ASSIGNTASK";
-//                    updateWoDesc(parent, nextTaskId);
                 } else {
                     nextMove = "COMPLETE";
                 }

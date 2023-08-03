@@ -149,76 +149,81 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         res.put("message", "Successfully update status");
                         res.writeJSONString(hsr1.getWriter());
                     } else if ("COMPWA".equals(body.get("status"))) {
-                        // update task status
-                        updateTaskStatusEbisDao.updateTask(wonum, status);
-                        
-                        if (description.equals("Registration Suplychain") || description.equals("Replace NTE") || description.equals("Registration Suplychain Wifi")) {
-                            // Start of Set Install/Set Dismantle
-                            ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
-                            scmtIntegrationEbisDao.sendInstall(parent);
+                        String isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
+                        if (isMandatoryValue != null) {
+                            // update task status
+                            updateTaskStatusEbisDao.updateTask(wonum, status);
 
-                            JSONObject res = new JSONObject();
-                            res.put("code", "255");
-                            res.put("message", "Success");
-                            res.writeJSONString(hsr1.getWriter());
-                            hsr1.setStatus(255);
-                            final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
-                            if (nextAssign) {
-                                hsr1.setStatus(200);
-                                
-                            }
-//                            updateTaskStatusEbisDao.updateTask(wonum, status);
-                        } else {
-                            // Define the next move
-                            final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
+                            if (description.equals("Registration Suplychain") || description.equals("Replace NTE") || description.equals("Registration Suplychain Wifi")) {
+                                // Start of Set Install/Set Dismantle
+                                ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
+                                scmtIntegrationEbisDao.sendInstall(parent);
 
-                            if ("COMPLETE".equals(nextMove)) {
-                                try {
-                                    // Update parent status
-                                    updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
-                                    LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
-
-                                    // update task status
-                                    final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
-                                    if (updateTask) {
-                                        hsr1.setStatus(200);
-                                    }
-
-                                    // Insert data to table WFMMILESTONE
-                                    updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, currentDate);
-
-                                    //Create response
-                                    JSONObject dataRes = new JSONObject();
-                                    dataRes.put("wonum", parent);
-                                    dataRes.put("milestone", woStatus);
-                                    JSONObject res = new JSONObject();
-                                    res.put("code", "200");
-                                    res.put("message", "Success");
-                                    res.put("data", dataRes);
-                                    res.writeJSONString(hsr1.getWriter());
-                                    
-                                    //Build Response
-                                    JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
-
-                                    // Response to Kafka
-                                    String topic = "WFM_MILESTONE_ENTERPRISE_" + siteId.replaceAll("\\s+", "");
-                                    String kafkaRes = data.toJSONString();
-                                    KafkaProducerTool kaf = new KafkaProducerTool();
-                                    kaf.generateMessage(kafkaRes, topic, "");
-                                    hsr1.setStatus(256);
-                                } catch (IOException | SQLException e) {
-                                    LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-                                }
-                            } else {
-                                //Give LABASSIGN to next task
+                                JSONObject res = new JSONObject();
+                                res.put("code", "255");
+                                res.put("message", "Success");
+                                res.writeJSONString(hsr1.getWriter());
+                                hsr1.setStatus(255);
                                 final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                                 if (nextAssign) {
                                     hsr1.setStatus(200);
-//                                    updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
+
                                 }
-                                updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
-                                updateTaskStatusEbisDao.updateTask(wonum, status);
+    //                            updateTaskStatusEbisDao.updateTask(wonum, status);
+                            } else {
+                                // Define the next move
+                                final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
+
+                                if ("COMPLETE".equals(nextMove)) {
+                                    try {
+                                        // Update parent status
+                                        updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
+                                        LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
+
+                                        // update task status
+                                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                                        if (updateTask) {
+                                            hsr1.setStatus(200);
+                                        }
+
+                                        // Insert data to table WFMMILESTONE
+                                        updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, currentDate);
+
+                                        //Create response
+                                        JSONObject dataRes = new JSONObject();
+                                        dataRes.put("wonum", parent);
+                                        dataRes.put("milestone", woStatus);
+                                        JSONObject res = new JSONObject();
+                                        res.put("code", "200");
+                                        res.put("message", "Success");
+                                        res.put("data", dataRes);
+                                        res.writeJSONString(hsr1.getWriter());
+
+                                        //Build Response
+                                        JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
+
+                                        // Response to Kafka
+                                        String topic = "WFM_MILESTONE_ENTERPRISE_" + siteId.replaceAll("\\s+", "");
+                                        String kafkaRes = data.toJSONString();
+                                        KafkaProducerTool kaf = new KafkaProducerTool();
+                                        kaf.generateMessage(kafkaRes, topic, "");
+                                        hsr1.setStatus(256);
+                                    } catch (IOException | SQLException e) {
+                                        LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
+                                    }
+                                } else {
+                                    //Give LABASSIGN to next task
+                                    final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
+                                    if (nextAssign) {
+                                        hsr1.setStatus(200);
+    //                                    updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
+                                    }
+                                    updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
+                                    updateTaskStatusEbisDao.updateTask(wonum, status);
+                                }
                             }
+                        } else {
+                            hsr1.setStatus(422);
                         }
                     } else if ("FAILWA".equals(body.get("status"))) {
                         final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);

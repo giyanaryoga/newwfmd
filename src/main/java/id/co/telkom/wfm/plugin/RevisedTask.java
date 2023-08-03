@@ -34,21 +34,30 @@ public class RevisedTask extends DefaultApplicationPlugin {
         LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: "+ attrName);
         LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: "+ attrValue);
         String wonumParent = parent[0];
-        String childWonum = parent[1];
-        String status = null;
+//        String childWonum = parent[1];
+//        String status = null;
         
         try {
-            if (attrName.equalsIgnoreCase("APPROVAL_SURVEY")) {
-                if (attrValue.equalsIgnoreCase("BACK_TO_SURVEY")) {
-                    dao.reviseTask(wonumParent);
-//                    int taskId = dao.getTaskId(wonumParent);
-//                    if (childWonum == "1") {
-//                        status = "LABASSIGN";
-//                    } else {
-//                        status = "APPR";
-//                    }
-                    dao.generateActivityTask(wonumParent);
-                }
+            switch(attrName){
+                case "APPROVAL_SURVEY":
+                    if (attrValue.equalsIgnoreCase("BACK_TO_SURVEY")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not BACK_TO_SURVEY");
+                    }
+                break;
+                case "APPROVAL":
+                    if (attrValue.equalsIgnoreCase("REJECTED")) {
+                        dao.reviseTask(wonumParent);
+                        dao.generateActivityTask(wonumParent);
+                    } else {
+                        LogUtil.info(this.getClassName(), "Approval Survey is not REJECTED");
+                    }
+                break;
+                default:
+                    LogUtil.info(this.getClassName(), "Attribute name dan value tidak memenuhi Revised Task");
+                break;
             }
         } catch (SQLException ex) {
             Logger.getLogger(RevisedTask.class.getName()).log(Level.SEVERE, null, ex);
