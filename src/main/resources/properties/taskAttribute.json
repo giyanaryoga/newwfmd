@@ -7,6 +7,11 @@
             "type": "textfield"
         },
         {
+            "name": "task",
+            "label": "Task",
+            "type": "textfield"
+        },
+        {
             "name": "assetattrid",
             "label": "Attribute Name",
             "type": "textfield"
