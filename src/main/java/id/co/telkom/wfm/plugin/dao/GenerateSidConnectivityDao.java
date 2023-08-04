@@ -149,7 +149,7 @@ public class GenerateSidConnectivityDao {
     public String moveFirst(String wonum) throws SQLException {
         String moveFirst = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ? AND c_attr_name in ('STP_NETWORKLOCATION')";
+        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query);) {
             ps.setString(1, wonum);

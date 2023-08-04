@@ -103,16 +103,14 @@ public class GenerateSidConnectivity extends Element implements PluginWebSupport
                 try {
                     
                     dao.callGenerateConnectivity(dao.getScorderno(wonum), listAttribute);
-
-                    LogUtil.info(this.getClassName(), "get data: " + listAttribute.getStatusCode3());
                     
-                    if (listAttribute.getStatusCode3() == 404) {
+                    if (listAttribute.getStatusCode() == 404) {
                         JSONObject res1 = new JSONObject();
                         res1.put("code", 404);
                         res1.put("message", "No Service found!.");
                         res1.writeJSONString(hsr1.getWriter());
 //                        dao.insertIntegrationHistory(wonum, line, wonum, wonum, orderId);
-                    } else {
+                    } else if (listAttribute.getStatusCode() == 200) {
                         dao.moveFirst(wonum);
                         dao.insertIntoDeviceTable(wonum, listAttribute);
 //                        dao.insertIntegrationHistory(wonum, line, wonum, wonum, orderId);

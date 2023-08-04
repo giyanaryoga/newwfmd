@@ -51,13 +51,14 @@ public class GenerateMeServiceDao {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
-        update.append("UPDATE APP_FD_WORKORDERSPEC")
-                .append("SET c_value = CASE c_assetattrid")
-                .append("WHEN 'ME_SERVICE_MANUFACTURE' THEN ?")
-                .append("WHEN 'ME_SERVICE_NAME' THEN ?")
-                .append("WHEN 'ME_SERVICE_IPADDRESS' THEN ?")
-                .append("ELSE 'Missing' END")
-                .append("WHERE c_wonum = ?");
+        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+                .append("SET c_value = CASE c_assetattrid ")
+                .append("WHEN 'ME_SERVICE_MANUFACTURE' THEN ? ")
+                .append("WHEN 'ME_SERVICE_NAME' THEN ? ")
+                .append("WHEN 'ME_SERVICE_IPADDRESS' THEN ? ")
+                .append("ELSE 'Missing' END ")
+                .append("WHERE c_wonum = ? ")
+                .append("AND c_assetattrid IN ('ME_SERVICE_MANUFACTURE', 'ME_SERVICE_NAME', 'ME_SERVICE_IPADDRESS')");
         try {
             Connection con = ds.getConnection();
             try {
@@ -111,16 +112,17 @@ public class GenerateMeServiceDao {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
-        update.append("UPDATE APP_FD_WORKORDERSPEC")
-                .append("SET c_value = CASE c_assetattrid")
-                .append("WHEN 'ME_SERVICE_MANUFACTURE' THEN ?")
-                .append("WHEN 'ME_SERVICE_NAME' THEN ?")
-                .append("WHEN 'ME_SERVICE_IPADDRESS' THEN ?")
-                .append("WHEN 'ME_SERVICE_PORT_MTU' THEN ?")
-                .append("WHEN 'ME_SERVICE_KEY' THEN ?")
-                .append("WHEN 'ME_SERVICE_PORTNAME' THEN ?")
-                .append("ELSE 'Missing' END")
-                .append("WHERE c_wonum = ?");
+        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+                .append("SET c_value = CASE c_assetattrid ")
+                .append("WHEN 'ME_SERVICE_MANUFACTURE' THEN ? ")
+                .append("WHEN 'ME_SERVICE_NAME' THEN ? ")
+                .append("WHEN 'ME_SERVICE_IPADDRESS' THEN ? ")
+                .append("WHEN 'ME_SERVICE_PORT_MTU' THEN ? ")
+                .append("WHEN 'ME_SERVICE_KEY' THEN ? ")
+                .append("WHEN 'ME_SERVICE_PORTNAME' THEN ? ")
+                .append("ELSE 'Missing' END ")
+                .append("WHERE c_wonum = ? ")
+                .append("AND c_assetattrid IN ('ME_SERVICE_MANUFACTURE', 'ME_SERVICE_NAME', 'ME_SERVICE_IPADDRESS', 'ME_SERVICE_PORT_MTU', 'ME_SERVICE_KEY', 'ME_SERVICE_PORTNAME')");
         try {
             Connection con = ds.getConnection();
             try {

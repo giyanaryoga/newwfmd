@@ -52,19 +52,20 @@ public class GenerateMeAccessDao {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
-        update.append("UPDATE APP_FD_WORKORDERSPEC")
-                .append("SET c_value = CASE c_assetattrid")
-                .append("WHEN 'ME_MANUFACTUR' THEN ?")
-                .append("WHEN 'ME_NAME' THEN ?")
-                .append("WHEN 'ME_IPADDRESS' THEN ?")
-                .append("WHEN 'AN_MANUFACTUR' THEN ?")
-                .append("WHEN 'AN_NAME' THEN ?")
-                .append("WHEN 'AN_IPADDRESS' THEN ?")
-                .append("SET c_readonly = CASE c_assetattrid")
-                .append("WHEN 'ME_PORTNAME' THEN ?")
-                .append("WHEN 'ME_PORTID' THEN ?")
-                .append("ELSE 'Missing' END")
-                .append("WHERE c_wonum = ?");
+        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+                .append("SET c_value = CASE c_assetattrid ")
+                .append("WHEN 'ME_MANUFACTUR' THEN ? ")
+                .append("WHEN 'ME_NAME' THEN ? ")
+                .append("WHEN 'ME_IPADDRESS' THEN ? ")
+                .append("WHEN 'AN_MANUFACTUR' THEN ? ")
+                .append("WHEN 'AN_NAME' THEN ? ")
+                .append("WHEN 'AN_IPADDRESS' THEN ? ")
+                .append("SET c_readonly = CASE c_assetattrid ")
+                .append("WHEN 'ME_PORTNAME' THEN ? ")
+                .append("WHEN 'ME_PORTID' THEN ? ")
+                .append("ELSE 'Missing' END ")
+                .append("WHERE c_wonum = ? ")
+                .append("AND c_assetattrid IN ('ME_MANUFACTUR', 'ME_NAME', 'ME_IPADDRESS', 'AN_MANUFACTUR', 'AN_NAME', 'AN_IPADDRESS', 'ME_PORTNAME', 'ME_PORTID')");
         try {
             Connection con = ds.getConnection();
             try {
@@ -123,16 +124,17 @@ public class GenerateMeAccessDao {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
-        update.append("UPDATE APP_FD_WORKORDERSPEC")
-                .append("SET c_value = CASE c_assetattrid")
-                .append("WHEN 'ME_MANUFACTUR' THEN ?")
-                .append("WHEN 'ME_NAME' THEN ?")
-                .append("WHEN 'ME_IPADDRESS' THEN ?")
-                .append("WHEN 'ME_PORT_MTU' THEN ?")
-                .append("WHEN 'ME_PORTID' THEN ?")
-                .append("WHEN 'ME_PORTNAME' THEN ?")
-                .append("ELSE 'Missing' END")
-                .append("WHERE c_wonum = ?");
+        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+                .append("SET c_value = CASE c_assetattrid ")
+                .append("WHEN 'ME_MANUFACTUR' THEN ? ")
+                .append("WHEN 'ME_NAME' THEN ? ")
+                .append("WHEN 'ME_IPADDRESS' THEN ? ")
+                .append("WHEN 'ME_PORT_MTU' THEN ? ")
+                .append("WHEN 'ME_PORTID' THEN ? ")
+                .append("WHEN 'ME_PORTNAME' THEN ? ")
+                .append("ELSE 'Missing' END ")
+                .append("WHERE c_wonum = ? ")
+                .append("AND c_assetattrid IN ('ME_MANUFACTUR', 'ME_NAME', 'ME_IPADDRESS', , 'ME_PORT_MTU', 'ME_PORTNAME', 'ME_PORTID')");
         try {
             Connection con = ds.getConnection();
             try {

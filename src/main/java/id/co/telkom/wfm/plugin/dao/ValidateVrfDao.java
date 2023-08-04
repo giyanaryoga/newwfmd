@@ -59,7 +59,8 @@ public class ValidateVrfDao {
                 .append("WHEN 'WITEL' THEN ?")
                 .append("WHEN 'DATEL' THEN ?")
                 .append("ELSE 'Missing' END")
-                .append("WHERE c_wonum = ?");
+                .append("WHERE c_wonum = ?")
+                .append("AND c_assetattrid IN ('RT_EXPORT','RT_IMPORT','MAX_ROUTES', 'RD', 'ASN_NUMBER')");
         try {
             Connection con = ds.getConnection();
             try {
@@ -114,6 +115,7 @@ public class ValidateVrfDao {
         try {
 //            String vrfName = getAssetattrid(wonum).get("VRF_NAME").toString();
 //            String deviceName = getAssetattrid(wonum).get("PE_NAME").toString() == null ? "" : getAssetattrid(wonum).get("PE_NAME").toString();
+//            String rd = getAssetattrid(wonum).get("RD").toString();
 
             String url = "https://api-emas.telkom.co.id:8443/api/vrf/find?" + "vrfName=" + vrfName + "&deviceName=" + deviceName;
 
@@ -131,37 +133,69 @@ public class ValidateVrfDao {
                 listGenerate.setStatusCode(responseCode);
             } else if (responseCode == 200) {
                 listGenerate.setStatusCode(responseCode);
+//                if (rd != "") {
+//                    LogUtil.info(this.getClass().getName(), "RD is already generated, Refresh/Reopen order to view the RD, RT Import, RT Export detail.");
+//                } else {
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuffer response = new StringBuffer();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    LogUtil.info(this.getClass().getName(), "VRF : " + response);
+                    in.close();
 
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuffer response = new StringBuffer();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
+                    // 'response' contains the JSON data as a string
+                    String jsonData = response.toString();
+
+                    JSONArray jsonArray = new JSONArray(jsonData);
+
+                    if (jsonArray.length() > 0) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(0);
+
+                        String maxRoutes = jsonObject.get("maxRoutes").toString();
+                        String reservedRD = jsonObject.get("reservedRD").toString();
+                        String[] asnNumberRaw = reservedRD.split(":");
+                        String asnNumber = asnNumberRaw[0];
+
+                        LogUtil.info(this.getClass().getName(), "Max Routes: " + maxRoutes);
+                        LogUtil.info(this.getClass().getName(), "Max ReservedRD: " + reservedRD);
+                        LogUtil.info(this.getClass().getName(), "ASN Number: " + asnNumber);
+
+                        JSONArray deviceListArray = jsonObject.getJSONArray("deviceList");
+                        JSONArray rtImportArray = jsonObject.getJSONArray("rtImport");
+                        JSONArray rtExportArray = jsonObject.getJSONArray("rtExport");
+
+                        // Getting values from deviceList
+                        for (int i = 0; i < deviceListArray.length(); i++) {
+                            JSONObject deviceObj = deviceListArray.getJSONObject(i);
+                            String ipAddress = deviceObj.getString("ipAddress");
+                            String manufacturer = deviceObj.getString("manufacturer");
+                            String model = deviceObj.getString("model");
+                            String name = deviceObj.getString("name");
+                            // ... continue getting other values if needed
+                            LogUtil.info(this.getClass().getName(), "Device " + (i + 1) + ":");
+                            LogUtil.info(this.getClass().getName(), "IP Address: " + ipAddress);
+                            LogUtil.info(this.getClass().getName(), "Manufacturer: " + manufacturer);
+                            LogUtil.info(this.getClass().getName(), "Model: " + model);
+                            LogUtil.info(this.getClass().getName(), "Name: " + name);
+                        }
+
+                        // Getting values from rtImport
+                        for (int i = 0; i < rtImportArray.length(); i++) {
+                            String rtImportValue = rtImportArray.getString(i);
+                            LogUtil.info(this.getClass().getName(), "rtImport " + (i + 1) + ": " + rtImportValue);
+                        }
+
+                        // Getting values from rtExport
+                        for (int i = 0; i < rtExportArray.length(); i++) {
+                            String rtExportValue = rtExportArray.getString(i);
+                            LogUtil.info(this.getClass().getName(), "rtExport " + (i + 1) + ": " + rtExportValue);
+                        }
+                    }
                 }
-                LogUtil.info(this.getClass().getName(), "VRF : " + response);
-                in.close();
-
-                // 'response' contains the JSON data as a string
-                String jsonData = response.toString();
-
-                // parse the JSON data using Jackson
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode portArrayNode = objectMapper.readTree(jsonData);
-                
-//                String maxRoutes = portArrayNode.get("maxRoutes")
-                LogUtil.info(this.getClass().getName(), "Data : " + portArrayNode);
-                
-//                JSONArray deviceList = jsonObject.getJSONArray("deviceList");
-//
-//                JSONArray rtImport = jsonObject.getJSONArray("rtImport");
-//                JSONArray rtExport = jsonObject.getJSONArray("rtExport");
-//                LogUtil.info(this.getClass().getName(), "DEVICE LIST : " + deviceList);
-//                LogUtil.info(this.getClass().getName(), "RT IMPORT : " + rtImport);
-//                LogUtil.info(this.getClass().getName(), "RT EXPORT : " + rtExport);
-                // Update STO, REGION, WITEL, DATEL from table WORKORDERSPEC
-//                updateSto(wonum, sto, region, witel, datel);
-            }
+//            }
         } catch (Exception e) {
             LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
         }

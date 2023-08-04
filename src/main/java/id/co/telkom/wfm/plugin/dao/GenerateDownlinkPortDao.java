@@ -62,13 +62,13 @@ public class GenerateDownlinkPortDao {
     public String deleteTkDeviceattribute(String wonum) throws SQLException {
         String moveFirst = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ? AND c_attr_name in ('STP_NETWORKLOCATION')";
+        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query);) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs != null) {
-                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE";
+                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_NUM = ?";
                 ResultSet del = ps.executeQuery(delete);
                 moveFirst = "Deleted data";
                 LogUtil.info(getClass().getName(), "Berhasil menghapus data" + del);

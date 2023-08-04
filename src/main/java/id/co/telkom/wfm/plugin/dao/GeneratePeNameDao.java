@@ -83,11 +83,12 @@ public class GeneratePeNameDao {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
-        update.append("UPDATE APP_FD_WORKORDERSPEC")
-                .append("SET c_value = CASE c_assetattrid")
-                .append("WHEN 'COMMUNITY_TRANSIT' THEN ?")
-                .append("ELSE 'Missing' END")
-                .append("WHERE c_wonum = ?");
+        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+                .append("SET c_value = CASE c_assetattrid ")
+                .append("WHEN 'COMMUNITY_TRANSIT' THEN ? ")
+                .append("ELSE 'Missing' END ")
+                .append("WHERE c_wonum = ? ")
+                .append("AND c_assetattrid = 'COMMUNITY_TRANSIT' ");
         try {
             Connection con = ds.getConnection();
             try {
