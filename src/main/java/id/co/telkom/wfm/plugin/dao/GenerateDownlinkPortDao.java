@@ -109,8 +109,7 @@ public class GenerateDownlinkPortDao {
         }
     }
 
-    public JSONObject formatRequest(String wonum) throws SQLException, JSONException {
-        ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+    public JSONObject formatRequest(String wonum, ListGenerateAttributes listGenerate) throws SQLException, JSONException {
         try {
             String nteName = getAssetattrid(wonum).get("NTE_NAME").toString();
             String anSto = getAssetattrid(wonum).get("AN_STO").toString() == null ? "" : getAssetattrid(wonum).get("AN_STO").toString();
@@ -121,10 +120,10 @@ public class GenerateDownlinkPortDao {
                 String stpName = getAssetattrid(wonum).get("STP_NAME_ALN").toString() == null ? "" : getAssetattrid(wonum).get("STP_NAME_ALN").toString();
                 String stpPortName = getAssetattrid(wonum).get("STP_PORT_NAME_ALN").toString() == null ? "" : getAssetattrid(wonum).get("STP_PORT_NAME_ALN").toString();
                 String stpPortId = getAssetattrid(wonum).get("STP_PORT_ID").toString() == null ? "" : getAssetattrid(wonum).get("STP_PORT_ID").toString();
-                callGenerateDownlinkPort(wonum, "10", stpName, stpPortName, stpPortId, anSto, listAttribute);
+                callGenerateDownlinkPort(wonum, "10", stpName, stpPortName, stpPortId, anSto, listGenerate);
             } else if(nteName!=""){
                 String nteDownlinkPort = getAssetattrid(wonum).get("NTE_DOWNLINK_PORT").toString() == null ? "" : getAssetattrid(wonum).get("NTE_DOWNLINK_PORT").toString();
-                callGenerateDownlinkPort(wonum, "10", nteName, "", nteDownlinkPort, anSto, listAttribute);
+                callGenerateDownlinkPort(wonum, "10", nteName, "", nteDownlinkPort, anSto, listGenerate);
                 LogUtil.info(getClass().getName(), "Message: " + "\n" + nteName + "\n" + nteDownlinkPort + "\n" + result);
             }
         } catch (Throwable ex) {
