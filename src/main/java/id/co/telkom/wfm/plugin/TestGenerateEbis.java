@@ -93,6 +93,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
         TaskGenerateEbisDao dao2 = new TaskGenerateEbisDao();
+//        TaskGenerateEbisDao dao2 = new TaskGenerateEbisDao();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;
@@ -165,8 +166,10 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 
                 LogUtil.info(getClass().getName(), "Start Process: Generate task | Wonum: " + parent);
                 //Getting Owner group from tkmapping
-                String ownerGroup = dao2.getOwnerGroup(workZone);
-                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, description, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate);
+                
+                String ownerGroup = "";
+                ownerGroup = dao2.getOwnerGroup(workZone);
+//                dao2.getOwnerGroupPerson(ownerGroup);
                 
                 //@Work Order attribute
                 JSONArray attr_array = (JSONArray)body.get("WORKORDERATTRIBUTE");
@@ -174,12 +177,11 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 
                 ListAttributes listAttr = new ListAttributes();
                 //Loop getting each attribute
-                for (Object objAttr: attr_array){
-                    JSONObject attr_arrayObj = (JSONObject)objAttr;
+                for (int i = 0 ; i < attr_array.size() ; i++){
+                    JSONObject attr_arrayObj = (JSONObject)attr_array.get(i);
                     JSONObject woAttribute = new JSONObject();
-                    
                     //Store attribute
-                    listAttr.setTlkwoAttrName(attr_arrayObj.get("ATTR_NAME").toString() == null ? "" : attr_arrayObj.get("ATTR_NAME").toString());
+                    listAttr.setTlkwoAttrName(attr_arrayObj.get("ATTR_NAME").toString());
                     listAttr.setTlkwoAttrValue(attr_arrayObj.get("ATTR_VALUE").toString() == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString());
                     String sequence = (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString());
                     listAttr.setSequence(sequence);
@@ -202,6 +204,8 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 ListCpeValidate cpeValidated = new ListCpeValidate();
                 act.setTaskId(10);
                 int counter = 1;
+                String ownerGroupTask;
+                String TaskDescription;
                 
                 String[] splittedJms = jmsCorrelationId.split("_");
                 String orderId = splittedJms[0];
@@ -216,6 +220,11 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
 //                    LogUtil.info(getClass().getName(), "TASK :" + oss_item);
                 }
                 
+                JSONObject oss = (JSONObject)((JSONArray) oss_item).get(0);
+                JSONObject detailAct1 = dao2.getDetailTask(((JSONObject) oss).get("ITEMNAME").toString());
+                TaskDescription = (String) detailAct1.get("description");
+                LogUtil.info(getClass().getName(), "TASK DESCRIPTION :" + TaskDescription);
+                
                 for(int j = 0; j < ((JSONArray) oss_item).size(); j++) {
                     JSONObject oss_itemObj = (JSONObject)((JSONArray) oss_item).get(j);
                     JSONObject task = new JSONObject();
@@ -223,9 +232,9 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     listOssItem.setAction(((JSONObject) oss_itemObj).get("ACTION").toString());
                     listOssItem.setCorrelationid(((JSONObject) oss_itemObj).get("CORRELATIONID").toString());
                     listOssItem.setItemname(((JSONObject) oss_itemObj).get("ITEMNAME").toString());
-                    String itemName = json.getString(oss_itemObj, "ITEMNAME");
-                    String correlationId = json.getString(oss_itemObj, "CORRELATIONID");
-                    
+                    String itemName = listOssItem.getItemname();
+                    String correlationId = listOssItem.getCorrelationid();
+                    LogUtil.info(getClass().getName(), "TASK :" + itemName);
                     //TASK GENERATE
                     JSONObject detailAct = dao2.getDetailTask(itemName);
 //                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
@@ -234,30 +243,25 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     task.put("correlation", correlationId);
                     task.put("sequence", (int) detailAct.get("sequence"));
                     task.put("actplace", detailAct.get("actPlace"));
-                    task.put("classStructureId", detailAct.get("classstructureid"));
-                    task.put("orgid", detailAct.get("orgid"));
+                    task.put("ownerGroup", detailAct.get("ownergroup"));
 
+                    JSONArray taskAttrList = new JSONArray();
                     JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
-                    
-                    if (detailAct.get("attributes").equals(1)) {
-                        JSONArray taskAttrList = new JSONArray();
-//                        JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
-                        for (Object ossItemAttr : ossitem_attr) {
-                                JSONObject arrayObj2 = (JSONObject)ossItemAttr;
-                                JSONObject taskAttrItem = new JSONObject();
+                    for (Object ossItemAttr : ossitem_attr) {
+                        JSONObject arrayObj2 = (JSONObject)ossItemAttr;
+                        JSONObject taskAttrItem = new JSONObject();
+                        
+                        listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
+                        String attrName = listOssItemAtt.getAttrName();
+                        listOssItemAtt.setAttrValue(arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
+                        String attrValue = listOssItemAtt.getAttrValue();
 
-                                listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
-                                String attrName = listOssItemAtt.getAttrName();
-                                listOssItemAtt.setAttrValue(arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
-                                String attrValue = listOssItemAtt.getAttrValue();
-
-                                taskAttrItem.put("attrName", attrName);
-                                taskAttrItem.put("attrValue", attrValue);
-                                taskAttrList.add(taskAttrItem);
-                        }
-
-                        task.put("task_attr", taskAttrList);
+                        taskAttrItem.put("attrName", attrName);
+                        taskAttrItem.put("attrValue", attrValue);
+                        taskAttrList.add(taskAttrItem);
                     }
+                    
+                    task.put("task_attr", taskAttrList);
                     taskList.add(task);
 //                    LogUtil.info(getClass().getName(), "TASK "+j+" :" + taskList);
                 }
@@ -283,18 +287,26 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     } else {
                         sortedTask.put("status", "LABASSIGN");   
                     }
+                    
+                    
+                    //Getting Owner group from tkmapping and persongroup
+                    if (sortedTask.get("ownerGroup").toString() != null) {
+                        ownerGroupTask = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+                    } else {
+                        ownerGroupTask = dao2.getOwnerGroup(workZone);
+                    }
 
                     counter = counter + 1;
 //                    LogUtil.info(getClass().getName(), "SORTED TASK :" + sortedTask);
                     //GENERATE OSS ITEM
                     dao.insertToOssItem((String) sortedTask.get("wonum"), sortedTask);
                     //GENERATE TASK
-                    dao2.generateActivityTask(parent, siteId, sortedTask.get("correlation").toString(), ownerGroup, sortedTask);
+                    dao2.generateActivityTask(parent, siteId, sortedTask.get("correlation").toString(), sortedTask, ownerGroupTask);
                     //GENERATE ASSIGNMENT
-                    dao2.generateAssignment(sortedTask.get("description").toString(), schedStart, parent);
+                    dao2.generateAssignment(sortedTask.get("activity").toString(), schedStart, parent);
 
                     //TASK ATTRIBUTE GENERATE
-                    dao2.GenerateTaskAttribute((String) sortedTask.get("activity"), (String) sortedTask.get("wonum"), orderId);
+                    dao2.GenerateTaskAttribute((String) sortedTask.get("activity"), (String) sortedTask.get("wonum"), orderId, siteId);
                     
                     JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
 //                    LogUtil.info(getClass().getName(), "SORTED TASK ATTRIBUTE :" + taskAttrArray);
@@ -303,8 +315,6 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                         String attrName = taskAttrObj.get("attrName").toString();
                         if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
                             String attrValue = taskAttrObj.get("attrValue").toString();
-                            //@insert Oss Item Attribute
-                            dao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
                             if (attrValue.isEmpty()) {
                                 //GENERATE VALUE FROM WORKORDERATTRIBUTE
                                 for (Object objWoAttr : AttributeWO) {
@@ -314,18 +324,16 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                                     String AttrValueWo = (arrayObj3.get("woAttrValue").toString() == null ? "" : arrayObj3.get("woAttrValue").toString());
                                     if (AttrNameWo.equals(attrName)) {
                                         dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, AttrValueWo);
-                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
-                                        //@insert Oss Item Attribute
-//                                        dao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
+//                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
                                     }
                                 }
                             } else {
                                 dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
-                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
-                                //@insert Oss Item Attribute
-//                                dao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
+//                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
                             }
                         }
+                        //@insert Oss Item Attribute
+                        dao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
                         
                         switch (attrName) {
                             case "NTE_MODEL":
@@ -370,6 +378,9 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     }
                 }
                 
+//                description = 
+                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, TaskDescription, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate);
+
                 //@@End
                 //@Response
                 if (wonum != null && insertWoStatus){
