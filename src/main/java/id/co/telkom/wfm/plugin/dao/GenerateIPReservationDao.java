@@ -49,6 +49,7 @@ public class GenerateIPReservationDao {
 
     public JSONObject checkWospecReservation(String wonum)  throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid IN ('WAN-RESERVATIONID','LAN-RESERVATIONID')";
 
         try (Connection con = ds.getConnection();
@@ -67,6 +68,7 @@ public class GenerateIPReservationDao {
 
     public JSONObject checkWospecReservation2(String wonum)  throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid IN ('IPAREA','SERVICE_TYPE','VRF_NAME','VRF_NAME_DOMESTIK', 'CUSTOMERNAME','VRF_NAME_GLOBAL','IPV6_RESOURCE')";
 
         try (Connection con = ds.getConnection();
@@ -85,6 +87,7 @@ public class GenerateIPReservationDao {
 
     public JSONObject checkWoAttribute(String parent_wonum)  throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_attr_name, c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_assetattrid IN ('IPAREA','SERVICE_TYPE','VRF_NAME','VRF_NAME_DOMESTIK', 'CUSTOMERNAME','VRF_NAME_GLOBAL','IPV6_RESOURCE')";
 
         try (Connection con = ds.getConnection();
@@ -233,7 +236,7 @@ public class GenerateIPReservationDao {
         try {
             String result = "";
             JSONObject checkWoSpecRes = checkWospecReservation(wonum);
-
+            LogUtil.info(this.getClass().getName(), "checkWoSpecRes: " + checkWoSpecRes);
             String packageName = "Standard";
             String packageAja = "";
             String cardinality = "1";
