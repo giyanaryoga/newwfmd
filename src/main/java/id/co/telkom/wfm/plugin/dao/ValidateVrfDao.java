@@ -136,65 +136,58 @@ public class ValidateVrfDao {
 //                if (rd != "") {
 //                    LogUtil.info(this.getClass().getName(), "RD is already generated, Refresh/Reopen order to view the RD, RT Import, RT Export detail.");
 //                } else {
-                    BufferedReader in = new BufferedReader(
-                            new InputStreamReader(con.getInputStream()));
-                    String inputLine;
-                    StringBuffer response = new StringBuffer();
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                LogUtil.info(this.getClass().getName(), "VRF : " + response);
+                in.close();
+
+                // 'response' contains the JSON data as a string
+                String jsonData = response.toString();
+
+                JSONArray jsonArray = new JSONArray(jsonData);
+
+                if (jsonArray.length() > 0) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(0);
+
+                    String maxRoutes = jsonObject.get("maxRoutes").toString();
+                    String reservedRD = jsonObject.get("reservedRD").toString();
+                    String[] asnNumberRaw = reservedRD.split(":");
+                    String asnNumber = asnNumberRaw[0];
+
+                    JSONArray deviceListArray = jsonObject.getJSONArray("deviceList");
+                    JSONArray rtImportArray = jsonObject.getJSONArray("rtImport");
+                    JSONArray rtExportArray = jsonObject.getJSONArray("rtExport");
+
+                    LogUtil.info(this.getClass().getName(), "Max Routes: " + maxRoutes);
+                    LogUtil.info(this.getClass().getName(), "Max ReservedRD: " + reservedRD);
+                    LogUtil.info(this.getClass().getName(), "ASN Number: " + asnNumber);
+
+                    // Getting values from deviceList
+                    for (int i = 0; i < deviceListArray.length(); i++) {
+                        JSONObject deviceObj = deviceListArray.getJSONObject(i);
+                        String name = deviceObj.getString("name");
+//                            LogUtil.info(this.getClass().getName(), "Device " + (i + 1) + ":");
+                        LogUtil.info(this.getClass().getName(), "Name: " + name);
                     }
-                    LogUtil.info(this.getClass().getName(), "VRF : " + response);
-                    in.close();
 
-                    // 'response' contains the JSON data as a string
-                    String jsonData = response.toString();
+                    // Getting values from rtImport
+                    for (int i = 0; i < rtImportArray.length(); i++) {
+                        String rtImportValue = rtImportArray.getString(i);
+                        LogUtil.info(this.getClass().getName(), "rtImport " + (i + 1) + ": " + rtImportValue);
+                    }
 
-                    JSONArray jsonArray = new JSONArray(jsonData);
-
-                    if (jsonArray.length() > 0) {
-                        JSONObject jsonObject = jsonArray.getJSONObject(0);
-
-                        String maxRoutes = jsonObject.get("maxRoutes").toString();
-                        String reservedRD = jsonObject.get("reservedRD").toString();
-                        String[] asnNumberRaw = reservedRD.split(":");
-                        String asnNumber = asnNumberRaw[0];
-
-                        LogUtil.info(this.getClass().getName(), "Max Routes: " + maxRoutes);
-                        LogUtil.info(this.getClass().getName(), "Max ReservedRD: " + reservedRD);
-                        LogUtil.info(this.getClass().getName(), "ASN Number: " + asnNumber);
-
-                        JSONArray deviceListArray = jsonObject.getJSONArray("deviceList");
-                        JSONArray rtImportArray = jsonObject.getJSONArray("rtImport");
-                        JSONArray rtExportArray = jsonObject.getJSONArray("rtExport");
-
-                        // Getting values from deviceList
-                        for (int i = 0; i < deviceListArray.length(); i++) {
-                            JSONObject deviceObj = deviceListArray.getJSONObject(i);
-                            String ipAddress = deviceObj.getString("ipAddress");
-                            String manufacturer = deviceObj.getString("manufacturer");
-                            String model = deviceObj.getString("model");
-                            String name = deviceObj.getString("name");
-                            // ... continue getting other values if needed
-                            LogUtil.info(this.getClass().getName(), "Device " + (i + 1) + ":");
-                            LogUtil.info(this.getClass().getName(), "IP Address: " + ipAddress);
-                            LogUtil.info(this.getClass().getName(), "Manufacturer: " + manufacturer);
-                            LogUtil.info(this.getClass().getName(), "Model: " + model);
-                            LogUtil.info(this.getClass().getName(), "Name: " + name);
-                        }
-
-                        // Getting values from rtImport
-                        for (int i = 0; i < rtImportArray.length(); i++) {
-                            String rtImportValue = rtImportArray.getString(i);
-                            LogUtil.info(this.getClass().getName(), "rtImport " + (i + 1) + ": " + rtImportValue);
-                        }
-
-                        // Getting values from rtExport
-                        for (int i = 0; i < rtExportArray.length(); i++) {
-                            String rtExportValue = rtExportArray.getString(i);
-                            LogUtil.info(this.getClass().getName(), "rtExport " + (i + 1) + ": " + rtExportValue);
-                        }
+                    // Getting values from rtExport
+                    for (int i = 0; i < rtExportArray.length(); i++) {
+                        String rtExportValue = rtExportArray.getString(i);
+                        LogUtil.info(this.getClass().getName(), "rtExport " + (i + 1) + ": " + rtExportValue);
                     }
                 }
+            }
 //            }
         } catch (Exception e) {
             LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());

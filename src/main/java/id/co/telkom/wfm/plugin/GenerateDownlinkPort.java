@@ -103,20 +103,22 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
 
                 try {
                     dao.formatRequest(wonum);
-//                    LogUtil.info(getClassName(), "Status Code :" + listAttribute.getStatusCode());
-//                    if (listAttribute.getStatusCode() == 4001) {
-//                        JSONObject res1 = new JSONObject();
-//                        res1.put("code", 404);
-//                        res1.put("message", "No Service found!.");
-//                        res1.put("Data res", result);
-//                        res1.writeJSONString(hsr1.getWriter());
-//                    } else {
-//                        JSONObject res = new JSONObject();
-//                        res.put("code", 200);
-//                        res.put("message", "update data successfully");
-//                        res.put("Data res", result);
-//                        res.writeJSONString(hsr1.getWriter());
-//                    }
+                    LogUtil.info(getClassName(), "Status Code :" + listAttribute.getStatusCode());
+                    if (listAttribute.getStatusCode() == 4001) {
+                        JSONObject res1 = new JSONObject();
+                        res1.put("code", 404);
+                        res1.put("message", "No Service found!.");
+                        res1.put("Data res", result);
+                        res1.writeJSONString(hsr1.getWriter());
+                        hsr1.setStatus(404);
+                    } else if(listAttribute.getStatusCode() == 4000){
+                        JSONObject res = new JSONObject();
+                        res.put("code", 200);
+                        res.put("message", "update data successfully");
+                        res.put("Data res", result);
+                        res.writeJSONString(hsr1.getWriter());
+                        hsr1.setStatus(200);
+                    }
                 } catch (Throwable ex) {
                     Logger.getLogger(GenerateDownlinkPort.class.getName()).log(Level.SEVERE, null, ex);
                 }

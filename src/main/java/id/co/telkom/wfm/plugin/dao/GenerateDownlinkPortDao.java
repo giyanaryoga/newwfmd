@@ -113,17 +113,17 @@ public class GenerateDownlinkPortDao {
         ListGenerateAttributes listAttribute = new ListGenerateAttributes();
         try {
             String nteName = getAssetattrid(wonum).get("NTE_NAME").toString();
-            String anSto = getAssetattrid(wonum).get("AN_STO").toString();
+            String anSto = getAssetattrid(wonum).get("AN_STO").toString() == null ? "" : getAssetattrid(wonum).get("AN_STO").toString();
 
             String result = "";
 
             if (nteName=="") {
-                String stpName = getAssetattrid(wonum).get("STP_NAME_ALN").toString();
-                String stpPortName = getAssetattrid(wonum).get("STP_PORT_NAME_ALN").toString();
-                String stpPortId = getAssetattrid(wonum).get("STP_PORT_ID").toString();
+                String stpName = getAssetattrid(wonum).get("STP_NAME_ALN").toString() == null ? "" : getAssetattrid(wonum).get("STP_NAME_ALN").toString();
+                String stpPortName = getAssetattrid(wonum).get("STP_PORT_NAME_ALN").toString() == null ? "" : getAssetattrid(wonum).get("STP_PORT_NAME_ALN").toString();
+                String stpPortId = getAssetattrid(wonum).get("STP_PORT_ID").toString() == null ? "" : getAssetattrid(wonum).get("STP_PORT_ID").toString();
                 callGenerateDownlinkPort(wonum, "10", stpName, stpPortName, stpPortId, anSto, listAttribute);
             } else if(nteName!=""){
-                String nteDownlinkPort = getAssetattrid(wonum).get("NTE_DOWNLINK_PORT").toString();
+                String nteDownlinkPort = getAssetattrid(wonum).get("NTE_DOWNLINK_PORT").toString() == null ? "" : getAssetattrid(wonum).get("NTE_DOWNLINK_PORT").toString();
                 callGenerateDownlinkPort(wonum, "10", nteName, "", nteDownlinkPort, anSto, listAttribute);
                 LogUtil.info(getClass().getName(), "Message: " + "\n" + nteName + "\n" + nteDownlinkPort + "\n" + result);
             }
@@ -196,6 +196,7 @@ public class GenerateDownlinkPortDao {
                 LogUtil.info(this.getClass().getName(), "DownlinkPort Not found!");
                 listGenerate.setStatusCode(statusCode);
             } else if (statusCode == 4000) {
+                listGenerate.setStatusCode(statusCode);
                 JSONObject getDeviceInformation = device.getJSONObject("AccessDeviceInformation");
 
                 String manufacture = getDeviceInformation.getString("Manufacturer");

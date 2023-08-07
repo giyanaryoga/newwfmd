@@ -6,6 +6,7 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.FalloutIncidentDao;
+import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -95,10 +96,25 @@ public class FalloutIncident extends Element implements PluginWebSupport {
 
                 FalloutIncidentDao dao = new FalloutIncidentDao();
                 final boolean updateTask = dao.updateStatus(statusCode, ticketId);
-                if (updateTask) {
+                if (updateTask == true) {
+                    JSONObject data = dao.buildFalloutJson(ticketId);
+                    JSONObject res = new JSONObject();
+                    res.put("code", "200");
+                    res.put("message", "Success");
+                    res.put("data", data);
+                    // Response to Kafka
+                    String topic = "WFM_FALLOUT_INCIDENT";
+                    String kafkaRes = data.toJSONString();
+                    KafkaProducerTool kaf = new KafkaProducerTool();
+                    kaf.generateMessage(kafkaRes, topic, "");
                     hsr1.setStatus(200);
+                } else {
+                    JSONObject res = new JSONObject();
+                    res.put("code", "200");
+                    res.put("message", "Send Message Failed");
+                    res.put("data", "");
+                    hsr1.setStatus(422);
                 }
-                
             } catch (ParseException | SQLException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
