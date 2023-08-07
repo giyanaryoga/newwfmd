@@ -91,21 +91,23 @@ public class GenerateIPReservation extends Element implements PluginWebSupport {
                     //Store param
                     LogUtil.info(getClassName(), "Store Param "+data_obj);
                     String wonum = data_obj.get("wonum").toString();
-                    String serviceType = data_obj.get("serviceType").toString();
-                    String customername = data_obj.get("customername").toString();
-                    String cardinality = data_obj.get("cardinality").toString();
-                    String ipType = data_obj.get("ipType").toString();
-                    String ipArea = data_obj.get("ipArea").toString();
-                    String vrf = data_obj.get("vrf").toString();
-                    String version = data_obj.get("version").toString();
-                    String packageType = data_obj.get("packageType").toString();
+                    String[] wonum_split = wonum.split(" ");
+                    String parent_wonum = wonum_split[0];
+
+                    String productName = data_obj.get("productname").toString();
+                    String detailActCode = data_obj.get("detailactcode").toString();
+
+                    LogUtil.info(this.getClassName(), "Wonum : "+wonum);
+                    LogUtil.info(this.getClassName(), "parent_wonum : "+parent_wonum);
+                    LogUtil.info(this.getClassName(), "productName : "+productName);
+                    LogUtil.info(this.getClassName(), "detailActCode : "+detailActCode);
 
                     LogUtil.info(this.getClassName(), "ListGenerateAttributes");
                     ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                     try {
 //                        dao.allTable();
                         LogUtil.info(this.getClassName(), "Star Process Call Generate IP Reservation ");
-                        dao.callGenerateConnectivity(wonum, serviceType, customername, cardinality, ipType, vrf, ipArea, version, packageType, listAttribute);
+                        dao.callGenerateConnectivity(wonum, parent_wonum, productName, detailActCode ,listAttribute);
 
 //                    ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                         LogUtil.info(this.getClassName(), "get data: " + listAttribute.getStatusCode3());
