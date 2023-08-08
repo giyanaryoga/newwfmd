@@ -181,18 +181,4 @@ public class GenerateFallout extends Element implements PluginWebSupport {
 
 }
 
-//{ 
-//  "ownergroup": "FULFILLMENT_SINGARAJA", 
-//  "customerType": "PERSONEL", 
-//  "workzone": "CBE", 
-//  "region": "REG-3", 
-//  "classification": "Fallout \\ UIM \\ UIM UNKNOWN", 
-//  "ossid": "16_804", 
-//  "statuscode": "MANUAL", 
-//  "internalpriority": "2", 
-//  "ticketid": "TEL", 
-//  "externalsystem_ticketid": "TEL", 
-//  "description": "TEL", 
-//  "tk_channel": "99", 
-//  "description_longdescription": "TEL" 
-//}
+

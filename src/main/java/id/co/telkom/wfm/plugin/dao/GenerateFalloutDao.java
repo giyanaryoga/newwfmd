@@ -130,12 +130,43 @@ public class GenerateFalloutDao {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
 //        String insert = "INSERT INTO app_fd_incident (id, c_ticketid, c_tk_channel, c_tk_classification, c_tk_ossid, c_tk_statuscode, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        String insert = "INSERT INTO app_fd_incident (id, c_externalsystem_ticketid, c_description_longdescription, c_tk_ossid, c_tk_region, c_tk_ticket_59, c_tk_workzone, c_tk_classification, c_description, c_internalpriority, c_ownergroup, c_tk_statuscode, c_ticketid, c_tk_channel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        //c_schedstart1 dan c_statusdate1 TEMPORARY masih, angka 1 dihilangkan jika sudah di hapus column di table
+//        String insert = "INSERT INTO app_fd_incident ("
+//                + "id, "
+//                + "c_externalsystem_ticketid, "
+//                + "c_description_longdescription, "
+//                + "c_tk_ossid, "
+//                + "c_tk_region, "
+//                + "c_tk_ticket_59, "
+//                + "c_tk_workzone, "
+//                + "c_tk_classification, "
+//                + "c_description, "
+//                + "c_internalpriority, "
+//                + "c_ownergroup, "
+//                + "c_tk_statuscode, "
+//                + "c_ticketid, "
+//                + "c_tk_channel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        StringBuilder insert = new StringBuilder();
+        insert.append("INSERT INTO app_fd_incident ")
+                .append("( ")
+                .append("id, ")
+                .append("c_externalsystem_ticketid, ")
+                .append("c_description_longdescription, ")
+                .append("c_tk_ossid, ")
+                .append("c_tk_region, ")
+                .append("c_tk_ticket_59, ")
+                .append("c_tk_workzone, ")
+                .append("c_tk_classification, ")
+                .append("c_description, ")
+                .append("c_internalpriority, ")
+                .append("c_ownergroup, ")
+                .append("c_tk_statuscode, ")
+                .append("c_ticketid, ")
+                .append("c_tk_channel, ")
+                .append("datecreated ");
         try {
             Connection con = ds.getConnection();
             try {
-                PreparedStatement ps = con.prepareStatement(insert);
+                PreparedStatement ps = con.prepareStatement(insert.toString());
                 try {
                     ps.setString(1, uuId);
                     ps.setString(2, externalSystem);
