@@ -62,16 +62,16 @@ public class GenerateDownlinkPortDao {
     public String deleteTkDeviceattribute(String wonum) throws SQLException {
         String moveFirst = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ?";
+//        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ?";
+        String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_NUM = ?";
         try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query);) {
+                PreparedStatement ps = con.prepareStatement(delete);) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
-            if (rs != null) {
-                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_NUM = ?";
-                ResultSet del = ps.executeQuery(delete);
+            if (rs.next()) {
+//                ResultSet del = ps.executeQuery();
                 moveFirst = "Deleted data";
-                LogUtil.info(getClass().getName(), "Berhasil menghapus data" + del);
+                LogUtil.info(getClass().getName(), "Berhasil menghapus data");
             } else {
                 LogUtil.info(getClass().getName(), "Gagal menghapus data");
             }
@@ -111,18 +111,20 @@ public class GenerateDownlinkPortDao {
 
     public JSONObject formatRequest(String wonum, ListGenerateAttributes listGenerate) throws SQLException, JSONException {
         try {
-            String nteName = getAssetattrid(wonum).get("NTE_NAME").toString();
-            String anSto = getAssetattrid(wonum).get("AN_STO").toString() == null ? "" : getAssetattrid(wonum).get("AN_STO").toString();
-
             String result = "";
+            JSONObject assetAttributes = getAssetattrid(wonum);
 
-            if (nteName=="") {
-                String stpName = getAssetattrid(wonum).get("STP_NAME_ALN").toString() == null ? "" : getAssetattrid(wonum).get("STP_NAME_ALN").toString();
-                String stpPortName = getAssetattrid(wonum).get("STP_PORT_NAME_ALN").toString() == null ? "" : getAssetattrid(wonum).get("STP_PORT_NAME_ALN").toString();
-                String stpPortId = getAssetattrid(wonum).get("STP_PORT_ID").toString() == null ? "" : getAssetattrid(wonum).get("STP_PORT_ID").toString();
+            String nteName = assetAttributes.optString("NTE_NAME");
+            String anSto = assetAttributes.optString("AN_STO", "null");
+
+            String stpName = assetAttributes.optString("STP_NAME_ALN", "null");
+            String stpPortName = assetAttributes.optString("STP_PORT_NAME_ALN", "null");
+            String stpPortId = assetAttributes.optString("STP_PORT_ID", "null");
+            String nteDownlinkPort = assetAttributes.optString("NTE_DOWNLINK_PORT", "null");
+
+            if (nteName.isEmpty()) {
                 callGenerateDownlinkPort(wonum, "10", stpName, stpPortName, stpPortId, anSto, listGenerate);
-            } else if(nteName!=""){
-                String nteDownlinkPort = getAssetattrid(wonum).get("NTE_DOWNLINK_PORT").toString() == null ? "" : getAssetattrid(wonum).get("NTE_DOWNLINK_PORT").toString();
+            } else {
                 callGenerateDownlinkPort(wonum, "10", nteName, "", nteDownlinkPort, anSto, listGenerate);
                 LogUtil.info(getClass().getName(), "Message: " + "\n" + nteName + "\n" + nteDownlinkPort + "\n" + result);
             }
@@ -281,4 +283,75 @@ public class GenerateDownlinkPortDao {
         return null;
     }
 
+        public boolean updateDeviceLinkPortByIp(String wonum, String manufacture, String name, String ipAddress) throws SQLException {
+        boolean result = false;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+                .append("SET c_value = CASE c_assetattrid ")
+                .append("WHEN 'ME_MANUFACTUR' THEN ? ")
+                .append("WHEN 'ME_NAME' THEN ? ")
+                .append("WHEN 'ME_IPADDRESS' THEN ? ")
+                .append("WHEN 'AN_MANUFACTUR' THEN ? ")
+                .append("WHEN 'AN_NAME' THEN ? ")
+                .append("WHEN 'AN_IPADDRESS' THEN ? ")
+                .append("SET c_readonly = CASE c_assetattrid ")
+                .append("WHEN 'ME_PORTNAME' THEN ? ")
+                .append("WHEN 'ME_PORTID' THEN ? ")
+                .append("ELSE 'Missing' END ")
+                .append("WHERE c_wonum = ? ")
+                .append("AND c_assetattrid IN ('ME_MANUFACTUR', 'ME_NAME', 'ME_IPADDRESS', 'AN_MANUFACTUR', 'AN_NAME', 'AN_IPADDRESS', 'ME_PORTNAME', 'ME_PORTID')");
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(update.toString());
+                try {
+                    ps.setString(1, manufacture);
+                    ps.setString(2, name);
+                    ps.setString(3, ipAddress);
+                    ps.setString(4, "-");
+                    ps.setString(5, "-");
+                    ps.setString(6, "-");
+                    ps.setString(7, "0");
+                    ps.setString(8, "0");
+                    ps.setString(9, wonum);
+
+                    int exe = ps.executeUpdate();
+                    if (exe > 0) {
+                        result = true;
+                        LogUtil.info(getClass().getName(), "ME Service updated to " + wonum);
+                    }
+                    if (ps != null) {
+                        ps.close();
+                    }
+                } catch (Throwable throwable) {
+                    try {
+                        if (ps != null) {
+                            ps.close();
+                        }
+                    } catch (Throwable throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null) {
+                    con.close();
+                }
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null) {
+                        con.close();
+                    }
+                } catch (Throwable throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+        return result;
+    }
 }

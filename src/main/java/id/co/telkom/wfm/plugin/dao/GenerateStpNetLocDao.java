@@ -134,15 +134,27 @@ public class GenerateStpNetLocDao {
                 // Clear data
                 deleteTkDeviceattribute(wonum);
                 // Parse the JSONArray data and Insert into tk_device_attribute
-                JSONArray deviceInfo = device.getJSONArray("DeviceInfo");
-                for (int i = 0; i < deviceInfo.length(); i++) {
-                    JSONObject data = deviceInfo.getJSONObject(i);
-                    String name = data.getString("name");
-                    String type = data.getString("networkLocation");
+
+                Object deviceInfoObj = device.get("DeviceInfo");
+                if (deviceInfoObj instanceof JSONObject) {
+                    JSONObject deviceInfo = (JSONObject) deviceInfoObj;
+                    LogUtil.info(this.getClass().getName(), "DeviceInfo JSONObject :" + deviceInfo);
+                    String name = deviceInfo.getString("name");
+                    String type = deviceInfo.getString("networkLocation");
 
                     LogUtil.info(this.getClass().getName(), "Name : " + name + "Type : " + type);
                     insertToDeviceTable(wonum, type, name);
-                }
+                } else if (deviceInfoObj instanceof JSONArray) {
+                    JSONArray deviceInfo = device.getJSONArray("DeviceInfo");
+                    for (int i = 0; i < deviceInfo.length(); i++) {
+                        JSONObject data = deviceInfo.getJSONObject(i);
+                        String name = data.getString("name");
+                        String type = data.getString("networkLocation");
+
+                        LogUtil.info(this.getClass().getName(), "Name : " + name + "Type : " + type);
+                        insertToDeviceTable(wonum, type, name);
+                    }
+                }     
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Call Failed." + e);
@@ -153,21 +165,14 @@ public class GenerateStpNetLocDao {
     public String deleteTkDeviceattribute(String wonum) throws SQLException {
         String moveFirst = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-
-//        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ? AND c_attr_name in ('STP_NETWORKLOCATION')";
         String delete = "DELETE FROM app_fd_tk_deviceattribute WHERE c_ref_num = ?";
-
         try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(delete);
-//                PreparedStatement psDel = con.prepareStatement(delete);
+                PreparedStatement ps = con.prepareStatement(delete); //                PreparedStatement psDel = con.prepareStatement(delete);
                 ) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-//                String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_WONUM = ?";
-//                ResultSet del = ps.executeQuery(delete);
-
                 moveFirst = "Deleted data";
                 LogUtil.info(getClass().getName(), "Berhasil menghapus data");
             } else {

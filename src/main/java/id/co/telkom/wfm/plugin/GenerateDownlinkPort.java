@@ -74,7 +74,6 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
         LogUtil.info(this.getClass().getName(), "############## START PROCESS GENERATE DOWNLINK PORT ###############");
 
         GenerateDownlinkPortDao dao = new GenerateDownlinkPortDao();
-        ListGenerateAttributes listAttribute = new ListGenerateAttributes();
 
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
@@ -101,26 +100,21 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
 //                String result = "";
                 String wonum = data_obj.get("wonum").toString();
 
-                try {
-                    dao.formatRequest(wonum, listAttribute);
-                    LogUtil.info(getClassName(), "Status Code :" + listAttribute.getStatusCode());
-                    if (listAttribute.getStatusCode() == 4001) {
-                        JSONObject res1 = new JSONObject();
-                        res1.put("code", 404);
-                        res1.put("message", "No Service found!.");
-//                        res1.put("Data res", result);
-                        res1.writeJSONString(hsr1.getWriter());
-                        hsr1.setStatus(404);
-                    } else if(listAttribute.getStatusCode() == 4000){
-                        JSONObject res = new JSONObject();
-                        res.put("code", 200);
-                        res.put("message", "update data successfully");
-//                        res.put("Data res", result);
-                        res.writeJSONString(hsr1.getWriter());
-                        hsr1.setStatus(200);
-                    }
-                } catch (Throwable ex) {
-                    Logger.getLogger(GenerateDownlinkPort.class.getName()).log(Level.SEVERE, null, ex);
+                ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+                LogUtil.info(pluginName, "List Attr :"+listAttribute.toString());
+                dao.formatRequest(wonum, listAttribute);
+                if (listAttribute.getStatusCode() == 4001) {
+                    JSONObject res1 = new JSONObject();
+                    res1.put("code", 204);
+                    res1.put("message", "No Service found!.");
+                    res1.writeJSONString(hsr1.getWriter());
+                    hsr1.setStatus(404);
+                } else if (listAttribute.getStatusCode() == 4000) {
+                    JSONObject res = new JSONObject();
+                    res.put("code", 200);
+                    res.put("message", "update data successfully");
+                    res.writeJSONString(hsr1.getWriter());
+                    hsr1.setStatus(200);
                 }
             } catch (Throwable ex) {
                 Logger.getLogger(GenerateDownlinkPort.class.getName()).log(Level.SEVERE, null, ex);
