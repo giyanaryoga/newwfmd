@@ -118,17 +118,18 @@ public class GenerateFallout extends Element implements PluginWebSupport {
                 LogUtil.info(getClass().getName(), "Start Process: Generate Fallout |  Ticket ID: " + (data_obj.get("ticketId") == null ? "" : data_obj.get("ticketId").toString()));
                 //@Store param
                 //Store JSONObject to Work Order param
-                String ownerGroup = (data_obj.get("ownerGrup") == null ? "" : data_obj.get("ownerGroup").toString());
+//                String ownerGroup = (data_obj.get("ownerGroup") == null ? "" : data_obj.get("ownerGroup").toString());
                 String customerType = (data_obj.get("customerType") == null ? "" : data_obj.get("customerType").toString());
                 String workzone = (data_obj.get("workzone") == null ? "" : data_obj.get("workzone").toString());
                 String region = (data_obj.get("region") == null ? "" : data_obj.get("region").toString());
                 String classification = (data_obj.get("classification") == null ? "" : data_obj.get("classification").toString());
                 String ossid = (data_obj.get("ossid") == null ? "" : data_obj.get("ossid").toString());
-                String statusCode = (data_obj.get("statusCode") == null ? "" : data_obj.get("statusCode").toString());
+//                String statusCode = (data_obj.get("statusCode") == null ? "" : data_obj.get("statusCode").toString());
+                String statusCode = "OPEN";
                 String internalPriority = (data_obj.get("internalPriority") == null ? "" : data_obj.get("internalPriority").toString());
                 String externalSystem = (data_obj.get("externalSystem") == null ? "" : data_obj.get("externalSystem").toString());
                 String description = (data_obj.get("description") == null ? "" : data_obj.get("description").toString());
-                String tk_channel = (data_obj.get("channel") == null ? "" : data_obj.get("channel").toString());
+                String tk_channel = (data_obj.get("tk_channel") == null ? "" : data_obj.get("tk_channel").toString());
                 String longDescription = (data_obj.get("longDescription") == null ? "" : data_obj.get("longDescription").toString());
 //                String currentDate = time.getCurrentTime();
 
@@ -136,7 +137,7 @@ public class GenerateFallout extends Element implements PluginWebSupport {
                 //Generate wonum with counter function from DB
                 String ticketId = dao.getTicketid();
 
-                final boolean insertFallout = dao.insertToWoTable(externalSystem, longDescription, ossid, region, customerType, workzone, classification, description, internalPriority, ownerGroup, statusCode, ticketId, tk_channel);
+                final boolean insertFallout = dao.insertToWoTable(externalSystem, longDescription, ossid, region, customerType, workzone, classification, description, internalPriority, statusCode, ticketId, tk_channel);
 
                 if (ticketId != null && insertFallout) {
                     try {

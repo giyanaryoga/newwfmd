@@ -95,24 +95,23 @@ public class FalloutIncident extends Element implements PluginWebSupport {
                 String ticketId = (body.get("ticketId") == null ? "" : body.get("ticketId").toString());
 
                 FalloutIncidentDao dao = new FalloutIncidentDao();
-                final boolean updateTask = dao.updateStatus(statusCode, ticketId);
+                boolean updateTask = dao.updateStatus(statusCode, ticketId);
+                LogUtil.info(this.getClassName(), "update status : " + updateTask);
                 if (updateTask == true) {
-                    JSONObject data = dao.buildFalloutJson(ticketId);
+                    dao.buildFalloutJson(ticketId);
                     JSONObject res = new JSONObject();
-                    res.put("code", "200");
-                    res.put("message", "Success");
-                    res.put("data", data);
-                    // Response to Kafka
-                    String topic = "WFM_FALLOUT_INCIDENT";
-                    String kafkaRes = data.toJSONString();
-                    KafkaProducerTool kaf = new KafkaProducerTool();
-                    kaf.generateMessage(kafkaRes, topic, "");
+                    res.put("code", 200);
+                    res.put("message", "Success mengirim data ke kafka");
+//                    res.put("data", data);
+                    res.writeJSONString(hsr1.getWriter());
                     hsr1.setStatus(200);
+                    LogUtil.info(this.getClassName(), "update TRUE : " + updateTask);
                 } else {
                     JSONObject res = new JSONObject();
-                    res.put("code", "200");
+                    res.put("code", 422);
                     res.put("message", "Send Message Failed");
                     res.put("data", "");
+                    res.writeJSONString(hsr1.getWriter());
                     hsr1.setStatus(422);
                 }
             } catch (ParseException | SQLException e) {

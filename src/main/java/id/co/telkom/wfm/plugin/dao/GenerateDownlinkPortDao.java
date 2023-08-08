@@ -5,11 +5,7 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import id.co.telkom.wfm.plugin.GenerateDownlinkPort;
-import id.co.telkom.wfm.plugin.GenerateStpNetLoc;
 import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.IOException;
@@ -62,7 +58,6 @@ public class GenerateDownlinkPortDao {
     public String deleteTkDeviceattribute(String wonum) throws SQLException {
         String moveFirst = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT * FROM APP_FD_TK_DEVICEATTRIBUTE WHERE c_ref_num = ?";
         String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_NUM = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(delete);) {
@@ -283,7 +278,7 @@ public class GenerateDownlinkPortDao {
         return null;
     }
 
-        public boolean updateDeviceLinkPortByIp(String wonum, String manufacture, String name, String ipAddress) throws SQLException {
+    public boolean updateDeviceLinkPortByIp(String wonum, String manufacture, String name, String ipAddress) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
