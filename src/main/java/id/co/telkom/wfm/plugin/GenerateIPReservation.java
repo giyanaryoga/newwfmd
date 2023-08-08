@@ -103,31 +103,32 @@ public class GenerateIPReservation extends Element implements PluginWebSupport {
                     LogUtil.info(this.getClassName(), "detailActCode : "+detailActCode);
 
                     LogUtil.info(this.getClassName(), "ListGenerateAttributes");
-                    ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+                    String msg = "";
                     try {
 //                        dao.allTable();
                         LogUtil.info(this.getClassName(), "Star Process Call Generate IP Reservation ");
-                        dao.callGenerateConnectivity(wonum, parent_wonum, productName, detailActCode ,listAttribute);
+                        msg = dao.callGenerateConnectivity(wonum, parent_wonum, productName, detailActCode);
 
-//                    ListGenerateAttributes listAttribute = new ListGenerateAttributes();
-                        LogUtil.info(this.getClassName(), "get data: " + listAttribute.getStatusCode3());
-
-                        if (listAttribute.getStatusCode3() == 404) {
-                            JSONObject res1 = new JSONObject();
-                            res1.put("code", 404);
-                            res1.put("message", "No Service found!.");
-                            res1.writeJSONString(hsr1.getWriter());
-//                        dao.insertIntegrationHistory(wonum, line, wonum, wonum, orderId);
-                        } else {
-//                            dao.moveFirst(wonum);
-//                            dao.insertIntoDeviceTable(wonum, listAttribute);
-//                            dao.insertIntegrationHistory(wonum, line, wonum, wonum, orderId);
-                            JSONObject res = new JSONObject();
-                            res.put("code", 200);
-                            res.put("message", "update data successfully");
-                            res.put("data", listAttribute.getMessage());
-                            res.writeJSONString(hsr1.getWriter());
-                        }
+                        JSONObject res = new JSONObject();
+                        res.put("code", 200);
+                        res.put("message", msg);
+                        res.writeJSONString(hsr1.getWriter());
+//                        if (listAttribute.getStatusCode3() == 404) {
+//                            JSONObject res1 = new JSONObject();
+//                            res1.put("code", 404);
+//                            res1.put("message", "No Service found!.");
+//                            res1.writeJSONString(hsr1.getWriter());
+////                        dao.insertIntegrationHistory(wonum, line, wonum, wonum, orderId);
+//                        } else {
+////                            dao.moveFirst(wonum);
+////                            dao.insertIntoDeviceTable(wonum, listAttribute);
+////                            dao.insertIntegrationHistory(wonum, line, wonum, wonum, orderId);
+//                            JSONObject res = new JSONObject();
+//                            res.put("code", 200);
+//                            res.put("message", msg);
+//                            res.put("data", listAttribute.getMessage());
+//                            res.writeJSONString(hsr1.getWriter());
+//                        }
                     } catch (Exception ex) {
                         LogUtil.info(getClassName(), "Exception");
                         Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
