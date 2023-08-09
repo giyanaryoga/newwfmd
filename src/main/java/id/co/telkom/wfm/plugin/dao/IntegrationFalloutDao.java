@@ -5,8 +5,6 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
-import id.co.telkom.wfm.plugin.model.ListFormatFallout;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,106 +12,58 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-import org.json.simple.JSONObject;
 
 /**
  *
  * @author ASUS
  */
 public class IntegrationFalloutDao {
-    
+
+    public String apiId = "";
+    public String apiKey = "";
+
+    public void getApiAttribute() {
+        String query = "SELECT c_api_id, c_api_key FROM app_fd_api_wfm WHERE c_use_of_api = 'falloutincident'";
+
+        try (Connection connection = ((DataSource) AppUtil.getApplicationContext().getBean("setupDataSource")).getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            if (resultSet.next()) {
+                this.apiId = resultSet.getString("c_api_id");
+                this.apiKey = resultSet.getString("c_api_key");
+            }
+
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+
     public boolean updateStatus(String statusCode, String ticketId) throws SQLException {
         boolean updateStatus = false;
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE APP_FD_INCIDENT SET C_TK_STATUSCODE = ?, datemodified = sysdate WHERE C_TICKETID = ?";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(update)) {
-            ps.setString(1, statusCode);
-            ps.setString(2, ticketId);
-            int exe = ps.executeUpdate();
-            if (exe > 0) {
+
+        DataSource dataSource = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String updateQuery = "UPDATE APP_FD_INCIDENT SET C_TK_STATUSCODE = ?, datemodified = sysdate WHERE C_TICKETID = ?";
+
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+
+            preparedStatement.setString(1, statusCode);
+            preparedStatement.setString(2, ticketId);
+
+            int executionResult = preparedStatement.executeUpdate();
+            if (executionResult > 0) {
                 LogUtil.info(getClass().getName(), "update status berhasil");
                 updateStatus = true;
             } else {
                 LogUtil.info(getClass().getName(), "update status gagal");
             }
-        } catch (Exception e) {
+
+        } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
         }
+
         return updateStatus;
     }
 
-//    public void buildFalloutJson(String ticketId) throws SQLException {
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_ticketid, c_tk_channel, c_tk_classification, c_tk_ossid, c_tk_statuscode, datemodified  FROM app_fd_incident WHERE c_ticketid = ?";
-//        try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement(query)) {
-//            ps.setString(1, ticketId);
-//            ResultSet rs = ps.executeQuery();
-//            JSONObject falloutMessage = new JSONObject();
-//            while (rs.next()) {
-//                ListFormatFallout format = new ListFormatFallout();
-//                format.setTicketId((rs.getString("c_ticketid") == null) ? "" : rs.getString("c_ticketid"));
-//                format.setTkChannel((rs.getString("c_tk_channel") == null) ? "" : rs.getString("c_tk_channel"));
-//                format.setClassification((rs.getString("c_tk_classification") == null) ? "" : rs.getString("c_tk_classification"));
-//                format.setOssid((rs.getString("c_tk_ossid") == null) ? "" : rs.getString("c_tk_ossid"));
-//                format.setStatusCode((rs.getString("c_tk_statuscode") == null) ? "" : rs.getString("c_tk_statuscode"));
-//                format.setDatemodified((rs.getString("datemodified") == null) ? "" : rs.getString("datemodified"));
-//
-//                falloutMessage = buildFormatMessage(format);
-//            }
-//            String kafkaRes = falloutMessage.toJSONString();
-//            KafkaProducerTool kaf = new KafkaProducerTool();
-//
-//            String topic = "WFM_FALLOUT_INCIDENT";
-//            kaf.generateMessage(kafkaRes, topic, "");
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//    }
-//
-//    public JSONObject buildFormatMessage(ListFormatFallout format) {
-//        String timestamp = format.getDatemodified();
-//        String[] datemodified = timestamp.split(",");
-//        String date = datemodified[0];
-//        
-//        JSONObject itemObject = new JSONObject();
-//        itemObject.put("FAULTID", format.getTicketId());
-//        itemObject.put("TK_CHANNEL", format.getTkChannel());
-//        itemObject.put("FAULTCATEGORY", format.getClassification());
-//        itemObject.put("OSSID", format.getOssid());
-//        itemObject.put("TK_STATUSCODE", format.getStatusCode());
-//        itemObject.put("TIMESTAMP", date);
-//        itemObject.put("SYMPTOMS", "GAMAS");
-//        itemObject.put("SID", "DUMMY");
-//        itemObject.put("FAULSTATE", "RESOLVED");
-//
-//        JSONObject attrs = new JSONObject();
-//        attrs.put("xmlns:soapenv", "http://schemas.xmlsoap.org/soap/envelope/");
-//        attrs.put("xmlns:tel", "http://eaiesb.telkom.co.id:9121/telkom.nb.osb.assurance.ws:faultOSS");
-//        JSONObject header = new JSONObject();
-//        header.put("@ns", "soapenv");
-//
-//        JSONObject faultOss = new JSONObject();
-//        faultOss.put("FaultOSSRcv", itemObject);
-//        faultOss.put("@ns", "tel");
-//
-//        JSONObject body = new JSONObject();
-//        body.put("faultOSS", faultOss);
-//        body.put("@ns", "soapenv");
-//
-//        JSONObject envelope = new JSONObject();
-//        envelope.put("Header", header);
-//        envelope.put("Body", body);
-//        envelope.put("@ns", "soapenv");
-//        envelope.put("@attrs", attrs);
-//
-//        JSONObject falloutJson = new JSONObject();
-//        falloutJson.put("Envelope", envelope);
-//        //End of wrapper
-//        return falloutJson;
-//    }
 }
