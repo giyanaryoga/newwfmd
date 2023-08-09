@@ -43,8 +43,15 @@ public class UpdateTaskStatusEbisDao {
             ps.setInt(2, 1);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
+//                if (rs.getString("c_value").toString() != "") {
+//                    value = true;
+//                    LogUtil.info(getClass().getName(), "Task attribute value is mandatory");
+//                } else {
+//                    value = false;
+//                    LogUtil.info(getClass().getName(), "Task attribute value is not mandatory");
+//                }
                 LogUtil.info(getClass().getName(), "Task attribute value is mandatory");
-                value = rs.getString("c_value");
+                value = rs.getString("c_value").toString();
             } else {
                 LogUtil.info(getClass().getName(), "Task attribute value is not mandatory");
             }

@@ -31,7 +31,7 @@ import org.json.simple.JSONArray;
  *
  * @author Giyanaryoga Puguh
  */
-public class TaskGenerateEbisDao {
+public class TestGenerateDao {
     public String apiId = "";
     public String apiKey = "";
     
@@ -155,7 +155,7 @@ public class TaskGenerateEbisDao {
     public JSONObject getDetailTask(String activity) throws SQLException {
         JSONObject activityProp = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_activity, c_description, c_actplace, c_attributes, c_sequence, c_ownergroup FROM app_fd_detailactivity WHERE c_activity = ?";
+        String query = "SELECT c_activity, c_description, c_actplace, c_attributes, c_sequence, c_ownergroup, c_duration FROM app_fd_detailactivity WHERE c_activity = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, activity);
@@ -167,6 +167,7 @@ public class TaskGenerateEbisDao {
                 activityProp.put("actPlace", rs.getString("c_actplace"));
                 activityProp.put("ownergroup", rs.getString("c_ownergroup"));
                 activityProp.put("attributes", rs.getInt("c_attributes"));
+                activityProp.put("duration", rs.getInt("c_duration"));
             } else {
                 activityProp = null;
             }
@@ -327,9 +328,11 @@ public class TaskGenerateEbisDao {
                 .append(" c_woclass, ")
                 .append(" c_taskid, ")
                 .append(" c_correlation, ")
+                .append(" c_estdur, ")
                 .append(" c_ownergroup ")
                 .append(" ) ")
                 .append(" VALUES ( ")
+                .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
@@ -366,8 +369,9 @@ public class TaskGenerateEbisDao {
             ps.setString(13, "WFM");
             ps.setString(14, "ACTIVITY");       
             ps.setString(15, taskObj.get("taskid").toString());
-            ps.setString(16, correlationId);    
-            ps.setString(17, ownerGroup);
+            ps.setString(16, correlationId);
+            ps.setInt(17, (int) taskObj.get("duration"));
+            ps.setString(18, ownerGroup);
             
             int exe = ps.executeUpdate();
             //Checking insert status
