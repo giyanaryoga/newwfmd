@@ -7,7 +7,7 @@ package id.co.telkom.wfm.plugin;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
-import id.co.telkom.wfm.plugin.dao.TaskGenerateEbisDao;
+import id.co.telkom.wfm.plugin.dao.TestGenerateDao;
 import id.co.telkom.wfm.plugin.model.ListAttributes;
 import id.co.telkom.wfm.plugin.model.ListOssItem;
 import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
@@ -95,7 +95,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
         TaskActivityDao dao2 = new TaskActivityDao();
-//        TaskGenerateEbisDao dao2 = new TaskGenerateEbisDao();
+//        TestGenerateDao dao2 = new TestGenerateDao();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;
