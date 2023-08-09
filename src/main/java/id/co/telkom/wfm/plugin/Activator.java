@@ -17,6 +17,7 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(RevisedTask.class.getName(), new RevisedTask(), null));
         //TEST PLUGIN
         registrationList.add(context.registerService(TestGenerateEbis.class.getName(), new TestGenerateEbis(), null));
+        registrationList.add(context.registerService(TestUpdateStatusEbis.class.getName(), new TestUpdateStatusEbis(), null));
         //REGISTER PLUGIN HERE
         registrationList.add(context.registerService(GenerateWonumEbis.class.getName(), new GenerateWonumEbis(), null));
         registrationList.add(context.registerService(UpdateTaskStatusEbis.class.getName(), new UpdateTaskStatusEbis(), null));
@@ -37,7 +38,6 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(AbortOrder.class.getName(), new AbortOrder(), null));
         registrationList.add(context.registerService(GeneratePeName.class.getName(), new GeneratePeName(), null));
         registrationList.add(context.registerService(GenerateFallout.class.getName(), new GenerateFallout(), null));
-
         registrationList.add(context.registerService(GenerateVRF.class.getName(), new GenerateVRF(), null));
         registrationList.add(context.registerService(GenerateVRFNameExisting.class.getName(), new GenerateVRFNameExisting(), null));
         registrationList.add(context.registerService(GenerateVLANReservation.class.getName(), new GenerateVLANReservation(), null));
