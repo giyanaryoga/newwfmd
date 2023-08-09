@@ -64,8 +64,9 @@ public class GenerateMeAccess extends Element implements PluginWebSupport {
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         //@@Start..
-        LogUtil.info(getClass().getName(), "Start Process: Generate ME Service");
+        LogUtil.info(getClass().getName(), "Start Process: Generate ME Access");
         ListGenerateAttributes listAttribute = new ListGenerateAttributes();
+        LogUtil.info(getClassName(), "Status Code : " + listAttribute.getStatusCode());
 
         //@Authorization
         if ("GET".equals(hsr.getMethod())) {
@@ -81,12 +82,14 @@ public class GenerateMeAccess extends Element implements PluginWebSupport {
                         res1.put("message", "No Service found!.");
                         res1.writeJSONString(hsr1.getWriter());
                         hsr1.setStatus(404);
-                    } else {
+                    } else if (listAttribute.getStatusCode() == 200) {
                         JSONObject res = new JSONObject();
                         res.put("code", 200);
                         res.put("message", "update data successfully");
                         res.writeJSONString(hsr1.getWriter());
                         hsr1.setStatus(200);
+                    } else {
+                        LogUtil.info(getClassName(), "Call API is Failed : ");
                     }
                 }
             } catch (Exception e) {

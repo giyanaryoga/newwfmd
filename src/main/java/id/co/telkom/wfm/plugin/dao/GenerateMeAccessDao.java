@@ -188,9 +188,9 @@ public class GenerateMeAccessDao {
     }
 
     public JSONArray callGenerateMeAccess(String wonum, ListGenerateAttributes listGenerate) throws SQLException, JSONException {
-        
+
         JSONObject assetAttributes = getAssetattridType(wonum);
-        
+
 //        String deviceName = getAssetattridType(wonum).get("AN_NAME").toString().replace("/", "%2F").replace(" ", "%20");
 //        String portname = getAssetattridType(wonum).get("AN_UPLINK_PORTNAME").toString().replace("/", "%2F").replace(" ", "%20");
         String deviceName = assetAttributes.optString("AN_NAME", "null").replace("/", "%2F").replace(" ", "%20");
@@ -203,7 +203,7 @@ public class GenerateMeAccessDao {
         }
         if (deviceLink == "") {
 //            deviceLink = getAssetattridType(wonum).get("LINK_TYPE").toString();
-              deviceLink = assetAttributes.optString("LINK_TYPE", "null");
+            deviceLink = assetAttributes.optString("LINK_TYPE", "null");
         }
 
         try {
@@ -273,7 +273,9 @@ public class GenerateMeAccessDao {
 
                     if (responseCode == 404) {
                         LogUtil.info(this.getClass().getName(), "ME Access not found!");
+                        listGenerate.setStatusCode(responseCode);
                     } else if (responseCode == 200) {
+                        listGenerate.setStatusCode(responseCode);
                         BufferedReader in = new BufferedReader(
                                 new InputStreamReader(con.getInputStream()));
                         String inputLine;

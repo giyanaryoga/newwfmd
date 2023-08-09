@@ -136,38 +136,102 @@ public class GeneratePeNameDao {
         return result;
     }
 
-    public void insertToDeviceTable(String wonum, String name, String type, String description) throws Throwable {
-        // Generate UUID
-        String uuId = UuidGenerator.getInstance().getUuid();
+//    public void insertToDeviceTable(String wonum, String name, String type, String description) throws Throwable {
+//        // Generate UUID
+//        String uuId = UuidGenerator.getInstance().getUuid();
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String insert = "INSERT INTO APP_FD_TK_DEVICEATTRIBUTE (ID, C_REF_NUM, C_ATTR_NAME, C_ATTR_TYPE, C_DESCRIPTION) VALUES (?, ?, ?, ?, ?)";
+//
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(insert)) {
+//            ps.setString(1, uuId);
+//            ps.setString(2, wonum);
+//            ps.setString(3, name);
+//            ps.setString(4, type);
+//            ps.setString(5, description);
+//
+//            int exe = ps.executeUpdate();
+//
+//            if (exe > 0) {
+//                LogUtil.info(this.getClass().getName(), "Berhasil menambahkan data");
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//    }
+
+    public boolean updateAttributeValue(String wonum, String peName, String peManufactur, String peIpaddress, String peModel) throws SQLException {
+        boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO APP_FD_TK_DEVICEATTRIBUTE (ID, C_REF_NUM, C_ATTR_NAME, C_ATTR_TYPE, C_DESCRIPTION) VALUES (?, ?, ?, ?, ?)";
+        StringBuilder update = new StringBuilder();
+        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+                .append("SET c_value = CASE c_assetattrid ")
+                .append("WHEN 'PE_NAME' THEN ? ")
+                .append("WHEN 'PE_MANUFACTUR' THEN ? ")
+                .append("WHEN 'PE_IPADDRESS' THEN ? ")
+                .append("WHEN 'PE_MODEL' THEN ? ")
+                .append("ELSE 'Missing' END ")
+                .append("WHERE c_wonum = ? ")
+                .append("AND c_assetattrid IN ('PE_NAME', 'PE_MANUFACTUR', 'PE_MODEL', 'PE_IPADDRESS')");
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(update.toString());
+                try {
+                    ps.setString(1, peName);
+                    ps.setString(2, peManufactur);
+                    ps.setString(3, peIpaddress);
+                    ps.setString(4, peModel);
+                    ps.setString(5, wonum);
 
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(insert)) {
-            ps.setString(1, uuId);
-            ps.setString(2, wonum);
-            ps.setString(3, name);
-            ps.setString(4, type);
-            ps.setString(5, description);
-
-            int exe = ps.executeUpdate();
-
-            if (exe > 0) {
-                LogUtil.info(this.getClass().getName(), "Berhasil menambahkan data");
+                    int exe = ps.executeUpdate();
+                    if (exe > 0) {
+                        result = true;
+                        LogUtil.info(getClass().getName(), "Downlinkport updated to " + wonum);
+                    }
+                    if (ps != null) {
+                        ps.close();
+                    }
+                } catch (Throwable throwable) {
+                    try {
+                        if (ps != null) {
+                            ps.close();
+                        }
+                    } catch (Throwable throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null) {
+                    con.close();
+                }
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null) {
+                        con.close();
+                    }
+                } catch (Throwable throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
+        return result;
     }
 
     public JSONObject callGeneratePeName(String wonum, ListGenerateAttributes listGenerate) throws MalformedURLException, Throwable {
         try {
-            String deviceType = getAssetattridType(wonum).get("DEVICETYPE").toString();
-            String areaName = getAssetattridType(wonum).get("AREANAME").toString();
-            String areaType = getAssetattridType(wonum).get("AREATYPE").toString();
-            String serviceType = getAssetattridType(wonum).get("SERVICE_TYPE").toString();
+            JSONObject assetAttributes = getAssetattridType(wonum);
+            String deviceType = assetAttributes.optString("DEVICETYPE", "null");
+            String areaName = assetAttributes.optString("AREANAME", "null");
+            String areaType = assetAttributes.optString("AREATYPE", "null");
+            String serviceType = assetAttributes.optString("SERVICE_TYPE", "null");
 
             String url = "https://api-emas.telkom.co.id:8443/api/device/byServiceArea?" + "deviceType=" + deviceType + "&areaName=" + areaName + "&areaType=" + areaType + "&serviceType=" + serviceType;
 
@@ -185,7 +249,7 @@ public class GeneratePeNameDao {
                 listGenerate.setStatusCode(responseCode);
             } else if (responseCode == 200) {
                 listGenerate.setStatusCode(responseCode);
-                
+
                 DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
                 Connection connection = ds.getConnection();
 
@@ -221,15 +285,17 @@ public class GeneratePeNameDao {
                 // Checking if detailactcode == Populate PE Port IP Transit -> update value COMMUNITY_TRANSIT
                 if (getDetailactcode(wonum).get("detailactcode").toString() == "Populate PE Port IP Transit") {
                     updateCommunityTransit(wonum, community);
+                    LogUtil.info(this.getClass().getName(), "UPDATE COMMUNITY SUCCESSFULLY ");
                 }
                 // Clear Data
                 deletetkDeviceattribute(wonum, connection);
 
                 // insert response data to table APP_FD_TK_DEVICEATTRIBUTE
-                insertToDeviceTable(wonum, "PE_NAME", "", name);
-                insertToDeviceTable(wonum, "PE_MANUFACTUR", name, manufactur);
-                insertToDeviceTable(wonum, "PE_IPADDRESS", name, ipAddress);
-                insertToDeviceTable(wonum, "PE_MODEL", name, model);
+                updateAttributeValue(wonum, name, manufactur, ipAddress, model);
+//                insertToDeviceTable(wonum, "PE_NAME", "", name);
+//                insertToDeviceTable(wonum, "PE_MANUFACTUR", name, manufactur);
+//                insertToDeviceTable(wonum, "PE_IPADDRESS", name, ipAddress);
+//                insertToDeviceTable(wonum, "PE_MODEL", name, model);
             }
 
         } catch (Exception e) {

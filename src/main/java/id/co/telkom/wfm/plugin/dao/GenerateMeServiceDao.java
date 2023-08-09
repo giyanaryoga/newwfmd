@@ -177,12 +177,16 @@ public class GenerateMeServiceDao {
 
     public JSONArray callGenerateMeService(String wonum, ListGenerateAttributes listGenerate) {
         try {
-            String url = "https://api-emas.telkom.co.id:8443/api/device/linkedPort?" + "deviceName=" + getAssetattridType(wonum).get("PE_NAME").toString() + "&portName=" + getAssetattridType(wonum).get("PE_PORTNAME").toString().replace("/", "%2F") + "&deviceLink=" + "PE_METROE" + "&portStatus=ACTIVE";
-            String urlByIp = "https://api-emas.telkom.co.id:8443/api/device/find?" + "ipAddress=" + getAssetattridType(wonum).get("ME_SERVICE_IPADDRESS").toString();
+            JSONObject assetAttributes = getAssetattridType(wonum);
+            String deviceName = assetAttributes.optString("PE_NAME", "null");
+            String portname = assetAttributes.optString("PE_PORTNAME", "null").replace("/", "%2F");
+            String ipaddress = assetAttributes.optString("ME_SERVICE_IPADDRESS", "null");
+            String nteType = assetAttributes.optString("NTE_TYPE");
+            
+            String url = "https://api-emas.telkom.co.id:8443/api/device/linkedPort?" + "deviceName=" + deviceName + "&portName=" + portname + "&deviceLink=" + "PE_METROE" + "&portStatus=ACTIVE";
+            String urlByIp = "https://api-emas.telkom.co.id:8443/api/device/find?" + "ipAddress=" + ipaddress;
             URL getDeviceLinkPort = new URL(url);
             URL getDeviceLinkPortByIp = new URL(urlByIp);
-
-            String nteType = getAssetattridType(wonum).getString("NTE_TYPE");
 
             if (nteType != null) {
                 if (nteType == "DirectME") {
@@ -224,6 +228,7 @@ public class GenerateMeServiceDao {
 
                         // Update Data ME SERVICE BY IPADDRESS
                         updateDeviceLinkPortByIp(wonum, manufactur, name, ipAddress);
+                        LogUtil.info(this.getClass().getName(), "Update data successfully");
                     }
                 } else {
                     HttpURLConnection con = (HttpURLConnection) getDeviceLinkPort.openConnection();
