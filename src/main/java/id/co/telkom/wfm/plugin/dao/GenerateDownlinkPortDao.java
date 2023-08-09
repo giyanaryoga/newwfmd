@@ -211,30 +211,7 @@ public class GenerateDownlinkPortDao {
 
                 // Clear data from table APP_FD_TK_DEVICEATTRIBUTE
                 deleteTkDeviceattribute(wonum);
-                if (id != null) {
-                    msg = msg + "AN Device Id: " + id + "\n";
-                    insertToDeviceTable(wonum, "AN_DEVICE_ID", "", id);
-                }
-                if (sTO != null) {
-                    msg = msg + "STO: " + sTO + "\n";
-                    insertToDeviceTable(wonum, "STO", "", sTO);
-                }
-                if (ipAddress != null) {
-                    msg = msg + "IP Address: " + ipAddress + "\n";
-                    insertToDeviceTable(wonum, "IPADDRESS", "", ipAddress);
-                }
-                if (nmsIpaddress != null) {
-                    msg = msg + "NMS IP Address: " + nmsIpaddress + "\n";
-                    insertToDeviceTable(wonum, "NMSIPADDRESS", "", nmsIpaddress);
-                }
-                if (name != null) {
-                    msg = msg + "AN Downlink Name: " + name + "\n";
-                    insertToDeviceTable(wonum, "NAME", "", name);
-                }
-                if (manufacture != null) {
-                    msg = msg + "Manufacture: " + manufacture + "\n";
-                    insertToDeviceTable(wonum, "MANUFACTURE", "", manufacture);
-                }
+                updateAttributeValue(wonum, id, sTO, ipAddress, nmsIpaddress, name, manufacture);
 
                 Object downlinkPortObj = getDeviceInformation.get("DownlinkPort");
                 if (downlinkPortObj instanceof JSONObject) {
@@ -278,43 +255,38 @@ public class GenerateDownlinkPortDao {
         return null;
     }
 
-    public boolean updateDeviceLinkPortByIp(String wonum, String manufacture, String name, String ipAddress) throws SQLException {
+    public boolean updateAttributeValue(String wonum, String deviceId, String sto, String ipaddress, String nmsipaddress, String name, String manufactur) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
         update.append("UPDATE APP_FD_WORKORDERSPEC ")
                 .append("SET c_value = CASE c_assetattrid ")
-                .append("WHEN 'ME_MANUFACTUR' THEN ? ")
-                .append("WHEN 'ME_NAME' THEN ? ")
-                .append("WHEN 'ME_IPADDRESS' THEN ? ")
-                .append("WHEN 'AN_MANUFACTUR' THEN ? ")
-                .append("WHEN 'AN_NAME' THEN ? ")
+                .append("WHEN 'AN_DEVICE_ID' THEN ? ")
+                .append("WHEN 'AN_STO' THEN ? ")
                 .append("WHEN 'AN_IPADDRESS' THEN ? ")
-                .append("SET c_readonly = CASE c_assetattrid ")
-                .append("WHEN 'ME_PORTNAME' THEN ? ")
-                .append("WHEN 'ME_PORTID' THEN ? ")
+                .append("WHEN 'AN_NMSIPADDRESS' THEN ? ")
+                .append("WHEN 'AN_NAME' THEN ? ")
+                .append("WHEN 'AN_MANUFACTUR' THEN ? ")
                 .append("ELSE 'Missing' END ")
                 .append("WHERE c_wonum = ? ")
-                .append("AND c_assetattrid IN ('ME_MANUFACTUR', 'ME_NAME', 'ME_IPADDRESS', 'AN_MANUFACTUR', 'AN_NAME', 'AN_IPADDRESS', 'ME_PORTNAME', 'ME_PORTID')");
+                .append("AND c_assetattrid IN ('AN_DEVICE_ID', 'AN_STO', 'AN_IPADDRESS', 'AN_NMSIPADDRESS', 'AN_NAME', 'AN_MANUFACTUR')");
         try {
             Connection con = ds.getConnection();
             try {
                 PreparedStatement ps = con.prepareStatement(update.toString());
                 try {
-                    ps.setString(1, manufacture);
-                    ps.setString(2, name);
-                    ps.setString(3, ipAddress);
-                    ps.setString(4, "-");
-                    ps.setString(5, "-");
-                    ps.setString(6, "-");
-                    ps.setString(7, "0");
-                    ps.setString(8, "0");
-                    ps.setString(9, wonum);
+                    ps.setString(1, deviceId);
+                    ps.setString(2, sto);
+                    ps.setString(3, ipaddress);
+                    ps.setString(4, nmsipaddress);
+                    ps.setString(5, name);
+                    ps.setString(6, manufactur);
+                    ps.setString(7, wonum);
 
                     int exe = ps.executeUpdate();
                     if (exe > 0) {
                         result = true;
-                        LogUtil.info(getClass().getName(), "ME Service updated to " + wonum);
+                        LogUtil.info(getClass().getName(), "Downlinkport updated to " + wonum);
                     }
                     if (ps != null) {
                         ps.close();

@@ -9,7 +9,6 @@ import id.co.telkom.wfm.plugin.dao.GenerateDownlinkPortDao;
 import id.co.telkom.wfm.plugin.model.ListGenerateAttributes;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -96,8 +95,8 @@ public class GenerateDownlinkPort extends Element implements PluginWebSupport {
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
+                
                 //Store param
-//                String result = "";
                 String wonum = data_obj.get("wonum").toString();
 
                 ListGenerateAttributes listAttribute = new ListGenerateAttributes();

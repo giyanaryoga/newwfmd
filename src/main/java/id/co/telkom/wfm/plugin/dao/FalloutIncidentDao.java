@@ -46,7 +46,6 @@ public class FalloutIncidentDao {
     }
 
     public void buildFalloutJson(String ticketId) throws SQLException {
-        JSONObject itemObject = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ticketid, c_tk_channel, c_tk_classification, c_tk_ossid, c_tk_statuscode, datemodified  FROM app_fd_incident WHERE c_ticketid = ?";
         try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement(query)) {

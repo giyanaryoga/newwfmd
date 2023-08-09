@@ -119,8 +119,8 @@ public class GenerateMeAccessDao {
         }
         return result;
     }
-    
-        public boolean updateDeviceLinkPort(String wonum, String manufacture, String name, String ipAddress, String portMtu, String portId, String portName) throws SQLException {
+
+    public boolean updateDeviceLinkPort(String wonum, String manufacture, String name, String ipAddress, String portMtu, String portId, String portName) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
@@ -188,24 +188,32 @@ public class GenerateMeAccessDao {
     }
 
     public JSONArray callGenerateMeAccess(String wonum, ListGenerateAttributes listGenerate) throws SQLException, JSONException {
-        String deviceName = getAssetattridType(wonum).get("AN_NAME").toString().replace("/", "%2F").replace(" ", "%20");
-        String portname = getAssetattridType(wonum).get("AN_UPLINK_PORTNAME").toString().replace("/", "%2F").replace(" ", "%20");
+        
+        JSONObject assetAttributes = getAssetattridType(wonum);
+        
+//        String deviceName = getAssetattridType(wonum).get("AN_NAME").toString().replace("/", "%2F").replace(" ", "%20");
+//        String portname = getAssetattridType(wonum).get("AN_UPLINK_PORTNAME").toString().replace("/", "%2F").replace(" ", "%20");
+        String deviceName = assetAttributes.optString("AN_NAME", "null").replace("/", "%2F").replace(" ", "%20");
+        String portname = assetAttributes.optString("AN_UPLINK_PORTNAME", "null").replace("/", "%2F").replace(" ", "%20");
+        String meIpAddress = assetAttributes.optString("ME_IPADDRESS", "null");
         String deviceLink = "";
         if (deviceLink == "") {
-            deviceLink = getAssetattridType(wonum).get("DEVICELINK").toString();
+//            deviceLink = getAssetattridType(wonum).get("DEVICELINK").toString();
+            deviceLink = assetAttributes.optString("DEVICELINK", "null");
         }
         if (deviceLink == "") {
-            deviceLink = getAssetattridType(wonum).get("LINK_TYPE").toString();
+//            deviceLink = getAssetattridType(wonum).get("LINK_TYPE").toString();
+              deviceLink = assetAttributes.optString("LINK_TYPE", "null");
         }
 
         try {
             String url = "https://api-emas.telkom.co.id:8443/api/device/linkedPort?" + "deviceName=" + deviceName + "&portName=" + portname + "&deviceLink=" + deviceLink;
-            String urlByIp = "https://api-emas.telkom.co.id:8443/api/device/find?" + "ipAddress=" + getAssetattridType(wonum).get("ME_IPADDRESS").toString();
+            String urlByIp = "https://api-emas.telkom.co.id:8443/api/device/find?" + "ipAddress=" + meIpAddress;
 
             URL getDeviceLinkPort = new URL(url);
             URL getDeviceLinkPortByIp = new URL(urlByIp);
 
-            String nteType = getAssetattridType(wonum).getString("NTE_TYPE");
+            String nteType = assetAttributes.optString("NTE_TYPE");
             if (nteType != null) {
                 if (nteType == "DirectME" || nteType == "L2Switch") {
                     HttpURLConnection con = (HttpURLConnection) getDeviceLinkPortByIp.openConnection();

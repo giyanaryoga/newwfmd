@@ -125,7 +125,6 @@ public class GenerateFalloutDao {
     }
 
     public boolean insertToWoTable(String externalSystem, String longDescription, String ossid, String region, String customerType, String workzone, String classification, String description, String internalPriority, String statusCode, String ticketId, String tk_channel) {
-//        TimeUtil time = new TimeUtil();
         Date date = new Date();
         Timestamp timestamp = new Timestamp(date.getTime());
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid

@@ -75,7 +75,7 @@ public class GenerateMeAccess extends Element implements PluginWebSupport {
                 if (hsr.getParameterMap().containsKey("wonum")) {
                     String wonum = hsr.getParameter("wonum");
                     dao.callGenerateMeAccess(wonum, listAttribute);
-                    if (listAttribute.getStatusCode() == 400) {
+                    if (listAttribute.getStatusCode() == 404) {
                         JSONObject res1 = new JSONObject();
                         res1.put("code", 404);
                         res1.put("message", "No Service found!.");
