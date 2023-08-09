@@ -41,6 +41,7 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(GenerateVRF.class.getName(), new GenerateVRF(), null));
         registrationList.add(context.registerService(GenerateVRFNameExisting.class.getName(), new GenerateVRFNameExisting(), null));
         registrationList.add(context.registerService(GenerateVLANReservation.class.getName(), new GenerateVLANReservation(), null));
+        registrationList.add(context.registerService(IPVLANConnecitivty.class.getName(), new IPVLANConnecitivty(), null));
 
 
     }
