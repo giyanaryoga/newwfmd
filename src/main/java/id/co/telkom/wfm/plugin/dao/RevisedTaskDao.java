@@ -74,6 +74,50 @@ public class RevisedTaskDao {
         }
     }
     
+    public void reviseTaskNonConn(String wonum) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_wonum = ?";
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(update);
+                try {
+                    ps.setString(1, "REVISED");
+                    ps.setTimestamp(2, getTimeStamp());
+                    ps.setString(3, wonum);
+                    int exe = ps.executeUpdate();
+                    //Checking insert status
+                    if (exe > 0) 
+                        LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
+                    if (ps != null)
+                        ps.close();
+                } catch (SQLException throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (SQLException throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (SQLException throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (SQLException throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+    
     public boolean checkAttrName(String attrName, String wonum) throws SQLException {
         boolean isTrue = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
