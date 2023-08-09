@@ -26,16 +26,19 @@ public class RevisedTask extends DefaultApplicationPlugin {
         RevisedTaskDao dao = new RevisedTaskDao();
         
         String task = getPropertyString("task");
+        Integer taskId = Integer.parseInt(getPropertyString("taskid"));
         String wonum = getPropertyString("wonum");
         String attrName = getPropertyString("assetattrid");
         String attrValue = getPropertyString("value");
         String[] parent = wonum.split(" - ");
         
+        LogUtil.info(this.getClassName(), "TASK ID: "+ taskId);
         LogUtil.info(this.getClassName(), "TASK: "+ task);
         LogUtil.info(this.getClassName(), "WONUM: "+ wonum);
         LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: "+ attrName);
         LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: "+ attrValue);
         String wonumParent = parent[0];
+        int nextTaskId = taskId + 10;
         
         try {
             switch(attrName){
@@ -48,11 +51,20 @@ public class RevisedTask extends DefaultApplicationPlugin {
                     }
                 break;
                 case "APPROVAL":
-                    if (attrValue.equalsIgnoreCase("REJECTED")) {
-                        dao.reviseTask(wonumParent);
-                        dao.generateActivityTask(wonumParent);
+                    if (task.equalsIgnoreCase("REVIEW_ORDER")) {
+                        if (attrValue.equalsIgnoreCase("REJECTED")) {
+                            //Di Array dlu task parentnya
+                            //lalu di foreach, dan update REVISED task selanjutnya
+                        } else {
+                            LogUtil.info(this.getClassName(), "Approval is not REJECTED");
+                        }
                     } else {
-                        LogUtil.info(this.getClassName(), "Approval Survey is not REJECTED");
+                        if (attrValue.equalsIgnoreCase("REJECTED")) {
+                            dao.reviseTask(wonumParent);
+                            dao.generateActivityTask(wonumParent);
+                        } else {
+                            LogUtil.info(this.getClassName(), "Approval is not REJECTED");
+                        }
                     }
                 break;
                 case "NODE_ID":
@@ -148,6 +160,9 @@ public class RevisedTask extends DefaultApplicationPlugin {
                 default:
                     LogUtil.info(this.getClassName(), "Attribute name dan value tidak memenuhi Revised Task");
                 break;
+            }
+            if (task == "REVIEW_ORDER") {
+                
             }
         } catch (SQLException ex) {
             Logger.getLogger(RevisedTask.class.getName()).log(Level.SEVERE, null, ex);

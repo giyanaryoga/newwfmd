@@ -5,7 +5,7 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
-import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
+import id.co.telkom.wfm.plugin.dao.TestUpdateStatusEbisDao;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
@@ -94,7 +94,8 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                 JSONObject envelope = (JSONObject) data_obj.get("UpdateMXTELKOWO");
                 JSONObject envelope2 = (JSONObject) envelope.get("MXTELKOWOSet");
                 JSONObject body = (JSONObject) envelope2.get("WORKORDER");
-
+                
+                TestUpdateStatusEbisDao updateTaskStatusEbisDao = new TestUpdateStatusEbisDao();
                 //Store param
                 String status = (body.get("status") == null ? "" : body.get("status").toString());
                 String wonum = null;
@@ -109,32 +110,38 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                 String engineerMemo = null;
                 String currentDate = null;
 
-                if ("FAILWA".equals(status)) {
-                    wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
-                    parent = wonum.substring(0, 11);
-                    taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
-                    siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
-                    woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
-                    woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
-                    description = (body.get("description") == null ? "" : body.get("description").toString());
-                    errorCode = (body.get("errorCode") == null ? "" : body.get("errorCode").toString());
-                    engineerMemo = (body.get("engineerMemo") == null ? "" : body.get("engineerMemo").toString());
-                    currentDate = time.getCurrentTime();
-                } else {
-                    wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
-                    parent = wonum.substring(0, 11);
-                    taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
-                    siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
-                    woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
-                    woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
-                    description = (body.get("description") == null ? "" : body.get("description").toString());
-                    currentDate = time.getCurrentTime();
-                }
+                wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
+                parent = wonum.substring(0, 11);
+                taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
+                siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
+                woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
+                woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
+                description = (body.get("description") == null ? "" : body.get("description").toString());
+                currentDate = time.getCurrentTime();
 
                 int nextTaskId = Integer.parseInt(taskId) + 10;
+                
+                switch(body.get("status").toString()) {
+                    case "STARTWA" :
+                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                        if (updateTask) {
+                            hsr1.setStatus(200);
+                        }
+                        JSONObject res = new JSONObject();
+                        res.put("code", "200");
+                        res.put("status", status);
+                        res.put("wonum", wonum);
+                        res.put("message", "Successfully update status");
+                        res.writeJSONString(hsr1.getWriter());
+                        break;
+                    case "COMPWA" :
+                        break;
+                    default :
+                        break;
+                }
+                
                 if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) {
                     //Update status
-                    UpdateTaskStatusEbisDao updateTaskStatusEbisDao = new UpdateTaskStatusEbisDao();
                     if ("STARTWA".equals(body.get("status"))) {
                         final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                         if (updateTask) {
@@ -147,8 +154,8 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                         res.put("message", "Successfully update status");
                         res.writeJSONString(hsr1.getWriter());
                     } else if ("COMPWA".equals(body.get("status"))) {
-                        String isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
-                        if (isMandatoryValue != "") {
+                        boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
+                        if (isMandatoryValue == true) {
                             // update task status
                             updateTaskStatusEbisDao.updateTask(wonum, status);
 
@@ -223,34 +230,6 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                         } else {
                             hsr1.setStatus(422);
                         }
-                    } else if ("FAILWA".equals(body.get("status"))) {
-                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
-                        if (updateTask) {
-                            hsr1.setStatus(200);
-                        }
-                        // Update parent status
-                        updateTaskStatusEbisDao.updateWorkFail(parent, "WORKFAIL", errorCode, engineerMemo, currentDate);
-                        LogUtil.info(getClass().getName(), "Update WORKFAIL Successfully!");
-
-                        // Insert data to table WFMMILESTONE
-                        updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, currentDate);
-
-                        //Create response
-                        JSONObject dataRes = new JSONObject();
-                        dataRes.put("wonum", parent);
-                        dataRes.put("milestone", woStatus);
-                        JSONObject res = new JSONObject();
-                        res.put("code", "200");
-                        res.put("message", "Success");
-                        res.put("data", dataRes);
-                        res.writeJSONString(hsr1.getWriter());
-
-                        //Build Response
-                        JSONObject data = updateTaskStatusEbisDao.getFailWorkJson(parent);
-                        // Response to Kafka
-                        String kafkaRes = data.toJSONString();
-                        KafkaProducerTool kaf = new KafkaProducerTool();
-                        kaf.generateMessage(kafkaRes, "WFM_MILESTONE_ENTERPRISE", "");
                     }
                 }
             } catch (ParseException | SQLException e) {
@@ -264,4 +243,8 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
             }
         }
     }
+    
+//    private void compwaSendToSCMT(String description) {
+//        TestUpdateStatusEbisDao updateDao = new TestUpdateStatusEbisDao();
+//    }
 }
