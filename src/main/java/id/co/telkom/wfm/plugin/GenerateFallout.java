@@ -131,13 +131,14 @@ public class GenerateFallout extends Element implements PluginWebSupport {
                 String description = (data_obj.get("description") == null ? "" : data_obj.get("description").toString());
                 String tk_channel = (data_obj.get("tk_channel") == null ? "" : data_obj.get("tk_channel").toString());
                 String longDescription = (data_obj.get("longDescription") == null ? "" : data_obj.get("longDescription").toString());
+                String assetNum = (data_obj.get("assetNum") == null ? "" : data_obj.get("assetNum").toString());
 //                String currentDate = time.getCurrentTime();
 
                 //@Main process start..
                 //Generate wonum with counter function from DB
                 String ticketId = dao.getTicketid();
 
-                final boolean insertFallout = dao.insertToWoTable(externalSystem, longDescription, ossid, region, customerType, workzone, classification, description, internalPriority, statusCode, ticketId, tk_channel);
+                final boolean insertFallout = dao.insertToWoTable(externalSystem, longDescription, ossid, region, customerType, workzone, classification, description, internalPriority, statusCode, ticketId, tk_channel, assetNum);
 
                 if (ticketId != null && insertFallout) {
                     try {

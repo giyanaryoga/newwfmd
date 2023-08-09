@@ -22,14 +22,15 @@ import org.json.simple.JSONObject;
  */
 public class FalloutIncidentDao {
 
-    public boolean updateStatus(String statusCode, String ticketId) throws SQLException {
+    public boolean updateStatus(String statusCode, String ticketId, String ownerGroup) throws SQLException {
         boolean updateStatus = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE APP_FD_INCIDENT SET C_TK_STATUSCODE = ?, datemodified = sysdate WHERE C_TICKETID = ?";
+        String update = "UPDATE APP_FD_INCIDENT SET C_TK_STATUSCODE = ?, C_OWNERGROUP = ?, datemodified = sysdate WHERE C_TICKETID = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, statusCode);
-            ps.setString(2, ticketId);
+            ps.setString(2, ownerGroup);
+            ps.setString(3, ticketId);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "update status berhasil");

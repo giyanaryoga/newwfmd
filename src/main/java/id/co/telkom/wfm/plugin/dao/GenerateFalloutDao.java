@@ -124,7 +124,52 @@ public class GenerateFalloutDao {
         return ticketId;
     }
 
-    public boolean insertToWoTable(String externalSystem, String longDescription, String ossid, String region, String customerType, String workzone, String classification, String description, String internalPriority, String statusCode, String ticketId, String tk_channel) {
+    public String getOwnergroup() {
+        String ownergroup = "";
+        DataSource dataSource = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup FROM app_fd_tkmapping";
+
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            if (resultSet.next()) {
+                ownergroup = resultSet.getString("c_ownergroup");
+            }
+
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+
+        return ownergroup;
+    }
+
+    public String getWonum(String assetNum) {
+        String wonum = "";
+
+        DataSource dataSource = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "select c_wonum from app_fd_workorder where c_tk_custom_header_07 = ?";
+
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, assetNum);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    wonum = resultSet.getString("c_wonum");
+                }
+            } catch (SQLException e) {
+                LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            }
+
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+
+        return wonum;
+    }
+
+    public boolean insertToWoTable(String externalSystem, String longDescription, String ossid, String region, String customerType, String workzone, String classification, String description, String internalPriority, String statusCode, String ticketId, String tk_channel, String assetNum) {
         Date date = new Date();
         Timestamp timestamp = new Timestamp(date.getTime());
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
@@ -144,43 +189,47 @@ public class GenerateFalloutDao {
                 .append("c_tk_classification, ")
                 .append("c_description, ")
                 .append("c_internalpriority, ")
-//                .append("c_ownergroup, ")
+                .append("c_ownergroup, ")
                 .append("c_tk_statuscode, ")
                 .append("c_ticketid, ")
                 .append("c_tk_channel, ")
+                .append("c_wonum, ")
+                .append("c_tk_custom_header_07, ")
                 .append("datecreated ")
                 .append(") ")
                 .append("VALUES ")
-                .append("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                .append("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         try {
             Connection con = ds.getConnection();
             try {
                 PreparedStatement ps = con.prepareStatement(insert.toString());
                 ps.setString(1, uuId);
-                    ps.setString(2, externalSystem);
-                    ps.setString(3, longDescription);
-                    ps.setString(4, ossid);
-                    ps.setString(5, region);
-                    ps.setString(6, customerType);
-                    ps.setString(7, workzone);
-                    ps.setString(8, classification);
-                    ps.setString(9, description);
-                    ps.setString(10, internalPriority);
-//                    ps.setString(11, ownerGroup);
-                    ps.setString(11, statusCode);
-                    ps.setString(12, ticketId);
-                    ps.setString(13, tk_channel);
-                    ps.setTimestamp(14, timestamp);
+                ps.setString(2, externalSystem);
+                ps.setString(3, longDescription);
+                ps.setString(4, ossid);
+                ps.setString(5, region);
+                ps.setString(6, customerType);
+                ps.setString(7, workzone);
+                ps.setString(8, classification);
+                ps.setString(9, description);
+                ps.setString(10, internalPriority);
+                ps.setString(11, getOwnergroup());
+                ps.setString(12, statusCode);
+                ps.setString(13, ticketId);
+                ps.setString(14, tk_channel);
+                ps.setString(15, getWonum(assetNum));
+                ps.setString(16, assetNum);
+                ps.setTimestamp(17, timestamp);
 
-                    ResultSet exe = ps.executeQuery();
-                    //Checking insert status
-                    if (exe.next()) {
-                        insertStatus = true;
-                        LogUtil.info(getClass().getName(), "Work Order param for '" + ticketId + "' inserted to DB");
-                    }
-                    if (ps != null) {
-                        ps.close();
-                    }
+                ResultSet exe = ps.executeQuery();
+                //Checking insert status
+                if (exe.next()) {
+                    insertStatus = true;
+                    LogUtil.info(getClass().getName(), "Work Order param for '" + ticketId + "' inserted to DB");
+                }
+                if (ps != null) {
+                    ps.close();
+                }
             } catch (SQLException throwable) {
                 try {
                     if (con != null) {

@@ -6,7 +6,6 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.FalloutIncidentDao;
-import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -93,9 +92,10 @@ public class FalloutIncident extends Element implements PluginWebSupport {
                 //Store param
                 String statusCode = (body.get("statusCode") == null ? "" : body.get("statusCode").toString());
                 String ticketId = (body.get("ticketId") == null ? "" : body.get("ticketId").toString());
+                String ownerGroup = (body.get("ownerGroup") == null ? "" : body.get("ownerGroup").toString());
 
                 FalloutIncidentDao dao = new FalloutIncidentDao();
-                boolean updateTask = dao.updateStatus(statusCode, ticketId);
+                boolean updateTask = dao.updateStatus(statusCode, ownerGroup, ticketId);
                 LogUtil.info(this.getClassName(), "update status : " + updateTask);
                 if (updateTask == true) {
                     dao.buildFalloutJson(ticketId);
