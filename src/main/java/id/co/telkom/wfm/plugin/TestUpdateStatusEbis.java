@@ -150,8 +150,7 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                             switch(description) {
                                 case "Registration Suplychain": 
                                 case "Registration Suplychain Wifi":
-                                case "Dismantle NTE": 
-                                    // Start of Set Install/Set Dismantle
+                                    // Start of Set Install
                                     scmtIntegrationEbisDao.sendInstall(parent);
 
                                     res.put("code", "255");
