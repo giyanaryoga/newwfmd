@@ -149,8 +149,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         res.put("message", "Successfully update status");
                         res.writeJSONString(hsr1.getWriter());
                     } else if ("COMPWA".equals(body.get("status"))) {
-                        String isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
-                        if (isMandatoryValue != "") {
+                        boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
+                        if (isMandatoryValue == true) {
                             // update task status
                             updateTaskStatusEbisDao.updateTask(wonum, status);
 

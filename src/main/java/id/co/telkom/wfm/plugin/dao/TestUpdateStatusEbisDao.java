@@ -31,19 +31,21 @@ public class TestUpdateStatusEbisDao {
     public boolean checkMandatory(String wonum) throws SQLException {
         boolean value = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = ?";
+        String update = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, wonum);
-            ps.setInt(2, 1);
+//            ps.setInt(2, 1);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                if (rs.getString("c_value") != "") {
+                if (rs.getString("c_value") != null) {
                     value = true;
-                    LogUtil.info(getClass().getName(), "Task attribute value is mandatory");
+                    LogUtil.info(getClass().getName(), "Value mandatory is not null");
+                    LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value"));
                 } else {
                     value = false;
-                    LogUtil.info(getClass().getName(), "Task attribute value is not mandatory");
+                    LogUtil.info(getClass().getName(), "Value mandatory is null");
+                    LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value"));
                 }
             }
         } catch (Exception e) {
@@ -53,6 +55,34 @@ public class TestUpdateStatusEbisDao {
         }
         return value;
     }
+    
+    public boolean checkAssignment(String wonum) throws SQLException {
+        boolean assign = false;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String update = "SELECT c_laborcode, c_status FROM app_fd_assignment WHERE c_wonum = ? AND c_status = 'ASSIGNED'";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                if (rs.getString("c_status") == "ASSIGNED") {
+                    assign = true;
+                    LogUtil.info(getClass().getName(), "Task sudah assign ke labor");
+                    LogUtil.info(getClass().getName(), rs.getString("c_laborcode") + " = " + rs.getString("c_status"));
+                } else {
+                    assign = false;
+                    LogUtil.info(getClass().getName(), "Task belum assign ke labor");
+                    LogUtil.info(getClass().getName(), rs.getString("c_laborcode") + " = " + rs.getString("c_status"));
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return assign;
+    }
+    
     //===========================
     // Function Update Task
     //===========================

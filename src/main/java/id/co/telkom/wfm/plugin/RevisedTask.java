@@ -5,6 +5,7 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
+import id.co.telkom.wfm.plugin.util.PopUpUtil;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
@@ -13,6 +14,8 @@ import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
 import org.joget.plugin.base.DefaultApplicationPlugin;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -23,6 +26,8 @@ public class RevisedTask extends DefaultApplicationPlugin {
     
     @Override
     public Object execute(Map map) {
+        JFrame frame = new JFrame();
+        PopUpUtil popup = new PopUpUtil();
         RevisedTaskDao dao = new RevisedTaskDao();
         
         String task = getPropertyString("task");
@@ -51,21 +56,28 @@ public class RevisedTask extends DefaultApplicationPlugin {
                     }
                 break;
                 case "APPROVAL":
-                    if (task.equalsIgnoreCase("REVIEW_ORDER")) {
-                        if (attrValue.equalsIgnoreCase("REJECTED")) {
-                            //Di Array dlu task parentnya
-                            //lalu di foreach, dan update REVISED task selanjutnya
-                        } else {
-                            LogUtil.info(this.getClassName(), "Approval is not REJECTED");
-                        }
-                    } else {
+//                    if (task.equalsIgnoreCase("REVIEW_ORDER")) {
+//                        if (attrValue.equalsIgnoreCase("REJECTED")) {
+//                            //Di Array dlu task parentnya
+//                            //lalu di foreach, dan update REVISED task selanjutnya
+//                        } else {
+//                            LogUtil.info(this.getClassName(), "Approval is not REJECTED");
+//                        }
+//                    } else {
                         if (attrValue.equalsIgnoreCase("REJECTED")) {
                             dao.reviseTask(wonumParent);
                             dao.generateActivityTask(wonumParent);
+//                            JOptionPane.showMessageDialog(null, "Revised Task is generate!");
+                            JOptionPane.showMessageDialog(frame, "Revised Task is generate!");
+//                            JOptionPane.YES_OPTION();
+//                            popup.infoBox(null, "Info", "Revised Task is generate!");
                         } else {
                             LogUtil.info(this.getClassName(), "Approval is not REJECTED");
+                            JOptionPane.showMessageDialog(frame, "Revised Task is not generate!");
+//                            JOptionPane.showMessageDialog(null, "Revised Task is generate!");
+//                            popup.infoBox(null, "Info", "Revised Task is generate!");
                         }
-                    }
+//                    }
                 break;
                 case "NODE_ID":
                     if (!attrValue.equalsIgnoreCase("None")) {

@@ -33,27 +33,25 @@ public class UpdateTaskStatusEbisDao {
         return ts;
     }
     
-    public String checkMandatory(String wonum) throws SQLException {
-        String value = "";
+    public boolean checkMandatory(String wonum) throws SQLException {
+        boolean value = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = ?";
+        String update = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, wonum);
-            ps.setInt(2, 1);
+//            ps.setInt(2, 1);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-//                if (rs.getString("c_value").toString() != "") {
-//                    value = true;
-//                    LogUtil.info(getClass().getName(), "Task attribute value is mandatory");
-//                } else {
-//                    value = false;
-//                    LogUtil.info(getClass().getName(), "Task attribute value is not mandatory");
-//                }
-                LogUtil.info(getClass().getName(), "Task attribute value is mandatory");
-                value = rs.getString("c_value").toString();
-            } else {
-                LogUtil.info(getClass().getName(), "Task attribute value is not mandatory");
+            while (rs.next()) {
+                if (rs.getString("c_value") != null) {
+                    value = true;
+                    LogUtil.info(getClass().getName(), "Value mandatory is not null");
+                    LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value"));
+                } else {
+                    value = false;
+                    LogUtil.info(getClass().getName(), "Value mandatory is null");
+                    LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value"));
+                }
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -62,6 +60,7 @@ public class UpdateTaskStatusEbisDao {
         }
         return value;
     }
+    
     //===========================
     // Function Update Task
     //===========================

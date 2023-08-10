@@ -105,7 +105,6 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                 String woSequence = null;
                 String woStatus = null;
                 String description = null;
-//                String error = null;
                 String errorCode = null;
                 String engineerMemo = null;
                 String currentDate = null;
@@ -123,20 +122,34 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                 
                 switch(body.get("status").toString()) {
                     case "STARTWA" :
-                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
-                        if (updateTask) {
-                            hsr1.setStatus(200);
+                        boolean isAssigned = updateTaskStatusEbisDao.checkAssignment(wonum);
+                        if (!isAssigned) {
+                            hsr1.setStatus(421);
+                        } else {
+                            final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                            if (updateTask) {
+                                hsr1.setStatus(200);
+                            }
+                            JSONObject res = new JSONObject();
+                            res.put("code", "200");
+                            res.put("status", status);
+                            res.put("wonum", wonum);
+                            res.put("message", "Successfully update status");
+                            res.writeJSONString(hsr1.getWriter());
                         }
-                        JSONObject res = new JSONObject();
-                        res.put("code", "200");
-                        res.put("status", status);
-                        res.put("wonum", wonum);
-                        res.put("message", "Successfully update status");
-                        res.writeJSONString(hsr1.getWriter());
                         break;
                     case "COMPWA" :
+                        boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
+                        if (!isMandatoryValue) {
+                            hsr1.setStatus(422);
+                        } else {
+                            switch(description) {
+                                case "": 
+                            }
+                        }
                         break;
                     default :
+                        hsr1.setStatus(420);
                         break;
                 }
                 
