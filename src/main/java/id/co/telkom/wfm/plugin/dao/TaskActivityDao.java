@@ -136,10 +136,28 @@ public class TaskActivityDao {
         return ownerGroup;
     }
     
+    public String getOwnerGroupPerson(String personGroup) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_persongroup, c_description FROM app_fd_persongroup WHERE c_persongroup = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, personGroup);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_description");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
+    
     public JSONObject getDetailTask(String activity) throws SQLException {
         JSONObject activityProp = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_activity, c_description, c_actplace, c_attributes, c_sequence FROM app_fd_detailactivity WHERE c_activity = ?";
+        String query = "SELECT c_activity, c_description, c_actplace, c_attributes, c_sequence, c_ownergroup, c_duration FROM app_fd_detailactivity WHERE c_activity = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, activity);
@@ -149,8 +167,9 @@ public class TaskActivityDao {
                 activityProp.put("description", rs.getString("c_description"));
                 activityProp.put("sequence", rs.getInt("c_sequence"));
                 activityProp.put("actPlace", rs.getString("c_actplace"));
-//                activityProp.put("classstructureid", rs.getString("c_classstructureid"));
+                activityProp.put("ownergroup", rs.getString("c_ownergroup"));
                 activityProp.put("attributes", rs.getInt("c_attributes"));
+                activityProp.put("duration", rs.getInt("c_duration"));
             } else {
                 activityProp = null;
             }
@@ -249,7 +268,7 @@ public class TaskActivityDao {
         return updateCpe;
     }
     
-    public void generateActivityTask(String parent, String siteId, String correlationId, String ownerGroup, JSONObject taskObj) throws SQLException {
+    public void generateActivityTask(String parent, String siteId, String correlationId, JSONObject taskObj, String ownerGroup) throws SQLException {
         StringBuilder insert = new StringBuilder();
         insert
                 .append(" INSERT INTO app_fd_workorder ( ")
@@ -269,6 +288,7 @@ public class TaskActivityDao {
                 .append(" c_woclass, ")
                 .append(" c_taskid, ")
                 .append(" c_correlation, ")
+                .append(" c_estdur, ")
                 .append(" c_ownergroup ")
                 .append(" ) ")
                 .append(" VALUES ( ")
@@ -288,10 +308,10 @@ public class TaskActivityDao {
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
+                .append(" ?, ")
                 .append(" ? ")
                 .append(" ) ");
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//            String query = "SELECT c_description, c_sequence, c_actplace, c_classstructureid FROM app_fd_detailactivity WHERE c_activity = ? AND c_sequence = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(insert.toString());){
             ps.setString(1, UuidGenerator.getInstance().getUuid());
@@ -309,8 +329,9 @@ public class TaskActivityDao {
             ps.setString(13, "WFM");
             ps.setString(14, "ACTIVITY");       
             ps.setString(15, taskObj.get("taskid").toString());
-            ps.setString(16, correlationId);    
-            ps.setString(17, ownerGroup);
+            ps.setString(16, correlationId);
+            ps.setInt(17, (int) taskObj.get("duration"));
+            ps.setString(18, ownerGroup);
             
             int exe = ps.executeUpdate();
             //Checking insert status
@@ -401,80 +422,6 @@ public class TaskActivityDao {
             LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
         }
     }
-    
-//    public void updateNameTaskAttribute(String assetattrid, String wonum, String orderId, String attrValue) throws SQLException {
-//        StringBuilder query = new StringBuilder();
-//        query
-//                .append(" SELECT ")
-////                .append(" c_classstructureid, ")
-//                .append(" c_classspecid, ")
-//                .append(" c_orgid, ")
-//                .append(" c_assetattrid, ")
-//                .append(" c_readonly, ")
-//                .append(" c_isrequired, ") //joinan dari classspecusewith
-//                .append(" c_isshared ")
-//                .append(" FROM app_fd_classspec WHERE ")
-//                .append(" c_assetattrid = ? ");  //this is for next patching
-//        
-//        StringBuilder insert = new StringBuilder();
-//        insert
-//                .append(" INSERT INTO app_fd_workorderspec ")
-//                .append(" ( ")
-//                //TEMPLATE CONFIGURATION
-//                .append(" id, dateCreated, createdBy, createdByName,  ")
-//                //TASK ATTRIBUTE
-//                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, c_value, ")
-//                //PERMISSION
-//                .append(" c_readonly, c_isrequired, c_isshared ")
-//                .append(" ) ")
-//                .append(" VALUES ")
-//                .append(" ( ")
-//                //VALUES TEMPLATE CONFIGURATION
-//                .append(" ?, ?, 'admin', 'Admin admin', ")
-//                //VALUES TASK ATTRIBUTE
-//                .append(" ?, ?, ?, ?, ?, ?, ")
-//                //VALUES PERMISSION
-//                .append(" ?, ?, ? ")
-//                .append(" ) ");
-//        
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        try(Connection con = ds.getConnection()) {
-//            boolean oldAutoCommit = con.getAutoCommit();
-//            LogUtil.info(getClass().getName(), "'start' auto commit state: " + oldAutoCommit);
-//            con.setAutoCommit(false);
-//            try(PreparedStatement ps = con.prepareStatement(query.toString());
-//                PreparedStatement psInsert = con.prepareStatement(insert.toString())) {
-//                    ps.setString(1, assetattrid);
-//                    ResultSet rs = ps.executeQuery();
-//                while (rs.next()) {
-//                    psInsert.setString(1, UuidGenerator.getInstance().getUuid());
-//                    psInsert.setTimestamp(2, getTimeStamp());
-//                    psInsert.setString(3, wonum);
-//                    psInsert.setString(4, rs.getString("c_assetattrid"));
-//                    psInsert.setString(5, rs.getString("c_orgid"));
-//                    psInsert.setString(6, rs.getString("c_classspecid"));
-//                    psInsert.setString(7, orderId);
-//                    psInsert.setString(8, attrValue);
-//                    psInsert.setString(9, rs.getString("c_readonly"));
-//                    psInsert.setString(10, rs.getString("c_isrequired"));
-//                    psInsert.setString(11, rs.getString("c_isshared"));
-//                    psInsert.addBatch();
-//                }
-//                int[] exe = psInsert.executeBatch();
-//                if (exe.length > 0) {
-//                    LogUtil.info(getClass().getName(), "Success generated task attributes, for " + assetattrid);
-//                }
-//                con.commit();
-//            } catch(SQLException e) {
-//                LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
-//                con.rollback();
-//            } finally {
-//                con.setAutoCommit(oldAutoCommit);
-//            }
-//        } catch(SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
-//        }
-//    }
     
     public boolean updateValueTaskAttribute(String wonum, String attrName, String attrValue){
         boolean updateValue = false;    

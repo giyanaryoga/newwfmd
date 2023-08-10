@@ -124,14 +124,28 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                 currentDate = time.getCurrentTime();
                 
                 int nextTaskId = Integer.parseInt(taskId) + 10;
+                boolean updateTask = false;
                 
                 switch(body.get("status").toString()) {
                     case "STARTWA" :
                         boolean isAssigned = updateTaskStatusEbisDao.checkAssignment(wonum);
                         if (!isAssigned) {
-                            hsr1.setStatus(421);
+                            String checkActPlace = updateTaskStatusEbisDao.checkActPlace(wonum);
+                            if (checkActPlace.equals("OUTSIDE")) {
+                                hsr1.setStatus(421);
+                            } else {
+                                updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                                if (updateTask) {
+                                    hsr1.setStatus(200);
+                                }
+                                res.put("code", "200");
+                                res.put("status", status);
+                                res.put("wonum", wonum);
+                                res.put("message", "Successfully update status");
+                                res.writeJSONString(hsr1.getWriter());
+                            }
                         } else {
-                            final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                            updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                             if (updateTask) {
                                 hsr1.setStatus(200);
                             }
@@ -144,7 +158,8 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                     break;
                     case "COMPWA" :
                         boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
-                        if (!isMandatoryValue) {
+                        Integer isRequired = updateTaskStatusEbisDao.isRequired(wonum);
+                        if (!isMandatoryValue && isRequired == 1) {
                             hsr1.setStatus(422);
                         } else {
                             switch(description) {
@@ -157,8 +172,9 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                                     res.put("message", "Success");
                                     res.writeJSONString(hsr1.getWriter());
                                     hsr1.setStatus(255);
+                                    updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                                     final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
-                                    if (nextAssign) {
+                                    if (nextAssign && updateTask) {
                                         hsr1.setStatus(200);
                                     }
                                 break;
@@ -173,7 +189,7 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                                             LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
                                             // update task status
-                                            final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                                            updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                                             if (updateTask) {
                                                 hsr1.setStatus(200);
                                             }

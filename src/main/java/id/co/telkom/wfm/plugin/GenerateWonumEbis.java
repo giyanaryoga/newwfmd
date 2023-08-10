@@ -201,11 +201,11 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
                 ListAttributes listAttribute = new ListAttributes();
                 ListCpeValidate cpeValidated = new ListCpeValidate();
+                
                 act.setTaskId(10);
                 int counter = 1;
-                
                 String TaskDescription;
-                
+                String ownerGroupTask = "";
                 String[] splittedJms = jmsCorrelationId.split("_");
                 String orderId = splittedJms[0];
                 JSONArray oss_item = new JSONArray();
@@ -222,7 +222,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 JSONObject oss = (JSONObject)((JSONArray) oss_item).get(0);
                 JSONObject detailAct1 = dao2.getDetailTask(((JSONObject) oss).get("ITEMNAME").toString());
                 TaskDescription = (String) detailAct1.get("description");
-                LogUtil.info(getClass().getName(), "TASK DESCRIPTION :" + TaskDescription);
+//                LogUtil.info(getClass().getName(), "TASK DESCRIPTION :" + TaskDescription);
                 
                 for(int j = 0; j < ((JSONArray) oss_item).size(); j++) {
                     JSONObject oss_itemObj = (JSONObject)((JSONArray) oss_item).get(j);
@@ -233,7 +233,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     listOssItem.setItemname(((JSONObject) oss_itemObj).get("ITEMNAME").toString());
                     String itemName = listOssItem.getItemname();
                     String correlationId = listOssItem.getCorrelationid();
-                    LogUtil.info(getClass().getName(), "TASK :" + itemName);
+//                    LogUtil.info(getClass().getName(), "TASK :" + itemName);
                     //TASK GENERATE
                     JSONObject detailAct = dao2.getDetailTask(itemName);
 //                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
@@ -242,7 +242,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     task.put("correlation", correlationId);
                     task.put("sequence", (int) detailAct.get("sequence"));
                     task.put("actplace", detailAct.get("actPlace"));
-//                    task.put("classStructureId", detailAct.get("classstructureid"));
+                    task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
+                    task.put("duration", (int) detailAct.get("duration"));
 
                     JSONArray taskAttrList = new JSONArray();
                     JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
@@ -280,11 +281,19 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
 
                 for(JSONObject sortedTask: taskList) {
                     sortedTask.put("wonum", parent + " - " + counter);
+                    sortedTask.put("parent", parent);
                     sortedTask.put("taskid", counter*10);
-                    if (counter != 1) {
+                    
+                    if ((int) sortedTask.get("taskid") != 10) {
                         sortedTask.put("status", "APPR"); 
                     } else {
                         sortedTask.put("status", "LABASSIGN");   
+                    }
+                    
+                    if (sortedTask.get("ownerGroup").toString() != "") {
+                        ownerGroupTask = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+                    } else {
+                        ownerGroupTask = dao2.getOwnerGroup(workZone);
                     }
 
                     counter = counter + 1;
@@ -292,7 +301,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //GENERATE OSS ITEM
                     dao.insertToOssItem((String) sortedTask.get("wonum"), sortedTask);
                     //GENERATE TASK
-                    dao2.generateActivityTask(parent, siteId, sortedTask.get("correlation").toString(), ownerGroup, sortedTask);
+                    dao2.generateActivityTask(parent, siteId, sortedTask.get("correlation").toString(), sortedTask, ownerGroupTask);
                     //GENERATE ASSIGNMENT
                     dao2.generateAssignment(sortedTask.get("activity").toString(), schedStart, parent);
 
@@ -315,12 +324,12 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                                     String AttrValueWo = (arrayObj3.get("woAttrValue").toString() == null ? "" : arrayObj3.get("woAttrValue").toString());
                                     if (AttrNameWo.equals(attrName)) {
                                         dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, AttrValueWo);
-                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
+//                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
                                     }
                                 }
                             } else {
                                 dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
-                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
+//                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
                             }
                         }
                         //@insert Oss Item Attribute
@@ -368,9 +377,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         }
                     }
                 }
-                
-//                description = 
-                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, TaskDescription, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate);
+
+                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, TaskDescription, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate, tkCustomHeader01);
 
                 //@@End
                 //@Response

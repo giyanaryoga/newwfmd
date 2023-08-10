@@ -197,49 +197,6 @@ public class TestGenerateDao {
         return taskAttrName;
     }
     
-    public void reviseTask(String parent){
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_woactivity SET c_wfmdoctype = ? WHERE c_parent = ?";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update);
-                try {
-                    ps.setString(1, "REVISED");
-                    ps.setString(2, parent);
-                    int exe = ps.executeUpdate();
-                    //Checking insert status
-                    if (exe > 0) 
-                        LogUtil.info(getClass().getName(), "Older activity task has been revised, will be deactivated task");
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
-                }
-                if (con != null)
-                    con.close();
-            } catch (Throwable throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        }
-    }
-
     public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String parent, ActivityTask act){
         String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
         boolean updateCpe = false;    
@@ -462,80 +419,6 @@ public class TestGenerateDao {
             LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
         }
     }
-      
-//    public void updateNameTaskAttribute(String assetattrid, String wonum, String orderId, String attrValue) throws SQLException {
-//        StringBuilder query = new StringBuilder();
-//        query
-//                .append(" SELECT ")
-////                .append(" c_classstructureid, ")
-//                .append(" c_classspecid, ")
-//                .append(" c_orgid, ")
-//                .append(" c_assetattrid, ")
-//                .append(" c_readonly, ")
-//                .append(" c_isrequired, ") //joinan dari classspecusewith
-//                .append(" c_isshared ")
-//                .append(" FROM app_fd_classspec WHERE ")
-//                .append(" c_assetattrid = ? ");  //this is for next patching
-//        
-//        StringBuilder insert = new StringBuilder();
-//        insert
-//                .append(" INSERT INTO app_fd_workorderspec ")
-//                .append(" ( ")
-//                //TEMPLATE CONFIGURATION
-//                .append(" id, dateCreated, createdBy, createdByName,  ")
-//                //TASK ATTRIBUTE
-//                .append(" c_wonum, c_assetattrid, c_orgid, c_classspecid, c_orderid, c_value, ")
-//                //PERMISSION
-//                .append(" c_readonly, c_isrequired, c_isshared ")
-//                .append(" ) ")
-//                .append(" VALUES ")
-//                .append(" ( ")
-//                //VALUES TEMPLATE CONFIGURATION
-//                .append(" ?, ?, 'admin', 'Admin admin', ")
-//                //VALUES TASK ATTRIBUTE
-//                .append(" ?, ?, ?, ?, ?, ?, ")
-//                //VALUES PERMISSION
-//                .append(" ?, ?, ? ")
-//                .append(" ) ");
-//        
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        try(Connection con = ds.getConnection()) {
-//            boolean oldAutoCommit = con.getAutoCommit();
-//            LogUtil.info(getClass().getName(), "'start' auto commit state: " + oldAutoCommit);
-//            con.setAutoCommit(false);
-//            try(PreparedStatement ps = con.prepareStatement(query.toString());
-//                PreparedStatement psInsert = con.prepareStatement(insert.toString())) {
-//                    ps.setString(1, assetattrid);
-//                    ResultSet rs = ps.executeQuery();
-//                while (rs.next()) {
-//                    psInsert.setString(1, UuidGenerator.getInstance().getUuid());
-//                    psInsert.setTimestamp(2, getTimeStamp());
-//                    psInsert.setString(3, wonum);
-//                    psInsert.setString(4, rs.getString("c_assetattrid"));
-//                    psInsert.setString(5, rs.getString("c_orgid"));
-//                    psInsert.setString(6, rs.getString("c_classspecid"));
-//                    psInsert.setString(7, orderId);
-//                    psInsert.setString(8, attrValue);
-//                    psInsert.setString(9, rs.getString("c_readonly"));
-//                    psInsert.setString(10, rs.getString("c_isrequired"));
-//                    psInsert.setString(11, rs.getString("c_isshared"));
-//                    psInsert.addBatch();
-//                }
-//                int[] exe = psInsert.executeBatch();
-//                if (exe.length > 0) {
-//                    LogUtil.info(getClass().getName(), "Success generated task attributes, for " + assetattrid);
-//                }
-//                con.commit();
-//            } catch(SQLException e) {
-//                LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
-//                con.rollback();
-//            } finally {
-//                con.setAutoCommit(oldAutoCommit);
-//            }
-//        } catch(SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
-//        }
-//    }
     
     public boolean updateValueTaskAttribute(String wonum, String attrName, String attrValue){
         boolean updateValue = false;    

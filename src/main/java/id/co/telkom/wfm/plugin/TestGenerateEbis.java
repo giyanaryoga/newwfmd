@@ -142,8 +142,8 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 String prodName = (body.get("PRODUCTNAME") == null ? "" : body.get("PRODUCTNAME").toString());
                 String prodType = (body.get("PRODUCTTYPE") == null ? "" : body.get("PRODUCTTYPE").toString());
                 String reportBy = (body.get("REPORTEDBY") == null ? "" : body.get("REPORTEDBY").toString());
-                String latitude = (body.get("LATITUDE") == null ? "" : body.get("LATITUDE").toString());
-                String longitude = (body.get("LONGITUDE") == null ? "" : body.get("LONGITUDE").toString());
+//                String latitude = (body.get("LATITUDE") == null ? "" : body.get("LATITUDE").toString());
+//                String longitude = (body.get("LONGITUDE") == null ? "" : body.get("LONGITUDE").toString());
                 String schedStart = (body.get("SCHEDSTART") == null ? "" : time.parseDate(body.get("SCHEDSTART").toString(), "yyyy-MM-dd HH:mm:ss"));
                 String scOrderNo = (body.get("SCORDERNO") == null ? "" : body.get("SCORDERNO").toString());
                 String custAddress = (body.get("SERVICEADDRESS") == null ? "" : body.get("SERVICEADDRESS").toString());
@@ -201,7 +201,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 //@OSSItem
                 Object ossitem_arrayObj = (Object)body.get("OSSITEM");
                 if (ossitem_arrayObj == null) {
-                    insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, description, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate);
+                    insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, description, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate, tkCustomHeader01);
                 } else {
                     ListOssItem listOssItem = new ListOssItem();
                     ActivityTask act = new ActivityTask();
@@ -288,8 +288,10 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
 
                     for(JSONObject sortedTask: taskList) {
                         sortedTask.put("wonum", parent + " - " + counter);
+                        sortedTask.put("parent", parent);
                         sortedTask.put("taskid", counter*10);
-                        if (counter != 1) {
+                        
+                        if ((int) sortedTask.get("taskid") != 10) {
                             sortedTask.put("status", "APPR"); 
                         } else {
                             sortedTask.put("status", "LABASSIGN");   
@@ -384,7 +386,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                         }
                     }
                     
-                    insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, TaskDescription, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate);
+                    insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, TaskDescription, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate, tkCustomHeader01);
                 }
                 
                 //@@End
