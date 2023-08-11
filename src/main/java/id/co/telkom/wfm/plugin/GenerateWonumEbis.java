@@ -159,7 +159,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 String woClass = "WORKORDER"; //Hardcoded variable
 //                DateTimeFormatter currentDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
                 String statusDate = time.getCurrentTime();
-                          
+                int duration = 0;
+                
                 //@Main process start..
                 //Generate wonum with counter function from DB
                 String wonum = dao.getWonum();
@@ -244,7 +245,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     task.put("actplace", detailAct.get("actPlace"));
                     task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
                     task.put("duration", (int) detailAct.get("duration"));
-
+                    duration = (int) task.get("duration");
+                    
                     JSONArray taskAttrList = new JSONArray();
                     JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
                     for (Object ossItemAttr : ossitem_attr) {
@@ -378,7 +380,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     }
                 }
 
-                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, TaskDescription, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate, tkCustomHeader01);
+                final boolean insertWoStatus = dao.insertToWoTable(id, wonum, crmOrderType, custName, custAddress, TaskDescription, prodName, prodType, scOrderNo, workZone, siteId, workType, schedStart, reportBy, woClass, woRevisionNo, jmsCorrelationId, status, serviceNum, tkWo4, ownerGroup, statusDate, tkCustomHeader01, duration);
 
                 //@@End
                 //@Response
