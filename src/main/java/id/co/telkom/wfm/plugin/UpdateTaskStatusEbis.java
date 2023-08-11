@@ -206,7 +206,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     if ("COMPLETE".equals(nextMove)) {
                                         try {
                                             // Update parent status
-                                            updateTaskStatusEbisDao.updateParentStatus(wonum, "COMPLETE", currentDate);
+                                            updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
                                             LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
                                             // update task status
