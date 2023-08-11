@@ -55,27 +55,25 @@ public class GenerateDownlinkPortDao {
         return resultObj;
     }
 
-    public String deleteTkDeviceattribute(String wonum) throws SQLException {
-        String moveFirst = "";
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String delete = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_NUM = ?";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(delete);) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-//                ResultSet del = ps.executeQuery();
-                moveFirst = "Deleted data";
+    public void deleteTkDeviceattribute(String wonum) throws SQLException {
+        DataSource dataSource = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String deleteQuery = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_NUM = ?";
+
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+
+            preparedStatement.setString(1, wonum);
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected > 0) {
                 LogUtil.info(getClass().getName(), "Berhasil menghapus data");
             } else {
                 LogUtil.info(getClass().getName(), "Gagal menghapus data");
             }
+
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
-        return moveFirst;
     }
 
     public void insertToDeviceTable(String wonum, String name, String type, String description) throws Throwable {
@@ -255,70 +253,112 @@ public class GenerateDownlinkPortDao {
         return null;
     }
 
-    public boolean updateAttributeValue(String wonum, String deviceId, String sto, String ipaddress, String nmsipaddress, String name, String manufactur) throws SQLException {
+    public boolean updateAttributeValue(String wonum, String deviceId, String sto, String ipaddress, String nmsipaddress, String name, String manufactur) {
         boolean result = false;
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        StringBuilder update = new StringBuilder();
-        update.append("UPDATE APP_FD_WORKORDERSPEC ")
-                .append("SET c_value = CASE c_assetattrid ")
-                .append("WHEN 'AN_DEVICE_ID' THEN ? ")
-                .append("WHEN 'AN_STO' THEN ? ")
-                .append("WHEN 'AN_IPADDRESS' THEN ? ")
-                .append("WHEN 'AN_NMSIPADDRESS' THEN ? ")
-                .append("WHEN 'AN_NAME' THEN ? ")
-                .append("WHEN 'AN_MANUFACTUR' THEN ? ")
-                .append("ELSE 'Missing' END ")
-                .append("WHERE c_wonum = ? ")
-                .append("AND c_assetattrid IN ('AN_DEVICE_ID', 'AN_STO', 'AN_IPADDRESS', 'AN_NMSIPADDRESS', 'AN_NAME', 'AN_MANUFACTUR')");
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update.toString());
-                try {
-                    ps.setString(1, deviceId);
-                    ps.setString(2, sto);
-                    ps.setString(3, ipaddress);
-                    ps.setString(4, nmsipaddress);
-                    ps.setString(5, name);
-                    ps.setString(6, manufactur);
-                    ps.setString(7, wonum);
 
-                    int exe = ps.executeUpdate();
-                    if (exe > 0) {
-                        result = true;
-                        LogUtil.info(getClass().getName(), "Downlinkport updated to " + wonum);
-                    }
-                    if (ps != null) {
-                        ps.close();
-                    }
-                } catch (Throwable throwable) {
-                    try {
-                        if (ps != null) {
-                            ps.close();
-                        }
-                    } catch (Throwable throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
-                }
-                if (con != null) {
-                    con.close();
-                }
-            } catch (Throwable throwable) {
-                try {
-                    if (con != null) {
-                        con.close();
-                    }
-                } catch (Throwable throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String updateQuery
+                = "UPDATE APP_FD_WORKORDERSPEC "
+                + "SET c_value = CASE c_assetattrid "
+                + "WHEN 'AN_DEVICE_ID' THEN ? "
+                + "WHEN 'AN_STO' THEN ? "
+                + "WHEN 'AN_IPADDRESS' THEN ? "
+                + "WHEN 'AN_NMSIPADDRESS' THEN ? "
+                + "WHEN 'AN_NAME' THEN ? "
+                + "WHEN 'AN_MANUFACTUR' THEN ? "
+                + "ELSE 'Missing' END "
+                + "WHERE c_wonum = ? "
+                + "AND c_assetattrid IN ('AN_DEVICE_ID', 'AN_STO', 'AN_IPADDRESS', 'AN_NMSIPADDRESS', 'AN_NAME', 'AN_MANUFACTUR')";
+
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(updateQuery)) {
+
+            ps.setString(1, deviceId);
+            ps.setString(2, sto);
+            ps.setString(3, ipaddress);
+            ps.setString(4, nmsipaddress);
+            ps.setString(5, name);
+            ps.setString(6, manufactur);
+            ps.setString(7, wonum);
+
+            int exe = ps.executeUpdate();
+
+            if (exe > 0) {
+                result = true;
+                LogUtil.info(getClass().getName(), "Downlinkport updated to " + wonum);
             }
+
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
+
         return result;
     }
+
+//    public boolean updateAttributeValue(String wonum, String deviceId, String sto, String ipaddress, String nmsipaddress, String name, String manufactur) throws SQLException {
+//        boolean result = false;
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        StringBuilder update = new StringBuilder();
+//        update.append("UPDATE APP_FD_WORKORDERSPEC ")
+//                .append("SET c_value = CASE c_assetattrid ")
+//                .append("WHEN 'AN_DEVICE_ID' THEN ? ")
+//                .append("WHEN 'AN_STO' THEN ? ")
+//                .append("WHEN 'AN_IPADDRESS' THEN ? ")
+//                .append("WHEN 'AN_NMSIPADDRESS' THEN ? ")
+//                .append("WHEN 'AN_NAME' THEN ? ")
+//                .append("WHEN 'AN_MANUFACTUR' THEN ? ")
+//                .append("ELSE 'Missing' END ")
+//                .append("WHERE c_wonum = ? ")
+//                .append("AND c_assetattrid IN ('AN_DEVICE_ID', 'AN_STO', 'AN_IPADDRESS', 'AN_NMSIPADDRESS', 'AN_NAME', 'AN_MANUFACTUR')");
+//        try {
+//            Connection con = ds.getConnection();
+//            try {
+//                PreparedStatement ps = con.prepareStatement(update.toString());
+//                try {
+//                    ps.setString(1, deviceId);
+//                    ps.setString(2, sto);
+//                    ps.setString(3, ipaddress);
+//                    ps.setString(4, nmsipaddress);
+//                    ps.setString(5, name);
+//                    ps.setString(6, manufactur);
+//                    ps.setString(7, wonum);
+//
+//                    int exe = ps.executeUpdate();
+//                    if (exe > 0) {
+//                        result = true;
+//                        LogUtil.info(getClass().getName(), "Downlinkport updated to " + wonum);
+//                    }
+//                    if (ps != null) {
+//                        ps.close();
+//                    }
+//                } catch (Throwable throwable) {
+//                    try {
+//                        if (ps != null) {
+//                            ps.close();
+//                        }
+//                    } catch (Throwable throwable1) {
+//                        throwable.addSuppressed(throwable1);
+//                    }
+//                    throw throwable;
+//                }
+//                if (con != null) {
+//                    con.close();
+//                }
+//            } catch (Throwable throwable) {
+//                try {
+//                    if (con != null) {
+//                        con.close();
+//                    }
+//                } catch (Throwable throwable1) {
+//                    throwable.addSuppressed(throwable1);
+//                }
+//                throw throwable;
+//            } finally {
+//                ds.getConnection().close();
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+//        }
+//        return result;
+//    }
 }
