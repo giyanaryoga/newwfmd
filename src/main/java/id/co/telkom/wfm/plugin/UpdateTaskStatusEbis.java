@@ -119,7 +119,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
 
                 status = (body.get("status") == null ? "" : body.get("status").toString());
                 wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
-                parent = wonum.substring(0, 11);
+                parent = (body.get("parent") == null ? "" : body.get("parent").toString());
                 taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
                 siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
                 woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
@@ -206,7 +206,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     if ("COMPLETE".equals(nextMove)) {
                                         try {
                                             // Update parent status
-                                            updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
+                                            updateTaskStatusEbisDao.updateParentStatus(wonum, "COMPLETE", currentDate);
                                             LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
                                             // update task status
@@ -216,7 +216,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                             }
 
                                             // Insert data to table WFMMILESTONE
-                                            updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, currentDate);
+                                            updateTaskStatusEbisDao.insertToWfmMilestone(wonum, siteId, currentDate);
 
                                             //Create response
                                             JSONObject dataRes = new JSONObject();

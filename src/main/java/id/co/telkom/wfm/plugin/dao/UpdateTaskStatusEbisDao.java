@@ -158,7 +158,7 @@ public class UpdateTaskStatusEbisDao {
     public String nextMove(String parent, String nextTaskId) throws SQLException {
         String nextMove = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wosequence IN ('10','20','30','40','50','60') AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
@@ -190,11 +190,12 @@ public class UpdateTaskStatusEbisDao {
     public boolean nextAssign(String parent, String nextTaskId) throws SQLException {
         boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = sysdate WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = ? WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
-            ps.setString(1, parent);
-            ps.setString(2, nextTaskId);
+            ps.setTimestamp(1, getTimeStamp());
+            ps.setString(2, parent);
+            ps.setString(3, nextTaskId);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "next assign berhasil");
