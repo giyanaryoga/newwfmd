@@ -33,12 +33,32 @@ public class UpdateTaskStatusEbisDao {
         return ts;
     }
     
+    public Integer isRequired(String wonum) throws SQLException {
+        int required = 0;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                required = rs.getInt("c_isrequired");
+                LogUtil.info(getClass().getName(), "Is Required " + required);
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return required;
+    }
+    
     public boolean checkMandatory(String wonum) throws SQLException {
         boolean value = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
+        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
         try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(update)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
 //            ps.setInt(2, 1);
             ResultSet rs = ps.executeQuery();
@@ -59,6 +79,51 @@ public class UpdateTaskStatusEbisDao {
             ds.getConnection().close();
         }
         return value;
+    }
+    
+    public boolean checkAssignment(String wonum) throws SQLException {
+        boolean assign = false;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_chief_code, c_assignment_status FROM app_fd_workorder WHERE c_wonum = ? AND c_actplace = 'OUTSIDE' AND c_assignment_status = 'ASSIGNED'";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                assign = true;
+                LogUtil.info(getClass().getName(), "Task sudah assign ke labor");
+                LogUtil.info(getClass().getName(), rs.getString("c_chief_code") + " = " + rs.getString("c_assignment_status"));
+            } else {
+                assign = false;
+                LogUtil.info(getClass().getName(), "Task belum assign ke labor");
+//                LogUtil.info(getClass().getName(), rs.getString("c_chief_code") + " = " + rs.getString("c_assignment_status"));
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return assign;
+    }
+    
+    public String checkActPlace(String wonum) throws SQLException {
+        String actPlace = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_actplace FROM app_fd_workorder WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                actPlace = rs.getString("c_actplace");
+                LogUtil.info(getClass().getName(), "Act Place " + actPlace);
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return actPlace;
     }
     
     //===========================

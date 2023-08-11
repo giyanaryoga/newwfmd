@@ -125,6 +125,7 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                 
                 int nextTaskId = Integer.parseInt(taskId) + 10;
                 boolean updateTask = false;
+                boolean nextAssign = false;
                 
                 switch(body.get("status").toString()) {
                     case "STARTWA" :
@@ -173,7 +174,23 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                                     res.writeJSONString(hsr1.getWriter());
                                     hsr1.setStatus(255);
                                     updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
-                                    final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
+                                    nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
+                                    if (nextAssign && updateTask) {
+                                        hsr1.setStatus(200);
+                                    }
+                                break;
+                                case "Dismantle NTE":
+                                case "Dismantle AP":
+                                case "Dismantle AP MESH":
+                                    // Start of Set Install
+                                    scmtIntegrationEbisDao.sendDismantle(parent);
+
+                                    res.put("code", "255");
+                                    res.put("message", "Success");
+                                    res.writeJSONString(hsr1.getWriter());
+                                    hsr1.setStatus(255);
+                                    updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
+                                    nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                                     if (nextAssign && updateTask) {
                                         hsr1.setStatus(200);
                                     }
@@ -221,8 +238,8 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                                         }
                                     } else {
                                         //Give LABASSIGN to next task
-                                        final boolean nextAssign2 = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
-                                        if (nextAssign2) {
+                                        nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
+                                        if (nextAssign) {
                                             hsr1.setStatus(200);
         //                                    updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
                                         }
