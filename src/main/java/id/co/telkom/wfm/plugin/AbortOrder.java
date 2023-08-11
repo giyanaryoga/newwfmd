@@ -103,32 +103,11 @@ public class AbortOrder extends Element implements PluginWebSupport {
 
                     ListGenerateAttributes listAttribute = new ListGenerateAttributes();
                     dao.AbortOrder(wonum, parent);
-
-//                    LogUtil.info(getClassName(), "Status Code Loc: " + listAttribute.getStatusCode());
-//                    if (listAttribute.getStatusCode() == 4001) {
-//                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
-//
-//                        JSONObject res1 = new JSONObject();
-//                        res1.put("code", 4001);
-//                        res1.put("message", "No Device found!.");
-//                        res1.writeJSONString(hsr1.getWriter());
-//                    } else if (listAttribute.getStatusCode() == 4000) {
-//                        LogUtil.info(getClassName(), "Status Code: " + listAttribute.getStatusCode());
-//
-//                        JSONObject res = new JSONObject();
-//                        res.put("code", 4000);
-//                        res.put("message", "update data successfully");
-//                        res.writeJSONString(hsr1.getWriter());
-//                    } else {
-//                        LogUtil.info(getClass().getName(), "Call Failed");
-//                    }
                 } catch (Exception ex) {
-                    Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (Throwable ex) {
-                    Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
+                    
                 }
             } catch (ParseException ex) {
-                Logger.getLogger(GenerateStpNetLoc.class.getName()).log(Level.SEVERE, null, ex);
+
             }
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
