@@ -13,6 +13,8 @@ import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
 import org.joget.plugin.base.DefaultApplicationPlugin;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
 
 /**
  *
@@ -41,6 +43,11 @@ public class RevisedTask extends DefaultApplicationPlugin {
         int nextTaskId = taskId + 10;
         
         try {
+            JSONArray taskArray = new JSONArray();
+            JSONObject taskObj = dao.getTask(wonumParent);
+            taskArray.add(taskObj);
+            LogUtil.info(this.getClassName(), "Task" + taskArray);
+            
             switch(attrName){
                 case "APPROVAL_SURVEY":
                     if (attrValue.equalsIgnoreCase("BACK_TO_SURVEY")) {
@@ -64,6 +71,7 @@ public class RevisedTask extends DefaultApplicationPlugin {
                             dao.generateActivityTask(wonumParent);
                         } else {
                             LogUtil.info(this.getClassName(), "Approval is not REJECTED");
+                            LogUtil.info(this.getClassName(), "Task" + taskArray);
                         }
                     }
                 break;

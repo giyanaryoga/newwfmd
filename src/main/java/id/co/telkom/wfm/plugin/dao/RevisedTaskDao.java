@@ -173,7 +173,8 @@ public class RevisedTaskDao {
                 .append(" c_ownergroup, ")
                 .append(" c_siteid, ")
                 .append(" c_woclass, ")
-                .append(" c_worktype ")
+                .append(" c_worktype, ")
+                .append(" c_estdur ")
                 .append(" FROM app_fd_workorder WHERE ")
                 .append(" c_woclass = 'ACTIVITY' AND ")
                 .append(" c_parent = ? ");
@@ -185,19 +186,20 @@ public class RevisedTaskDao {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                activityProp.put("taskid", rs.getString("c_taskid"));
+                activityProp.put("taskid", rs.getInt("c_taskid"));
                 activityProp.put("wonum", rs.getString("c_wonum"));
                 activityProp.put("parent", rs.getString("c_parent"));
                 activityProp.put("orgid", rs.getString("c_orgid"));
                 activityProp.put("description", rs.getString("c_description"));
-                activityProp.put("detailActCode", rs.getInt("c_detailactcode"));
+                activityProp.put("detailActCode", rs.getString("c_detailactcode"));
                 activityProp.put("actPlace", rs.getString("c_actplace"));
                 activityProp.put("woSequence", rs.getInt("c_wosequence"));
-                activityProp.put("correlation", rs.getInt("c_correlation"));
-                activityProp.put("ownerGroup", rs.getInt("c_ownergroup"));
-                activityProp.put("siteid", rs.getInt("c_siteid"));
-                activityProp.put("woClass", rs.getInt("c_woclass"));
-                activityProp.put("workType", rs.getInt("c_worktype"));
+                activityProp.put("correlation", rs.getString("c_correlation"));
+                activityProp.put("ownerGroup", rs.getString("c_ownergroup"));
+                activityProp.put("siteid", rs.getString("c_siteid"));
+                activityProp.put("woClass", rs.getString("c_woclass"));
+                activityProp.put("workType", rs.getString("c_worktype"));
+                activityProp.put("duration", rs.getInt("c_estdur"));
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -228,7 +230,7 @@ public class RevisedTaskDao {
     public Integer getTaskId(String wonum) throws SQLException {
         int taskid = 0;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_taskid FROM app_fd_workorder WHERE c_parent = ?";
+        String query = "SELECT c_taskid FROM app_fd_workorder WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
