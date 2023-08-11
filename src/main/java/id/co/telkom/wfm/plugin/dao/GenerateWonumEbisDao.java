@@ -179,14 +179,13 @@ public class GenerateWonumEbisDao {
         return wonum;
     }
     
-     public boolean insertToWoTable(String id, String wonum, String crmOrderType, String custName, String custAddress, String description, String prodName, String prodType, String scOrderNo, String workZone, String siteId, String workType, String schedStart, String reportBy,  String woClass, String woRevisionNo, String jmsCorrelationId, String status, String serviceNum, String tkWo4, String ownerGroup, String statusDate){
+     public boolean insertToWoTable(String id, String wonum, String crmOrderType, String custName, String custAddress, String description, String prodName, String prodType, String scOrderNo, String workZone, String siteId, String workType, String schedStart, String reportBy,  String woClass, String woRevisionNo, String jmsCorrelationId, String status, String serviceNum, String tkWo4, String ownerGroup, String statusDate, String tkCustomHeader01, int duration){
         boolean insertStatus = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        StringBuilder insert = new StringBuilder();
-//        insert
+        
         String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, "
-                + "c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, dateCreated) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, c_tk_custom_header_01, c_estdur, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         //c_schedstart1 dan c_statusdate1 TEMPORARY masih, angka 1 dihilangkan jika sudah di hapus column di table
         try {
             Connection con = ds.getConnection();
@@ -215,7 +214,9 @@ public class GenerateWonumEbisDao {
                     ps.setString(20, tkWo4);
                     ps.setString(21, ownerGroup);
                     ps.setTimestamp(22, Timestamp.valueOf(statusDate));
-                    ps.setTimestamp(23, getTimeStamp());
+                    ps.setString(23, tkCustomHeader01);
+                    ps.setInt(24, duration);
+                    ps.setTimestamp(25, getTimeStamp());
                     
                     int exe = ps.executeUpdate();
                     //Checking insert status
