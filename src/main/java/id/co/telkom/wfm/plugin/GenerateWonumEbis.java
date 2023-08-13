@@ -282,7 +282,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 });
 
                 for(JSONObject sortedTask: taskList) {
-                    sortedTask.put("wonum", parent + " - " + counter);
+                    String wonumChild = dao.getWonum();
+                    sortedTask.put("wonum", wonumChild);
                     sortedTask.put("parent", parent);
                     sortedTask.put("taskid", counter*10);
                     
@@ -317,6 +318,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         String attrName = taskAttrObj.get("attrName").toString();
                         if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
                             String attrValue = taskAttrObj.get("attrValue").toString();
+                            listOssItemAtt.setAttrValue(attrValue);
                             if (attrValue.isEmpty()) {
                                 //GENERATE VALUE FROM WORKORDERATTRIBUTE
                                 for (Object objWoAttr : AttributeWO) {
@@ -365,16 +367,16 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
                             if (cpeValidated.getSerial_number() == null) {
                                 cpeValidate = "";
-                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, (String) sortedTask.get("wonum"));
                                 cpeValidated.setUpdateCpeValidate(updateCpe);
                             } else {
                                 cpeValidate = "PASS";
-                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, (String) sortedTask.get("wonum"));
                                 cpeValidated.setUpdateCpeValidate(updateCpe);
                             }
                         } else {
                             cpeValidate = "";
-                            boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, parent, act);
+                            boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, (String) sortedTask.get("wonum"));
                             cpeValidated.setUpdateCpeValidate(updateCpe);
                         }
                     }
