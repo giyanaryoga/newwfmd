@@ -199,9 +199,9 @@ public class TaskActivityDao {
         return taskAttrName;
     }
 
-    public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String parent, ActivityTask act){
+    public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String wonum){
 //        ActivityTask act = new ActivityTask();
-        String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
+//        String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
         boolean updateCpe = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
         StringBuilder update = new StringBuilder();
