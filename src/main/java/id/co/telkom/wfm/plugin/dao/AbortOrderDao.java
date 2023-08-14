@@ -40,7 +40,7 @@ public class AbortOrderDao {
                 PreparedStatement ps = con.prepareStatement(query);) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
-            if(rs.next()) {
+            if (rs.next()) {
                 result.put("scorderno", rs.getString("c_scorderno"));
             }
         } catch (SQLException e) {
@@ -55,28 +55,18 @@ public class AbortOrderDao {
     // Call API Abort Order 
     //======================
     public JSONObject AbortOrder(String wonum, String parent) throws MalformedURLException, IOException {
-          TimeUtil time = new TimeUtil();
+        TimeUtil time = new TimeUtil();
         try {
             String scorderno = getReqData(wonum).get("scorderno").toString();
-            
+
             String[] parts = scorderno.split("_");
             String orderId = parts[0];
             String serviceAccountId = parts[1];
             String assetIntegrationId = parts[2];
-            
+
             String abortReason = "Abord By User";
             
-            String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:tel=\"http://eaiesbinf.telkom.co.id:9122/telkom.nb.siebel.webservices:abortOrder\">\n"
-                    + "    <soapenv:Header/>\n"
-                    + "    <soapenv:Body>\n"
-                    + "        <tel:abortOrder>\n"
-                    + "            <orderId>"+orderId+"</orderId>\n"
-                    + "            <serviceAccountId>"+serviceAccountId+"</serviceAccountId>\n"
-                    + "            <assetIntegrationId>"+assetIntegrationId+"</assetIntegrationId>\n"
-                    + "            <abortReason>"+abortReason+"</abortReason>\n"
-                    + "        </tel:abortOrder>\n"
-                    + "    </soapenv:Body>\n"
-                    + "</soapenv:Envelope>";
+            String soapRequest = createSoapRequestAbort(orderId, serviceAccountId, assetIntegrationId, abortReason);
 
             String urlres = "http://eaiesbinfdev.telkom.co.id:9122/ws/telkom.nb.siebel.webservices:abortOrder/telkom_nb_siebel_webservices_abortOrder_Port";
 
@@ -89,7 +79,7 @@ public class AbortOrderDao {
             connection.setRequestProperty("Content-Type", "text/xml; charset=UTF-8");
             try ( // Write XML
                     OutputStream outputStream = connection.getOutputStream()) {
-                byte[] b = request.getBytes("UTF-8");
+                byte[] b = soapRequest.getBytes("UTF-8");
                 outputStream.write(b);
                 outputStream.flush();
             }
@@ -108,11 +98,11 @@ public class AbortOrderDao {
             JSONObject temp = XML.toJSONObject(result.toString());
             System.out.println("temp " + temp.toString());
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
-            
+
             JSONObject envelope = temp.getJSONObject("Envelope").getJSONObject("Body");
             JSONObject abortRes = envelope.getJSONObject("abortOrderResponse");
             String statusMsg = abortRes.getString("statusMsg");
-            
+
             LogUtil.info(this.getClass().getName(), "Status Message :" + statusMsg);
             String currentDate = time.getCurrentTime();
             if (statusMsg.equals("SUCCESS")) {
@@ -127,7 +117,7 @@ public class AbortOrderDao {
         }
         return null;
     }
-    
+
     public boolean updateTask(String wonum, String status) throws SQLException {
         boolean updateTask = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -150,7 +140,7 @@ public class AbortOrderDao {
         }
         return updateTask;
     }
-    
+
     public void updateParentStatus(String wonum, String status, String statusDate) throws SQLException {
         String update = "UPDATE app_fd_workorder SET c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -169,5 +159,20 @@ public class AbortOrderDao {
         } finally {
             ds.getConnection().close();
         }
+    }
+
+    public String createSoapRequestAbort(String orderId, String serviceAccountId, String assetIntegrationId, String abortReason) {
+        String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:tel=\"http://eaiesbinf.telkom.co.id:9122/telkom.nb.siebel.webservices:abortOrder\">\n"
+                + "    <soapenv:Header/>\n"
+                + "    <soapenv:Body>\n"
+                + "        <tel:abortOrder>\n"
+                + "            <orderId>" + orderId + "</orderId>\n"
+                + "            <serviceAccountId>" + serviceAccountId + "</serviceAccountId>\n"
+                + "            <assetIntegrationId>" + assetIntegrationId + "</assetIntegrationId>\n"
+                + "            <abortReason>" + abortReason + "</abortReason>\n"
+                + "        </tel:abortOrder>\n"
+                + "    </soapenv:Body>\n"
+                + "</soapenv:Envelope>";
+        return request;
     }
 }
