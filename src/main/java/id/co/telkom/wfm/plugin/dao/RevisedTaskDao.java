@@ -184,7 +184,6 @@ public class RevisedTaskDao {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query.toString())) {
-//            ps.setString(1, task);
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
