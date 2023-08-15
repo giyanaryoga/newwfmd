@@ -210,7 +210,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                                     String kafkaRes = data.toJSONString();
                                     KafkaProducerTool kaf = new KafkaProducerTool();
                                     kaf.generateMessage(kafkaRes, topic, "");
-                                    hsr1.setStatus(256);
+                                    hsr1.setStatus(200);
                                 } catch (IOException | SQLException e) {
                                     LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                                 }
