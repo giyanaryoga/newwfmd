@@ -5,32 +5,24 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
-import id.co.telkom.wfm.plugin.dao.TestUpdateStatusEbisDao;
-import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
+import id.co.telkom.wfm.plugin.dao.*;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.*;
 import java.sql.SQLException;
 import java.util.Map;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.joget.apps.datalist.service.JsonUtil;
-import org.joget.apps.form.model.Element;
-import org.joget.apps.form.model.FormData;
+import javax.servlet.http.*;
+import org.joget.apps.form.model.*;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.simple.parser.*;
 
 /**
  *
  * @author ASUS
  */
-
 public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
 
     String pluginName = "Telkom New WFM - Update Task Status Ebis - Web Service";
@@ -98,12 +90,13 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 JSONObject envelope = (JSONObject) data_obj.get("UpdateMXTELKOWO");
                 JSONObject envelope2 = (JSONObject) envelope.get("MXTELKOWOSet");
                 JSONObject body = (JSONObject) envelope2.get("WORKORDER");
-                
+
                 UpdateTaskStatusEbisDao updateTaskStatusEbisDao = new UpdateTaskStatusEbisDao();
                 ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
-                
+                TaskHistoryDao taskHistoryDao = new TaskHistoryDao();
+
                 JSONObject res = new JSONObject();
-                
+
                 //Store param
                 String status;
                 String wonum;
@@ -115,6 +108,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 String description;
                 String errorCode;
                 String engineerMemo;
+                String memo;
                 String currentDate;
 
                 status = (body.get("status") == null ? "" : body.get("status").toString());
@@ -125,14 +119,15 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
                 woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
                 description = (body.get("description") == null ? "" : body.get("description").toString());
+                memo = (body.get("memo") == null ? "" : body.get("memo").toString());
                 currentDate = time.getCurrentTime();
-                
+
                 int nextTaskId = Integer.parseInt(taskId) + 10;
                 boolean updateTask = false;
                 boolean nextAssign = false;
-                
-                switch(body.get("status").toString()) {
-                    case "STARTWA" :
+
+                switch (body.get("status").toString()) {
+                    case "STARTWA":
                         boolean isAssigned = updateTaskStatusEbisDao.checkAssignment(wonum);
                         if (!isAssigned) {
                             String checkActPlace = updateTaskStatusEbisDao.checkActPlace(wonum);
@@ -142,6 +137,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                                 if (updateTask) {
                                     hsr1.setStatus(200);
+                                    taskHistoryDao.insertTaskStatus(wonum, memo, wonum);
                                 }
                                 res.put("code", "200");
                                 res.put("status", status);
@@ -153,6 +149,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                             if (updateTask) {
                                 hsr1.setStatus(200);
+                                taskHistoryDao.insertTaskStatus(wonum, memo, wonum);
                             }
                             res.put("code", "200");
                             res.put("status", status);
@@ -160,15 +157,15 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             res.put("message", "Successfully update status");
                             res.writeJSONString(hsr1.getWriter());
                         }
-                    break;
-                    case "COMPWA" :
+                        break;
+                    case "COMPWA":
                         boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
                         Integer isRequired = updateTaskStatusEbisDao.isRequired(wonum);
                         if (!isMandatoryValue && isRequired == 1) {
                             hsr1.setStatus(422);
                         } else {
-                            switch(description) {
-                                case "Registration Suplychain": 
+                            switch (description) {
+                                case "Registration Suplychain":
                                 case "Registration Suplychain Wifi":
                                     // Start of Set Install
                                     scmtIntegrationEbisDao.sendInstall(parent);
@@ -181,8 +178,9 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                                     if (nextAssign && updateTask) {
                                         hsr1.setStatus(200);
+                                        taskHistoryDao.insertTaskStatus(wonum, memo, wonum);
                                     }
-                                break;
+                                    break;
                                 case "Dismantle NTE":
                                 case "Dismantle AP":
                                 case "Dismantle AP MESH":
@@ -197,8 +195,9 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
                                     if (nextAssign && updateTask) {
                                         hsr1.setStatus(200);
+                                        taskHistoryDao.insertTaskStatus(wonum, memo, wonum);
                                     }
-                                break;
+                                    break;
                                 default:
                                     // Define the next move
                                     final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
@@ -213,6 +212,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                             updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
                                             if (updateTask) {
                                                 hsr1.setStatus(200);
+                                                taskHistoryDao.insertTaskStatus(wonum, memo, wonum);
                                             }
 
                                             // Insert data to table WFMMILESTONE
@@ -222,7 +222,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                             JSONObject dataRes = new JSONObject();
                                             dataRes.put("wonum", parent);
                                             dataRes.put("milestone", woStatus);
-                                            
+
                                             res.put("code", "200");
                                             res.put("message", "Success");
                                             res.put("data", dataRes);
@@ -249,13 +249,13 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                         updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
                                         updateTaskStatusEbisDao.updateTask(wonum, status);
                                     }
-                                break;
+                                    break;
                             }
                         }
                         break;
-                    default :
+                    default:
                         hsr1.setStatus(420);
-                    break;
+                        break;
                 }
             } catch (ParseException | SQLException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());

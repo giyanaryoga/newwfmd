@@ -109,7 +109,7 @@ public class ScmtIntegrationEbisDao {
             JSONObject installMessage = new JSONObject();
             while (rs.next()) {
                 ListAttributes attribute = new ListAttributes();
-                scmtParam.setWonum((rs.getString("c_parent") == null) ? "" : rs.getString("c_parent"));
+                scmtParam.setWonum((rs.getString("c_wonum") == null) ? "" : rs.getString("c_wonum"));
                 scmtParam.setScOrderNo((rs.getString("c_scorderno") == null) ? "" : rs.getString("c_scorderno"));
                 scmtParam.setLaborCode((rs.getString("c_chief_code") == null) ? "" : rs.getString("c_chief_code"));
                 scmtParam.setCustomerName((rs.getString("c_customer_name") == null) ? "" : rs.getString("c_customer_name"));
