@@ -33,19 +33,18 @@ public class RevisedTask extends DefaultApplicationPlugin {
         String wonum = getPropertyString("wonum");
         String attrName = getPropertyString("assetattrid");
         String attrValue = getPropertyString("value");
-//        String[] parent = wonum.split(" - ");
         
+        LogUtil.info(this.getClassName(), "PARENT: "+ parent);
+        LogUtil.info(this.getClassName(), "WONUM: "+ wonum);
         LogUtil.info(this.getClassName(), "TASK ID: "+ taskId);
         LogUtil.info(this.getClassName(), "TASK: "+ task);
-        LogUtil.info(this.getClassName(), "WONUM: "+ wonum);
         LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: "+ attrName);
         LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: "+ attrValue);
-//        String wonumParent = parent[0];
-        int nextTaskId = taskId + 10;
+//        int nextTaskId = taskId + 10;
         
         try {
             JSONArray taskArray = dao.getTask(parent);
-            LogUtil.info(this.getClassName(), "Task" + taskArray);
+            LogUtil.info(this.getClassName(), "Task => " + taskArray);
             
             switch(attrName){
                 case "APPROVAL_SURVEY":
@@ -59,8 +58,12 @@ public class RevisedTask extends DefaultApplicationPlugin {
                 case "APPROVAL":
                     if (task.equalsIgnoreCase("REVIEW_ORDER")) {
                         if (attrValue.equalsIgnoreCase("REJECTED")) {
-                            //Di Array dlu task parentnya
-                            //lalu di foreach, dan update REVISED task selanjutnya
+                            for(Object obj : taskArray) {
+                                JSONObject taskObj = (JSONObject)obj;
+                                int nextTaskId = (int) taskObj.get("taskid");
+                                LogUtil.info(this.getClassName(), "task id: " + nextTaskId);
+                                dao.reviseTaskNonConn(taskObj.get("wonum").toString());
+                            }
                         } else {
                             LogUtil.info(this.getClassName(), "Approval is not REJECTED");
                         }

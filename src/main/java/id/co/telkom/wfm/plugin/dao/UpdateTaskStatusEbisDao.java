@@ -52,7 +52,6 @@ public class UpdateTaskStatusEbisDao {
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
-//            ps.setInt(2, 1);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 if (rs.getString("c_value") != null) {
