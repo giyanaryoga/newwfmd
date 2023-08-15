@@ -43,9 +43,7 @@ public class RevisedTask extends DefaultApplicationPlugin {
         int nextTaskId = taskId + 10;
         
         try {
-            JSONArray taskArray = new JSONArray();
-            JSONObject taskObj = dao.getTask(wonumParent);
-            taskArray.add(taskObj);
+            JSONArray taskArray = dao.getTask(wonumParent);
             LogUtil.info(this.getClassName(), "Task" + taskArray);
             
             switch(attrName){
@@ -168,9 +166,6 @@ public class RevisedTask extends DefaultApplicationPlugin {
                 default:
                     LogUtil.info(this.getClassName(), "Attribute name dan value tidak memenuhi Revised Task");
                 break;
-            }
-            if (task == "REVIEW_ORDER") {
-                
             }
         } catch (SQLException ex) {
             Logger.getLogger(RevisedTask.class.getName()).log(Level.SEVERE, null, ex);

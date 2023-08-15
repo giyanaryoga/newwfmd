@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**
@@ -156,7 +157,8 @@ public class RevisedTaskDao {
         return isTrue;
     }
     
-    public JSONObject getTask(String parent) throws SQLException {
+    public JSONArray getTask(String parent) throws SQLException {
+        JSONArray activity = new JSONArray();
         JSONObject activityProp = new JSONObject();
         StringBuilder query = new StringBuilder();
         query
@@ -200,13 +202,14 @@ public class RevisedTaskDao {
                 activityProp.put("woClass", rs.getString("c_woclass"));
                 activityProp.put("workType", rs.getString("c_worktype"));
                 activityProp.put("duration", rs.getInt("c_estdur"));
+                activity.add(activityProp);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close(); 
         }
-        return activityProp;
+        return activity;
     }
     
     public String getTaskName(String wonum) throws SQLException {

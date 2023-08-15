@@ -9,6 +9,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -22,6 +26,13 @@ import org.json.simple.JSONObject;
  */
 
 public class UpdateStatusMyStaffDao {
+    private Timestamp getTimeStamp() {
+        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"); 
+        Timestamp ts =  Timestamp.valueOf(zdt.toLocalDateTime().format(format));
+        return ts;
+    }
+    
     public boolean getApiAttribute(String apiId, String apiKey) {
         boolean  isAuthSuccess = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -511,7 +522,7 @@ public class UpdateStatusMyStaffDao {
     // INSERT TO TABLE APP_FD_WFMMILESTONE
     //====================================
     public void insertToWfmMilestone(String wonum, String siteId, String statusDate) {
-        TimeUtil time = new TimeUtil();
+//        TimeUtil time = new TimeUtil();
 
         // Generate UUID
         String uuId = UuidGenerator.getInstance().getUuid();
@@ -562,13 +573,14 @@ public class UpdateStatusMyStaffDao {
                 PreparedStatement ps = con.prepareStatement(insert.toString());
                 try {
                     ps.setString(1, uuId);
-                    ps.setTimestamp(2, time.getTimeStamp());
-                    ps.setTimestamp(3, time.getTimeStamp());
+                    ps.setTimestamp(2, getTimeStamp());
+                    ps.setTimestamp(3, getTimeStamp());
                     ps.setString(4, wonum);
                     ps.setString(5, wonum);
                     ps.setString(6, siteId);
                     ps.setString(7, wonum);
-                    ps.setString(8, statusDate);
+//                    ps.setString(8, statusDate);
+                    ps.setTimestamp(8, Timestamp.valueOf(statusDate));
 
                     int exe = ps.executeUpdate();
                     if (exe > 0) {
