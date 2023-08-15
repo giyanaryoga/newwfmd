@@ -314,11 +314,12 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
 //                    LogUtil.info(getClass().getName(), "SORTED TASK ATTRIBUTE :" + taskAttrArray);
                     for (Object taskAttrArrayObj: taskAttrArray) {
+                        String attrName = "";
+                        String attrValue = "";
                         JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
-                        String attrName = taskAttrObj.get("attrName").toString();
+                        attrName = taskAttrObj.get("attrName").toString();
+                        attrValue = taskAttrObj.get("attrValue").toString();
                         if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
-                            String attrValue = taskAttrObj.get("attrValue").toString();
-                            listOssItemAtt.setAttrValue(attrValue);
                             if (attrValue.isEmpty()) {
                                 //GENERATE VALUE FROM WORKORDERATTRIBUTE
                                 for (Object objWoAttr : AttributeWO) {
@@ -341,19 +342,19 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         
                         switch (attrName) {
                             case "NTE_MODEL":
-                                cpeValidated.setModel(listOssItemAtt.getAttrValue());
+                                cpeValidated.setModel(attrValue);
                                 LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
                                 break;
                             case "NTE_MANUFACTUR":
-                                cpeValidated.setVendor(listOssItemAtt.getAttrValue());
+                                cpeValidated.setVendor(attrValue);
                                 LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
                                 break;
                             case "NTE_SERIALNUMBER":
-                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                                cpeValidated.setSerial_number(attrValue);
                                 LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
                                 break;
                             case "AP_SERIALNUMBER":
-                                cpeValidated.setSerial_number(listOssItemAtt.getAttrValue());
+                                cpeValidated.setSerial_number(attrValue);
                                 LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
                                 break;
                             default:
