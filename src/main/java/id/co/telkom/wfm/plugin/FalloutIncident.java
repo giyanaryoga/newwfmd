@@ -95,7 +95,7 @@ public class FalloutIncident extends Element implements PluginWebSupport {
                 String ownerGroup = (body.get("ownerGroup") == null ? "" : body.get("ownerGroup").toString());
 
                 FalloutIncidentDao dao = new FalloutIncidentDao();
-                boolean updateTask = dao.updateStatus(statusCode, ownerGroup, ticketId);
+                boolean updateTask = dao.updateStatus(statusCode, ticketId, ownerGroup);
                 LogUtil.info(this.getClassName(), "update status : " + updateTask);
                 if (updateTask == true) {
                     dao.buildFalloutJson(ticketId);
