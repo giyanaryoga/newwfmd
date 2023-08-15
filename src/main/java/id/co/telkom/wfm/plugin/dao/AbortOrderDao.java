@@ -54,7 +54,7 @@ public class AbortOrderDao {
     // =====================
     // Call API Abort Order 
     //======================
-    public JSONObject AbortOrder(String wonum, String parent) throws MalformedURLException, IOException {
+    public JSONObject AbortOrder(String wonum) throws MalformedURLException, IOException {
         TimeUtil time = new TimeUtil();
         try {
             String scorderno = getReqData(wonum).get("scorderno").toString();
@@ -65,7 +65,7 @@ public class AbortOrderDao {
             String assetIntegrationId = parts[2];
 
             String abortReason = "Abord By User";
-            
+
             String soapRequest = createSoapRequestAbort(orderId, serviceAccountId, assetIntegrationId, abortReason);
 
             String urlres = "http://eaiesbinfdev.telkom.co.id:9122/ws/telkom.nb.siebel.webservices:abortOrder/telkom_nb_siebel_webservices_abortOrder_Port";
@@ -107,7 +107,7 @@ public class AbortOrderDao {
             String currentDate = time.getCurrentTime();
             if (statusMsg.equals("SUCCESS")) {
                 updateTask(wonum, "CANCLE");
-                updateParentStatus(parent, "CANCLEWORK", currentDate);
+                updateParentStatus(wonum, "CANCLEWORK", currentDate);
             } else {
                 LogUtil.info(this.getClass().getName(), "Abort Order Failed.");
             }
@@ -142,17 +142,28 @@ public class AbortOrderDao {
     }
 
     public void updateParentStatus(String wonum, String status, String statusDate) throws SQLException {
-        String update = "UPDATE app_fd_workorder SET c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        String update = "UPDATE app_fd_workorder SET c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_parent = ? AND c_woclass = 'WORKORDER'";
+        String selectQuery = "SELECT c_parent FROM app_fd_workorder WHERE c_wonum = ?";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+
         try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(update.toString())) {
-            int index = 0;
-            ps.setString(1 + index, status);
-            ps.setString(2 + index, statusDate);
-            ps.setString(3 + index, wonum);
-            int exe = ps.executeUpdate();
-            if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " | Status updated to: " + status);
+                PreparedStatement selectPs = con.prepareStatement(selectQuery);
+                PreparedStatement updatePs = con.prepareStatement(update)) {
+
+            selectPs.setString(1, wonum);
+            ResultSet resultSet = selectPs.executeQuery();
+
+            if (resultSet.next()) {
+                String cParent = resultSet.getString("c_parent");
+
+                updatePs.setString(1, status);
+                updatePs.setString(2, statusDate);
+                updatePs.setString(3, cParent);
+
+                int exe = updatePs.executeUpdate();
+                if (exe > 0) {
+                    LogUtil.info(getClass().getName(), wonum + " | Status updated to: " + status);
+                }
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

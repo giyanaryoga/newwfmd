@@ -95,14 +95,13 @@ public class AbortOrder extends Element implements PluginWebSupport {
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 //Store param
                 String wonum = data_obj.get("wonum").toString();
-                String parent = wonum.substring(0, 11);
 
                 try {
                     // dao.callGenerateStpNetLoc(wonum, latitude, longitude);
                     LogUtil.info(getClassName(), "Call Generate STP Net Loc");
 
                     ListGenerateAttributes listAttribute = new ListGenerateAttributes();
-                    dao.AbortOrder(wonum, parent);
+                    dao.AbortOrder(wonum);
                 } catch (Exception ex) {
                     
                 }
