@@ -121,14 +121,15 @@ public class UpdateTaskStatusEbisDao {
     //===========================
     // Function Update Task
     //===========================
-    public boolean updateTask(String wonum, String status) throws SQLException {
+    public boolean updateTask(String wonum, String status, String modifiedBy) throws SQLException {
         boolean updateTask = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_status = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_status = ?, modifiedby = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
             ps.setString(1, status);
-            ps.setString(2, wonum);
+            ps.setString(2, modifiedBy);
+            ps.setString(3, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "update task berhasil");
@@ -179,20 +180,21 @@ public class UpdateTaskStatusEbisDao {
     //=========================================
     // SET LABASSIGN FOR NEXT TASK
     //=========================================
-    public boolean nextAssign(String parent, String nextTaskId) throws SQLException {
+    public boolean nextAssign(String parent, String nextTaskId, String modifiedBy) throws SQLException {
         boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = ? WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = ?, modifiedby = ? WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
             ps.setTimestamp(1, getTimeStamp());
-            ps.setString(2, parent);
-            ps.setString(3, nextTaskId);
+            ps.setString(2, modifiedBy);
+            ps.setString(3, parent);
+            ps.setString(4, nextTaskId);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "next assign berhasil");
                 nextAssign = true;
-                updateWoDesc(parent, nextTaskId);
+                updateWoDesc(parent, nextTaskId, modifiedBy);
             } else {
                 LogUtil.info(getClass().getName(), "next assign gagal");
             }
@@ -204,11 +206,11 @@ public class UpdateTaskStatusEbisDao {
         return nextAssign;
     }
     
-    public void updateWoDesc(String parent, String nextTaskId) throws SQLException {
+    public void updateWoDesc(String parent, String nextTaskId, String modifiedBy) throws SQLException {
 //        boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_description FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ?";
-        String update = "UPDATE app_fd_workorder SET c_description = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_description = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps1 = con.prepareStatement(query);
                 PreparedStatement ps2 = con.prepareStatement(update)) {
@@ -216,8 +218,9 @@ public class UpdateTaskStatusEbisDao {
             ps1.setString(2, nextTaskId);
             ResultSet rs = ps1.executeQuery();
             if (rs.next()) {
-                ps2.setString(1, rs.getString("c_description"));
-                ps2.setString(2, parent);
+                ps2.setString(1, modifiedBy);
+                ps2.setString(2, rs.getString("c_description"));
+                ps2.setString(3, parent);
                 int exe = ps2.executeUpdate();
                 if (exe > 0) {
                     LogUtil.info(getClass().getName(), "description parent is updated");
@@ -237,16 +240,17 @@ public class UpdateTaskStatusEbisDao {
     //========================================
     // UPDATE WOSTATUS
     //========================================
-    public void updateParentStatus(String wonum, String status, String statusDate) throws SQLException {
-        String update = "UPDATE app_fd_workorder SET c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+    public void updateParentStatus(String wonum, String status, String statusDate, String modifiedBy) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
             int index = 0;
-            ps.setString(1 + index, status);
+            ps.setString(1 + index, modifiedBy);
+            ps.setString(2 + index, status);
 //            ps.setString(2 + index, statusDate);
-            ps.setTimestamp(2 + index, Timestamp.valueOf(statusDate));
-            ps.setString(3 + index, wonum);
+            ps.setTimestamp(3 + index, Timestamp.valueOf(statusDate));
+            ps.setString(4 + index, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Status updated to: " + status);

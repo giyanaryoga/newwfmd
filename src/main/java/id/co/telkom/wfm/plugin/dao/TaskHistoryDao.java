@@ -24,7 +24,7 @@ public class TaskHistoryDao {
         return ts;
     }
 
-    public void insertTaskStatus(String wonum, String memo) {
+    public void insertTaskStatus(String wonum, String memo, String modifiedBy) {
         String uuId = UuidGenerator.getInstance().getUuid();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
@@ -40,8 +40,8 @@ public class TaskHistoryDao {
                 .append("c_siteid, ")
                 .append("c_wostatusid, ")
                 .append("c_parent, ")
-                .append("datecreated ")
-//                .append("modifiedby ")
+                .append("datecreated, ")
+                .append("modifiedby ")
                 .append(") ")
                 .append("VALUES ")
                 .append("(?, ")
@@ -51,6 +51,7 @@ public class TaskHistoryDao {
                 .append("?, ")
                 .append("?, ")
                 .append("WFMDBDEV01.WOSTATUSIDSEQ.NEXTVAL, ")
+                .append("?, ")
                 .append("?, ")
                 .append("?) ");
 
@@ -76,6 +77,7 @@ public class TaskHistoryDao {
                 insertPs.setString(6, fetchedSiteid);
                 insertPs.setString(7, fetchedParent);
                 insertPs.setTimestamp(8, getTimeStamp());
+                insertPs.setString(9, modifiedBy);
 
                 int exe = insertPs.executeUpdate();
                 if (exe > 0) {
