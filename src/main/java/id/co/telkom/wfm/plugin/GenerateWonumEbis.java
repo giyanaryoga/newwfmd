@@ -7,6 +7,7 @@ package id.co.telkom.wfm.plugin;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
+import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
 import id.co.telkom.wfm.plugin.dao.TestGenerateDao;
 import id.co.telkom.wfm.plugin.model.ListAttributes;
 import id.co.telkom.wfm.plugin.model.ListOssItem;
@@ -95,6 +96,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
         TaskActivityDao dao2 = new TaskActivityDao();
+        TaskHistoryDao taskHistory = new TaskHistoryDao();
 //        TestGenerateDao dao2 = new TestGenerateDao();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
@@ -307,6 +309,8 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     dao2.generateActivityTask(parent, siteId, sortedTask.get("correlation").toString(), sortedTask, ownerGroupTask);
                     //GENERATE ASSIGNMENT
                     dao2.generateAssignment(sortedTask.get("activity").toString(), schedStart, parent);
+                    //GENERATE TASK HISTORY
+                    taskHistory.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum from OSM", "extOSM");
 
                     //TASK ATTRIBUTE GENERATE
                     dao2.GenerateTaskAttribute((String) sortedTask.get("activity"), (String) sortedTask.get("wonum"), orderId, siteId);
