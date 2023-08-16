@@ -65,9 +65,46 @@ public class RevisedTask extends DefaultApplicationPlugin {
                         } else {
                             LogUtil.info(this.getClassName(), "Approval is not REJECTED");
                         }
-                    } else if (task.equalsIgnoreCase("Approval_Project_Management")) {
-                        
-                    } else {
+                    } else if (task.equalsIgnoreCase("Approval_Project_Management") || task.equalsIgnoreCase("Validate-Survey")) {
+                            String domainId = dao.getDomainId(wonum);
+                            LogUtil.info(this.getClassName(), "Domain Id = " +domainId);
+                            JSONArray domainArray = dao.getValueDomain(domainId);
+                            for(Object obj : domainArray) {
+                                JSONObject taskObj2 = (JSONObject)obj;
+                                String value = taskObj2.get("value").toString();
+                                String description = taskObj2.get("description").toString();
+                                if (description.equalsIgnoreCase(attrValue)) {
+                                    switch (value) {
+                                        case "REJECTED TO REVIEW ORDER":
+                                            LogUtil.info(this.getClassName(), "Approval is REJECTED TO REVIEW ORDER!");
+                                            dao.reviseTaskNonConn_toReviewOrder(parent);
+//                                            dao.generateActivityTaskNonConn(parent);
+                                            break;
+                                        case "REJECTED TO SHIPMENT AND DELIVERY TASK":
+                                            LogUtil.info(this.getClassName(), "Approval is REJECTED TO SHIPMENT AND DELIVERY TASK!");
+                                            dao.reviseTaskNonConn_toShipmentDelivery(parent);
+//                                            dao.generateActivityTaskNonConn(parent);
+                                            break;
+                                        case "REJECTED TO ACTIVATE SERVICE":
+                                            LogUtil.info(this.getClassName(), "Approval is REJECTED TO ACTIVATE SERVICE!");
+                                            dao.reviseTaskNonConn_toActivateService(parent);
+//                                            dao.generateActivityTaskNonConn(parent);
+                                            break;
+                                        case "REJECTED TO UPLOAD BERITA ACARA":
+                                            LogUtil.info(this.getClassName(), "Approval is REJECTED TO UPLOAD BERITA ACARA!");
+                                            dao.reviseTaskNonConn_toUploadBA(parent);
+//                                            dao.generateActivityTaskNonConn(parent);
+                                            break;
+                                        default:
+                                            LogUtil.info(this.getClassName(), "Approval is not REJECTED TO TASK BEFORE!");
+                                            break;
+                                    }
+                                    dao.generateActivityTaskNonConn(parent);
+                                } else {
+                                    LogUtil.info(this.getClassName(), "Approval in alndomain is not match!");
+                                }
+                            }
+                    } else { 
                         if (attrValue.equalsIgnoreCase("REJECTED")) {
                             dao.reviseTask(parent);
                             dao.generateActivityTask(parent);
