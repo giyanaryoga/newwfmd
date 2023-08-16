@@ -60,13 +60,13 @@ public class RevisedTask extends DefaultApplicationPlugin {
                         if (attrValue.equalsIgnoreCase("REJECTED")) {
                             for(Object obj : taskArray) {
                                 JSONObject taskObj = (JSONObject)obj;
-                                int nextTaskId = (int) taskObj.get("taskid");
-                                LogUtil.info(this.getClassName(), "task id: " + nextTaskId);
-                                dao.reviseTaskNonConn(taskObj.get("wonum").toString());
+                                dao.reviseTaskNonConn_reviewOrder(taskObj.get("parent").toString());
                             }
                         } else {
                             LogUtil.info(this.getClassName(), "Approval is not REJECTED");
                         }
+                    } else if (task.equalsIgnoreCase("Approval_Project_Management")) {
+                        
                     } else {
                         if (attrValue.equalsIgnoreCase("REJECTED")) {
                             dao.reviseTask(parent);
