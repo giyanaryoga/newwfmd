@@ -18,13 +18,14 @@ import org.json.simple.*;
  * @author ASUS
  */
 public class UpdateTaskStatusEbisDao {
+
     private Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"); 
-        Timestamp ts =  Timestamp.valueOf(zdt.toLocalDateTime().format(format));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+        Timestamp ts = Timestamp.valueOf(zdt.toLocalDateTime().format(format));
         return ts;
     }
-    
+
     public Integer isRequired(String wonum) throws SQLException {
         int required = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -44,7 +45,7 @@ public class UpdateTaskStatusEbisDao {
         }
         return required;
     }
-    
+
     public boolean checkMandatory(String wonum) throws SQLException {
         boolean value = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -71,7 +72,7 @@ public class UpdateTaskStatusEbisDao {
         }
         return value;
     }
-    
+
     public boolean checkAssignment(String wonum) throws SQLException {
         boolean assign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -96,7 +97,89 @@ public class UpdateTaskStatusEbisDao {
         }
         return assign;
     }
-    
+
+    public String checkWoDoc(String wonum) throws SQLException {
+//        boolean value = false;
+        String value = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+
+        StringBuilder responseBuilder = new StringBuilder();
+
+//        String selectQuery = "SELECT DISTINCT wodoc.c_documentname, wo.c_productname, wodoc.c_wonum\n"
+//                + "FROM app_fd_doclinks wodoc \n"
+//                + "JOIN APP_FD_WORKORDER wo ON wodoc.c_wonum = wo.c_wonum\n"
+//                + "WHERE wo.c_wonum = ? AND\n"
+//                + "wo.c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant')\n"
+//                + "OR wodoc.c_documentname IN ('BAA', 'BAST', 'BAPL', 'BAPLA', 'WO', 'KL', 'SPK')";
+        String selectQuery = "SELECT DISTINCT count(wo.c_productname) as data "
+                + "FROM app_fd_doclinks wodoc "
+                + "JOIN APP_FD_WORKORDER wo ON wodoc.c_wonum = wo.c_wonum "
+                + "WHERE wo.c_wonum = ? AND "
+                + "wo.c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') "
+                + "AND wodoc.c_documentname IN ('BAA', 'BAST', 'BAPL', 'BAPLA', 'WO', 'KL', 'SPK')";
+
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(selectQuery)) {
+
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String data = rs.getString("data");
+//                String productname = rs.getString("c_productname");
+
+                LogUtil.info(getClass().getName(), "CHECK WO DOC");
+
+                if (Integer.parseInt(data) >= 1) {
+                    value = "The Filename and Product name are correct";
+                } else {
+                    value = "The file name doesn't match, please fix the file name with ('BAA', 'BAST', 'BAPL', 'BAPLA', 'WO', 'KL', 'SPK')";
+                }
+//                String docname = rs.getString("c_documentname");
+//                String productname = rs.getString("c_productname");
+//
+//                LogUtil.info(getClass().getName(), "CHECK WO DOC");
+//
+//                if ((productname.equalsIgnoreCase("VPN IP Netmonk")
+//                        || productname.equalsIgnoreCase("Nadeefa Netmonk")
+//                        || productname.equalsIgnoreCase("Pijar Sekolah")
+//                        || productname.equalsIgnoreCase("Omni Comunnication Assistant"))
+//                        && !(docname.equalsIgnoreCase("BAA"))) {
+//                    value = "The file name doesn't match for product: " + productname + ", please fix the file name with BAA";
+////                    responseBuilder.append("The file name doesn't match for product: ").append(productname).append(", please fix the file name with BAA\n");
+//                    LogUtil.info(getClass().getName(), "The file name doesn't match for product: " + productname + ", please fix the file name with BAA");
+//                    LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
+//
+//                } else if (!(docname.equalsIgnoreCase("BAST")
+//                        || docname.equalsIgnoreCase("BAPL")
+//                        || docname.equalsIgnoreCase("BAPLA"))) {
+//                    value = "The file name doesn't match the valid options (BAST, BAPL, BAPLA)";
+////                    responseBuilder.append("The file name doesn't match the valid options (BAST, BAPL, BAPLA)\n");
+//                    LogUtil.info(getClass().getName(), "The file name doesn't match the valid options (BAST, BAPL, BAPLA)");
+//                    LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
+//
+//                    if (!(docname.equalsIgnoreCase("KL")
+//                            || docname.equalsIgnoreCase("WO")
+//                            || docname.equalsIgnoreCase("SPK"))) {
+//                        value = "The file name doesn't match the valid options (KL, WO, SPK)";
+////                                        responseBuilder.append("The file name doesn't match the valid options (KL, WO, SPK)\n");
+//                        LogUtil.info(getClass().getName(), "The file name doesn't match the valid options (KL, WO, SPK)");
+//                        LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
+//                    }
+//
+//                } else {
+//                    value = "The Filename and Product name are correct";
+////                    responseBuilder.append("The Filename and Product name are correct\n");
+//                    LogUtil.info(getClass().getName(), "The Filename and Product name are correct");
+//                    LogUtil.info(getClass().getName(), "Product Name: " + productname + ", Filename: " + docname);
+//                }
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return value;
+    }
+
     public String checkActPlace(String wonum) throws SQLException {
         String actPlace = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -116,7 +199,7 @@ public class UpdateTaskStatusEbisDao {
         }
         return actPlace;
     }
-    
+
     //===========================
     // Function Update Task
     //===========================
@@ -204,7 +287,7 @@ public class UpdateTaskStatusEbisDao {
         }
         return nextAssign;
     }
-    
+
     public void updateWoDesc(String parent, String nextTaskId, String modifiedBy) throws SQLException {
 //        boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -227,7 +310,9 @@ public class UpdateTaskStatusEbisDao {
                 } else {
                     LogUtil.info(getClass().getName(), "description parent is not updated");
                 }
-            } else con.commit();
+            } else {
+                con.commit();
+            }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -352,7 +437,7 @@ public class UpdateTaskStatusEbisDao {
             String a = newwonum.substring(0, newwonum.length() - 1);
             int b = Integer.parseInt(newwonum.substring(newwonum.length() - 1)) - 1;
             String result = a + b;
-            LogUtil.info(getClass().getName(), " Wonum : " + a+b);
+            LogUtil.info(getClass().getName(), " Wonum : " + a + b);
 
             ps.setString(1, wonum);
             ps.setString(2, result);
@@ -396,7 +481,7 @@ public class UpdateTaskStatusEbisDao {
         if (name.equals("Survey-Ondesk")) {
             attributeObj.put("Attribute", "");
         }
-            
+
         JSONObject attributes = new JSONObject();
         attributes.put("Attributes", attributeObj);
 

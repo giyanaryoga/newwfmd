@@ -127,6 +127,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 int nextTaskId = Integer.parseInt(taskId) + 10;
                 boolean updateTask = false;
                 boolean nextAssign = false;
+//                boolean isWoDocValue = false;
+                String isWoDocValue = "";
 
                 switch (body.get("status").toString()) {
                     case "STARTWA":
@@ -198,6 +200,25 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     if (nextAssign && updateTask) {
                                         hsr1.setStatus(200);
                                         taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
+                                    }
+                                    break;
+                                case "Upload Berita Acara":
+                                    // check documentname
+                                    isWoDocValue = updateTaskStatusEbisDao.checkWoDoc(parent);
+                                    if (isWoDocValue.equalsIgnoreCase("The Filename and Product name are correct")) {
+                                        hsr1.setStatus(200);
+                                        res.put("code", "255");
+                                        res.put("message", isWoDocValue);
+                                        res.writeJSONString(hsr1.getWriter());
+                                        updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
+                                        nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
+                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
+                                    } else {
+                                        hsr1.setStatus(204);
+                                        res.put("code", "204");
+                                        res.put("message", "MESSAGE");
+                                        res.writeJSONString(hsr1.getWriter());
+                                        LogUtil.info(this.getClassName(), "RESULT : " + isWoDocValue);
                                     }
                                     break;
                                 default:
