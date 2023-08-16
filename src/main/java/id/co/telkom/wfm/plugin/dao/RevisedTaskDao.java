@@ -629,7 +629,7 @@ public class RevisedTaskDao {
         }
     }
     
-    public void generateActivityTaskNonConn(String parent) throws SQLException {
+    public void generateActivityTaskNonConn(String parent, String activity) throws SQLException {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
@@ -647,8 +647,8 @@ public class RevisedTaskDao {
                 .append(" c_woclass, ")
                 .append(" c_worktype ")
                 .append(" FROM app_fd_workorder WHERE ")
-                .append(" c_woclass = 'ACTIVITY' AND c_wfmdoctype = 'REVISED' AND")
-                .append(" c_parent = ?");
+                .append(" c_woclass = 'ACTIVITY' AND ")
+                .append(" c_parent = ? AND c_detailactcode = ?");
         
         StringBuilder insert = new StringBuilder();
         insert
@@ -695,6 +695,7 @@ public class RevisedTaskDao {
             PreparedStatement ps1 = con.prepareStatement(query.toString());
             PreparedStatement ps2 = con.prepareStatement(insert.toString());){
                 ps1.setString(1, parent);
+                ps1.setString(2, activity);
                 ResultSet rs = ps1.executeQuery();
                 while (rs.next()) {
                     ps2.setString(1, UuidGenerator.getInstance().getUuid());
