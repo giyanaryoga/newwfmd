@@ -325,16 +325,16 @@ public class UpdateTaskStatusEbisDao {
     // UPDATE WOSTATUS
     //========================================
     public void updateParentStatus(String wonum, String status, String statusDate, String modifiedBy) throws SQLException {
-        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_status = ?, c_statusdate = ?, dateModified = ? WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
             int index = 0;
             ps.setString(1 + index, modifiedBy);
             ps.setString(2 + index, status);
-//            ps.setString(2 + index, statusDate);
-            ps.setTimestamp(3 + index, Timestamp.valueOf(statusDate));
-            ps.setString(4 + index, wonum);
+            ps.setTimestamp(3 + index, getTimeStamp());
+            ps.setTimestamp(4 + index, getTimeStamp());
+            ps.setString(5 + index, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Status updated to: " + status);

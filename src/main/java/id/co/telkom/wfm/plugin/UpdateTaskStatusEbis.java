@@ -162,8 +162,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         break;
                     case "COMPWA":
                         boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
-//                        Integer isRequired = updateTaskStatusEbisDao.isRequired(wonum);
-                        if (!isMandatoryValue) {
+                        Integer isRequired = updateTaskStatusEbisDao.isRequired(wonum);
+                        if (!isMandatoryValue && isRequired != 1) {
                             hsr1.setStatus(422);
                         } else {
                             switch (description) {
@@ -208,7 +208,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                         try {
                                             // Update parent status
                                             updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate, modifiedBy);
-                                            LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
+//                                            LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
                                             // update task status
                                             updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);

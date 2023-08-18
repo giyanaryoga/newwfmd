@@ -4,6 +4,7 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import id.co.telkom.wfm.plugin.RevisedTask;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +13,8 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -434,6 +437,61 @@ public class RevisedTaskDao {
         return activity;
     }
     
+    public JSONArray getTaskRevised(String parent) throws SQLException {
+        JSONArray activity = new JSONArray();
+        StringBuilder query = new StringBuilder();
+        query
+                .append(" SELECT ")
+                .append(" c_taskid, ")
+                .append(" c_wonum, ")
+                .append(" c_parent, ")
+                .append(" c_orgid, ")
+                .append(" c_detailactcode, ")
+                .append(" c_description, ")
+                .append(" c_actplace, ")
+                .append(" c_wosequence, ")
+                .append(" c_correlation, ")
+                .append(" c_ownergroup, ")
+                .append(" c_siteid, ")
+                .append(" c_woclass, ")
+                .append(" c_worktype, ")
+                .append(" c_estdur ")
+                .append(" FROM app_fd_workorder WHERE ")
+                .append(" c_woclass = 'ACTIVITY' AND c_wfmdoctype = 'REVISED' AND ")
+                .append(" c_parent = ? ");
+        
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query.toString())) {
+            ps.setString(1, parent);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("taskid", rs.getInt("c_taskid"));
+                activityProp.put("wonum", rs.getString("c_wonum"));
+                activityProp.put("parent", rs.getString("c_parent"));
+                activityProp.put("orgid", rs.getString("c_orgid"));
+                activityProp.put("description", rs.getString("c_description"));
+                activityProp.put("detailActCode", rs.getString("c_detailactcode"));
+                activityProp.put("actPlace", rs.getString("c_actplace"));
+                activityProp.put("woSequence", rs.getInt("c_wosequence"));
+                activityProp.put("correlation", rs.getString("c_correlation"));
+                activityProp.put("ownerGroup", rs.getString("c_ownergroup"));
+                activityProp.put("siteid", rs.getString("c_siteid"));
+                activityProp.put("woClass", rs.getString("c_woclass"));
+                activityProp.put("workType", rs.getString("c_worktype"));
+                activityProp.put("duration", rs.getInt("c_estdur"));
+                activity.add(activityProp);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close(); 
+        }
+        return activity;
+    }
+
+    
     public String getTaskName(String wonum) throws SQLException {
         String taskName = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -574,7 +632,7 @@ public class RevisedTaskDao {
         }
     }
     
-    public void generateActivityTaskNonConn(String parent) throws SQLException {
+    public void generateActivityTaskNonConn(String parent, String activity) throws SQLException {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
@@ -592,8 +650,8 @@ public class RevisedTaskDao {
                 .append(" c_woclass, ")
                 .append(" c_worktype ")
                 .append(" FROM app_fd_workorder WHERE ")
-                .append(" c_woclass = 'ACTIVITY' AND c_wfmdoctype = 'REVISED' AND")
-                .append(" c_parent = ?");
+                .append(" c_woclass = 'ACTIVITY' AND ")
+                .append(" c_parent = ? AND c_detailactcode = ?");
         
         StringBuilder insert = new StringBuilder();
         insert
@@ -640,6 +698,7 @@ public class RevisedTaskDao {
             PreparedStatement ps1 = con.prepareStatement(query.toString());
             PreparedStatement ps2 = con.prepareStatement(insert.toString());){
                 ps1.setString(1, parent);
+                ps1.setString(2, activity);
                 ResultSet rs = ps1.executeQuery();
                 while (rs.next()) {
                     ps2.setString(1, UuidGenerator.getInstance().getUuid());
@@ -750,6 +809,194 @@ public class RevisedTaskDao {
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+    
+    public void validateRevised (String parent, String wonum, String attrName, String attrValue, String task) {
+        try {
+            JSONArray taskArray = getTask(parent);
+            LogUtil.info(getClass().getName(), "Task => " + taskArray);
+
+            switch(attrName){
+                case "APPROVAL_SURVEY":
+                    if (attrValue.equalsIgnoreCase("BACK_TO_SURVEY")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is not BACK_TO_SURVEY");
+                    }
+                break;
+                case "APPROVAL":
+                    if (task.equalsIgnoreCase("REVIEW_ORDER")) {
+                        if (attrValue.equalsIgnoreCase("REJECTED")) {
+                            for(Object obj : taskArray) {
+                                JSONObject taskObj = (JSONObject)obj;
+                                reviseTaskNonConn_reviewOrder(taskObj.get("parent").toString());
+                            }
+                        } else {
+                            LogUtil.info(getClass().getName(), "Approval is not REJECTED");
+                        }
+                    } else if (task.equalsIgnoreCase("Approval_Project_Management") || task.equalsIgnoreCase("Validate-Survey")) {
+                            String domainId = getDomainId(wonum);
+                            LogUtil.info(getClass().getName(), "Domain Id = " +domainId);
+                            JSONArray domainArray = getValueDomain(domainId);
+                            for(Object obj : domainArray) {
+                                JSONObject taskObj2 = (JSONObject)obj;
+                                String value = taskObj2.get("value").toString();
+                                String description = taskObj2.get("description").toString();
+                                JSONArray taskArray2 = new JSONArray();
+                                if (description.equalsIgnoreCase(attrValue)) {
+                                    switch (value) {
+                                        case "REJECTED TO REVIEW ORDER":
+                                            LogUtil.info(getClass().getName(), "Approval is REJECTED TO REVIEW ORDER!");
+                                            reviseTaskNonConn_toReviewOrder(parent);
+                                            taskArray2 = getTaskRevised(parent);
+                                            LogUtil.info(getClass().getName(), "Task : " +taskArray2);
+                                            for (Object obj2 : taskArray2) {
+                                                JSONObject taskObj = (JSONObject)obj2;
+                                                LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
+                                                generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
+                                            }
+                                            break;
+                                        case "REJECTED TO SHIPMENT AND DELIVERY TASK":
+                                            LogUtil.info(getClass().getName(), "Approval is REJECTED TO SHIPMENT AND DELIVERY TASK!");
+                                            reviseTaskNonConn_toShipmentDelivery(parent);
+                                            taskArray2 = getTaskRevised(parent);
+                                            LogUtil.info(getClass().getName(), "Task : " +taskArray2);
+                                            for (Object obj2 : taskArray2) {
+                                                JSONObject taskObj = (JSONObject)obj2;
+                                                LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
+                                                generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
+                                            }
+                                            break;
+                                        case "REJECTED TO ACTIVATE SERVICE":
+                                            LogUtil.info(getClass().getName(), "Approval is REJECTED TO ACTIVATE SERVICE!");
+                                            reviseTaskNonConn_toActivateService(parent);
+                                            taskArray2 = getTaskRevised(parent);
+                                            LogUtil.info(getClass().getName(), "Task : " +taskArray2);
+                                            for (Object obj2 : taskArray2) {
+                                                JSONObject taskObj = (JSONObject)obj2;
+                                                LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
+                                                generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
+                                            }
+                                            break;
+                                        case "REJECTED TO UPLOAD BERITA ACARA":
+                                            LogUtil.info(getClass().getName(), "Approval is REJECTED TO UPLOAD BERITA ACARA!");
+                                            reviseTaskNonConn_toUploadBA(parent);
+                                            taskArray2 = getTaskRevised(parent);
+                                            LogUtil.info(getClass().getName(), "Task : " +taskArray2);
+                                            for (Object obj2 : taskArray2) {
+                                                JSONObject taskObj = (JSONObject)obj2;
+                                                LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
+                                                generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
+                                            }
+                                            break;
+                                        default:
+                                            LogUtil.info(getClass().getName(), "Approval is not REJECTED TO TASK BEFORE!");
+                                            break;
+                                    }
+                                } else {
+                                    LogUtil.info(getClass().getName(), "Approval in alndomain is not match!");
+                                }
+                            }
+                    } else { 
+                        if (attrValue.equalsIgnoreCase("REJECTED")) {
+                            reviseTask(parent);
+                            generateActivityTask(parent);
+                        } else {
+                            LogUtil.info(getClass().getName(), "Approval is not REJECTED");
+                            LogUtil.info(getClass().getName(), "Task" + taskArray);
+                        }
+                    }
+                break;
+                case "NODE_ID":
+                    if (!attrValue.equalsIgnoreCase("None")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is None");
+                    }
+                break;
+                case "ACCESS REQUIRED 1":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is not NO");
+                    }
+                break;
+                case "ACCESS REQUIRED 2":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is not NO");
+                    }
+                break;
+                case "APPROVED":
+                    if (attrValue.equalsIgnoreCase("REJECTED")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is not REJECTED");
+                    }
+                break;
+                case "TIPE MODIFY":
+                    if (!attrValue.equalsIgnoreCase("Modify Number")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else if (attrValue.equalsIgnoreCase("Modify Concurrent")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else if (attrValue.equalsIgnoreCase("Modify IP")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else if (attrValue.equalsIgnoreCase("Modify Bandwidth") || attrValue.equalsIgnoreCase("Modify Address")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else if (attrValue.equalsIgnoreCase("Modify Concurrent Dan Bandwidth")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else if (attrValue.equalsIgnoreCase("Modify Number, Concurrent, Bandwidth")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is not Modify Number");
+                    }
+                break;
+                case "ACCEPT":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is not NO");
+                    }
+                break;
+                case "ACCESS_REQUIRED":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is not NO");
+                    }
+                break;
+                case "MODIFY_TYPE":
+                    if (attrValue.equalsIgnoreCase("Bandwidth")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else if (attrValue.equalsIgnoreCase("Service (P2P dan P2MP)") || attrValue.equalsIgnoreCase("Port")) {
+                        reviseTask(parent);
+                        generateActivityTask(parent);
+                    } else {
+                        LogUtil.info(getClass().getName(), "Approval Survey is not NO");
+                    }
+                break;
+                default:
+                    LogUtil.info(getClass().getName(), "Attribute name dan value tidak memenuhi Revised Task");
+                break;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RevisedTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
