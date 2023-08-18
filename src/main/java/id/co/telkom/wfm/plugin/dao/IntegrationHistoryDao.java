@@ -23,7 +23,7 @@ public class IntegrationHistoryDao {
         return ts;
     }
 
-    public void insertTaskStatus(String wonum, String memo, String modifiedBy) {
+    public void insertIntegrationHistory(String wonum, String memo, String modifiedBy) {
         String uuId = UuidGenerator.getInstance().getUuid();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
@@ -37,10 +37,15 @@ public class IntegrationHistoryDao {
                 .append("c_param1, ")
                 .append("c_param2, ")
                 .append("c_param3, ")
-                .append("c_wostatusid, ")
-                .append("c_parent, ")
-                .append("datecreated, ")
-                .append("modifiedby ")
+                .append("c_param4, ")
+                .append("c_param5, ")
+                .append("c_integration_type, ")
+                .append("c_exec_state, ")
+                .append("c_request, ")
+                .append("c_response, ")
+                .append("c_insertdate, ")
+                .append("c_exec_date, ")
+                .append("c_result ")
                 .append(") ")
                 .append("VALUES ")
                 .append("(?, ")
@@ -52,10 +57,15 @@ public class IntegrationHistoryDao {
                 .append("?, ")
                 .append("?, ")
                 .append("?, ")
+                .append("?, ")
+                .append("?, ")
+                .append("?, ")
+                .append("?, ")
+                .append("?, ")
                 .append("?) ");
 
         // Additional query to fetch values
-        String selectQuery = "SELECT c_parent, c_status, c_orgid, c_siteid FROM app_fd_workorder WHERE c_wonum = ?";
+        String selectQuery = "SELECT c_parent, c_assetattrid, c_orgid, c_siteid FROM app_fd_workorderspec WHERE c_wonum = ?";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement selectPs = con.prepareStatement(selectQuery);
@@ -64,13 +74,13 @@ public class IntegrationHistoryDao {
             ResultSet resultSet = selectPs.executeQuery();
             if (resultSet.next()) {
                 String fetchedParent = resultSet.getString("c_parent");
-                String fetchedStatus = resultSet.getString("c_status");
+                String fetchedAssetAttrId = resultSet.getString("c_assetattrid");
                 String fetchedOrgid = resultSet.getString("c_orgid");
                 String fetchedSiteid = resultSet.getString("c_siteid");
 
                 insertPs.setString(1, uuId);
                 insertPs.setString(2, wonum);
-                insertPs.setString(3, fetchedStatus);
+//                insertPs.setString(3, fetchedStatus);
                 insertPs.setString(4, memo);
                 insertPs.setString(5, fetchedOrgid);
                 insertPs.setString(6, fetchedSiteid);
