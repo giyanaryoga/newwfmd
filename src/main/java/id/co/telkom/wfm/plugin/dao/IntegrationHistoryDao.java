@@ -23,7 +23,7 @@ public class IntegrationHistoryDao {
         return ts;
     }
 
-    public void insertIntegrationHistory(String wonum, String memo, String modifiedBy) {
+    public void insertIntegrationHistory(String wonum, String integrationType, Integer exec_state, String req, String res, String result) {
         String uuId = UuidGenerator.getInstance().getUuid();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
@@ -75,18 +75,23 @@ public class IntegrationHistoryDao {
             if (resultSet.next()) {
                 String fetchedParent = resultSet.getString("c_parent");
                 String fetchedAssetAttrId = resultSet.getString("c_assetattrid");
-                String fetchedOrgid = resultSet.getString("c_orgid");
+//                String fetchedOrgid = resultSet.getString("c_orgid");
                 String fetchedSiteid = resultSet.getString("c_siteid");
 
                 insertPs.setString(1, uuId);
                 insertPs.setString(2, wonum);
-//                insertPs.setString(3, fetchedStatus);
-                insertPs.setString(4, memo);
-                insertPs.setString(5, fetchedOrgid);
-                insertPs.setString(6, fetchedSiteid);
-                insertPs.setString(7, fetchedParent);
-                insertPs.setTimestamp(8, getTimeStamp());
-                insertPs.setString(9, modifiedBy);
+                insertPs.setString(3, fetchedParent); //param1
+                insertPs.setString(4, fetchedAssetAttrId); //param2
+                insertPs.setString(5, fetchedSiteid); //param3
+                insertPs.setString(6, ""); //param4
+                insertPs.setString(7, ""); //param5
+                insertPs.setString(8, integrationType); //integration_type
+                insertPs.setInt(9, exec_state); //exec_state
+                insertPs.setString(10, req); //request
+                insertPs.setString(11, res); //response
+                insertPs.setTimestamp(12, getTimeStamp()); //insertdate
+                insertPs.setTimestamp(13, getTimeStamp()); //exec_date
+                insertPs.setString(14, result); //result
 
                 int exe = insertPs.executeUpdate();
                 if (exe > 0) {
