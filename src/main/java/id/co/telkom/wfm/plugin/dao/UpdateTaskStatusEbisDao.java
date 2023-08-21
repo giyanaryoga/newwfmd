@@ -18,12 +18,81 @@ import org.json.simple.*;
  * @author ASUS
  */
 public class UpdateTaskStatusEbisDao {
-
     private Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
         Timestamp ts = Timestamp.valueOf(zdt.toLocalDateTime().format(format));
         return ts;
+    }
+    
+    public boolean getApiAttribute(String apiId, String apiKey) {
+        boolean  isAuthSuccess = false;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_api_id, c_api_key FROM app_fd_api_wfm WHERE c_use_of_api = 'mystaff_integration'";
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                if (apiId.equals(rs.getString("c_api_id")) && apiKey.equals(rs.getString("c_api_key"))) {
+                    isAuthSuccess = true;
+                } else {
+                    isAuthSuccess = false;
+                }
+            }
+        } catch(SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+        return isAuthSuccess;
+    }
+    
+    public JSONObject getTask(String wonum) throws SQLException {
+        JSONObject activityProp = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_taskid, c_wosequence, c_detailactcode, c_description, c_parent  FROM app_fd_workorder WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                activityProp.put("taskid", rs.getInt("c_taskid"));
+                activityProp.put("wosequence", rs.getString("c_wosequence"));
+                activityProp.put("detailactcode", rs.getString("c_detailactcode"));
+                activityProp.put("description", rs.getString("c_description"));
+                activityProp.put("parent", rs.getString("c_parent"));
+            } else {
+                activityProp = null;
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return activityProp;
+    }
+    
+    public JSONObject getTaskAttr(String wonum) throws SQLException {
+        JSONObject activityProp = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_value, c_isrequired, c_isshared FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                activityProp.put("attrName", rs.getInt("c_assetattrid"));
+                activityProp.put("attrValue", rs.getString("c_value"));
+                activityProp.put("mandatory", rs.getString("c_isrequired"));
+                activityProp.put("shared", rs.getString("c_isshared"));
+//                activityProp.put("parent", rs.getString("c_parent"));
+            } else {
+                activityProp = null;
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return activityProp;
     }
 
     public Integer isRequired(String wonum) throws SQLException {
