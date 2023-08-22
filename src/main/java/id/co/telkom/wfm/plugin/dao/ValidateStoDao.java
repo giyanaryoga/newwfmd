@@ -109,9 +109,12 @@ public class ValidateStoDao {
 
     public JSONObject callUimaxStoValidation(String wonum, ListGenerateAttributes listGenerate) {
         try {
-            String productType = getAssetattrid(wonum).get("PRODUCT_TYPE").toString();
-            String latitude = getAssetattrid(wonum).get("LATITUDE").toString();
-            String longitude = getAssetattrid(wonum).get("LONGITUDE").toString();
+            JSONObject assetattrid = getAssetattrid(wonum);
+            
+            String productType = assetattrid.optString("PRODUCT_TYPE", "null");
+            String latitude = assetattrid.optString("LATITUDE");
+            String longitude = assetattrid.optString("LONGITUDE");
+
             LogUtil.info(this.getClass().getName(), "PRODUCT_TYPE : " + productType);
             LogUtil.info(this.getClass().getName(), "LATITUDE : " + latitude);
             LogUtil.info(this.getClass().getName(), "LONGITUDE : " + longitude);

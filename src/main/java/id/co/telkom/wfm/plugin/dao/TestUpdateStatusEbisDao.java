@@ -17,17 +17,19 @@ import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class TestUpdateStatusEbisDao {
+
     private Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"); 
-        Timestamp ts =  Timestamp.valueOf(zdt.toLocalDateTime().format(format));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+        Timestamp ts = Timestamp.valueOf(zdt.toLocalDateTime().format(format));
         return ts;
     }
-    
+
     public Integer isRequired(String wonum) throws SQLException {
         int required = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -47,7 +49,7 @@ public class TestUpdateStatusEbisDao {
         }
         return required;
     }
-    
+
     public boolean checkMandatory(String wonum) throws SQLException {
         boolean value = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -55,7 +57,6 @@ public class TestUpdateStatusEbisDao {
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
-//            ps.setInt(2, 1);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 if (rs.getString("c_value") != null) {
@@ -75,7 +76,7 @@ public class TestUpdateStatusEbisDao {
         }
         return value;
     }
-    
+
     public boolean checkAssignment(String wonum) throws SQLException {
         boolean assign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -100,7 +101,133 @@ public class TestUpdateStatusEbisDao {
         }
         return assign;
     }
-    
+
+//    public String checkWoDoc(String wonum) throws SQLException {
+////        boolean value = false;
+//        String value = "";
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//
+//        String selectQuery = "SELECT DISTINCT count(wo.c_productname) as data "
+//                + "FROM app_fd_doclinks wodoc "
+//                + "JOIN APP_FD_WORKORDER wo ON wodoc.c_wonum = wo.c_wonum "
+//                + "WHERE wo.c_wonum = ? AND "
+//                + "wo.c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') "
+//                + "AND wodoc.c_documentname IN ('BAA')";
+//
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(selectQuery)) {
+//
+//            ps.setString(1, wonum);
+//            ResultSet rs = ps.executeQuery();
+//
+//            while (rs.next()) {
+//                String data = rs.getString("data");
+////                String productname = rs.getString("c_productname");
+//
+//                LogUtil.info(getClass().getName(), "CHECK WO DOC");
+//
+//                if (Integer.parseInt(data) >= 1) {
+//                    value = "The Filename and Product name are correct";
+//                } else {
+//                    value = "The file name doesn't match, please fix the file name with ('BAA')";
+//                }
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        }
+//        return value;
+//    }
+    public int checkAttachedFile(String wonum, String documentName) throws SQLException {
+        int isAttachedFile = 0;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+
+        String selectQuery = "SELECT DISTINCT c_documentname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ?";
+
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(selectQuery)) {
+
+            ps.setString(1, wonum);
+            ps.setString(2, documentName);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                if (rs.getString("c_documentname") != null) {
+                    isAttachedFile = 1;
+                } else {
+                    isAttachedFile = 0;
+                }
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return isAttachedFile;
+    }
+ 
+    public int isProductNameDigital(String wonum) throws SQLException {
+        int isProductName = 0;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        
+        String selectProduct = "SELECT c_productname FROM APP_FD_WORKORDER WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') AND c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(selectProduct)) {
+            ps.setString(1, wonum);
+            
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                if(rs.getString("c_productname") != null) {
+                    return isProductName = 1;
+                } else {
+                    return isProductName = 0;
+                }
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return isProductName;
+    }
+
+    public String checkWoDoc(String wonum) throws SQLException, JSONException {
+        String value = "";
+        
+        if (checkAttachedFile(wonum, "BAA") == 0 && isProductNameDigital(wonum) == 1) {    
+            value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). \\nPastikan dokumen telah diupload dengan nama dokumen 'BAA'";
+        
+        } else if (isProductNameDigital(wonum) == 0 && checkAttachedFile(wonum, "BAST") == 0
+                && checkAttachedFile(wonum, "BAPLA") == 0
+                && checkAttachedFile(wonum, "BAPL") == 0
+                && checkAttachedFile(wonum, "WO") == 0
+                && checkAttachedFile(wonum, "SPK") == 0
+                && checkAttachedFile(wonum, "KL") == 0
+                ) {
+            value = "File BAST/BAPL/BAPLA dan KL/WO/SPK belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+        
+        } else if (isProductNameDigital(wonum) == 0 
+                && (checkAttachedFile(wonum, "BAST") == 1
+                || checkAttachedFile(wonum, "BAPLA") == 1
+                || checkAttachedFile(wonum, "BAPL") == 1)
+                && checkAttachedFile(wonum, "WO") == 0
+                && checkAttachedFile(wonum, "SPK") == 0
+                && checkAttachedFile(wonum, "KL") == 0
+                ){
+            value = "File KL/WO/SPK belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+        
+        } else if (isProductNameDigital(wonum) == 0 
+                && checkAttachedFile(wonum, "BAPLA") == 0
+                && checkAttachedFile(wonum, "BAPL") == 0
+                && (checkAttachedFile(wonum, "WO") == 1
+                || checkAttachedFile(wonum, "SPK") == 1
+                || checkAttachedFile(wonum, "KL") == 1)
+                ){
+            value = "File BAST/BAPL/BAPLA belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+        } else {
+            value = "The Filename and Product name are correct, Update Status COMPWA Successfully";
+        }
+        
+        return value;
+    }
+
     public String checkActPlace(String wonum) throws SQLException {
         String actPlace = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -120,31 +247,53 @@ public class TestUpdateStatusEbisDao {
         }
         return actPlace;
     }
-    
+
     //===========================
     // Function Update Task
     //===========================
-    public boolean updateTask(String wonum, String status) throws SQLException {
-        boolean updateTask = false;
+//    public boolean updateTask(String wonum, String status, String modifiedBy) throws SQLException {
+//        boolean updateTask = false;
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String update = "UPDATE app_fd_workorder SET c_status = ?, modifiedby = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(update)) {
+//            ps.setString(1, status);
+//            ps.setString(2, modifiedBy);
+//            ps.setString(3, wonum);
+//            int exe = ps.executeUpdate();
+//            if (exe > 0) {
+//                LogUtil.info(getClass().getName(), "update task berhasil");
+//                updateTask = true;
+//            } else {
+//                LogUtil.info(getClass().getName(), "update task gagal");
+//            }
+//        } catch (Exception e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//        return updateTask;
+//    }
+    public String updateTask(String wonum, String status, String modifiedBy) {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_status = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_status = ?, modifiedby = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
+
             ps.setString(1, status);
-            ps.setString(2, wonum);
+            ps.setString(2, modifiedBy);
+            ps.setString(3, wonum);
             int exe = ps.executeUpdate();
+
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), "update task berhasil");
-                updateTask = true;
+                return "Update task status berhasil";
             } else {
-                LogUtil.info(getClass().getName(), "update task gagal");
+                return "Update task gagal";
             }
         } catch (Exception e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
+            return "Error: " + e.getMessage();
         }
-        return updateTask;
     }
 
     //===========================================================================
@@ -153,7 +302,7 @@ public class TestUpdateStatusEbisDao {
     public String nextMove(String parent, String nextTaskId) throws SQLException {
         String nextMove = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wosequence IN ('10','20','30','40','50','60') AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
@@ -182,19 +331,21 @@ public class TestUpdateStatusEbisDao {
     //=========================================
     // SET LABASSIGN FOR NEXT TASK
     //=========================================
-    public boolean nextAssign(String parent, String nextTaskId) throws SQLException {
+    public boolean nextAssign(String parent, String nextTaskId, String modifiedBy) throws SQLException {
         boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = sysdate WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = ?, modifiedby = ? WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
-            ps.setString(1, parent);
-            ps.setString(2, nextTaskId);
+            ps.setTimestamp(1, getTimeStamp());
+            ps.setString(2, modifiedBy);
+            ps.setString(3, parent);
+            ps.setString(4, nextTaskId);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "next assign berhasil");
                 nextAssign = true;
-                updateWoDesc(parent, nextTaskId);
+                updateWoDesc(parent, nextTaskId, modifiedBy);
             } else {
                 LogUtil.info(getClass().getName(), "next assign gagal");
             }
@@ -205,12 +356,12 @@ public class TestUpdateStatusEbisDao {
         }
         return nextAssign;
     }
-    
-    public void updateWoDesc(String parent, String nextTaskId) throws SQLException {
+
+    public void updateWoDesc(String parent, String nextTaskId, String modifiedBy) throws SQLException {
 //        boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_description FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ?";
-        String update = "UPDATE app_fd_workorder SET c_description = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_description = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps1 = con.prepareStatement(query);
                 PreparedStatement ps2 = con.prepareStatement(update)) {
@@ -218,8 +369,9 @@ public class TestUpdateStatusEbisDao {
             ps1.setString(2, nextTaskId);
             ResultSet rs = ps1.executeQuery();
             if (rs.next()) {
-                ps2.setString(1, rs.getString("c_description"));
-                ps2.setString(2, parent);
+                ps2.setString(1, modifiedBy);
+                ps2.setString(2, rs.getString("c_description"));
+                ps2.setString(3, parent);
                 int exe = ps2.executeUpdate();
                 if (exe > 0) {
                     LogUtil.info(getClass().getName(), "description parent is updated");
@@ -227,7 +379,9 @@ public class TestUpdateStatusEbisDao {
                 } else {
                     LogUtil.info(getClass().getName(), "description parent is not updated");
                 }
-            } else con.commit();
+            } else {
+                con.commit();
+            }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -239,16 +393,17 @@ public class TestUpdateStatusEbisDao {
     //========================================
     // UPDATE WOSTATUS
     //========================================
-    public void updateParentStatus(String wonum, String status, String statusDate) throws SQLException {
-        String update = "UPDATE app_fd_workorder SET c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+    public void updateParentStatus(String wonum, String status, String statusDate, String modifiedBy) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_status = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
             int index = 0;
-            ps.setString(1 + index, status);
+            ps.setString(1 + index, modifiedBy);
+            ps.setString(2 + index, status);
 //            ps.setString(2 + index, statusDate);
-            ps.setTimestamp(2 + index, Timestamp.valueOf(statusDate));
-            ps.setString(3 + index, wonum);
+            ps.setTimestamp(3 + index, Timestamp.valueOf(statusDate));
+            ps.setString(4 + index, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Status updated to: " + status);
@@ -351,7 +506,7 @@ public class TestUpdateStatusEbisDao {
             String a = newwonum.substring(0, newwonum.length() - 1);
             int b = Integer.parseInt(newwonum.substring(newwonum.length() - 1)) - 1;
             String result = a + b;
-            LogUtil.info(getClass().getName(), " Wonum : " + a+b);
+            LogUtil.info(getClass().getName(), " Wonum : " + a + b);
 
             ps.setString(1, wonum);
             ps.setString(2, result);
@@ -395,7 +550,7 @@ public class TestUpdateStatusEbisDao {
         if (name.equals("Survey-Ondesk")) {
             attributeObj.put("Attribute", "");
         }
-            
+
         JSONObject attributes = new JSONObject();
         attributes.put("Attributes", attributeObj);
 
@@ -635,4 +790,3 @@ public class TestUpdateStatusEbisDao {
         }
     }
 }
-

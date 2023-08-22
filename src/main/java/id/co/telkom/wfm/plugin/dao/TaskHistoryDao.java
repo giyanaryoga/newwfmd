@@ -41,7 +41,7 @@ public class TaskHistoryDao {
                 .append("c_wostatusid, ")
                 .append("c_parent, ")
                 .append("datecreated, ")
-                .append("modifiedby ")
+                .append("createdby ")
                 .append(") ")
                 .append("VALUES ")
                 .append("(?, ")
