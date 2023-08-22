@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -101,77 +102,129 @@ public class TestUpdateStatusEbisDao {
         return assign;
     }
 
-    public String checkWoDoc(String wonum) throws SQLException {
-//        boolean value = false;
-        String value = "";
+//    public String checkWoDoc(String wonum) throws SQLException {
+////        boolean value = false;
+//        String value = "";
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//
+//        String selectQuery = "SELECT DISTINCT count(wo.c_productname) as data "
+//                + "FROM app_fd_doclinks wodoc "
+//                + "JOIN APP_FD_WORKORDER wo ON wodoc.c_wonum = wo.c_wonum "
+//                + "WHERE wo.c_wonum = ? AND "
+//                + "wo.c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') "
+//                + "AND wodoc.c_documentname IN ('BAA')";
+//
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(selectQuery)) {
+//
+//            ps.setString(1, wonum);
+//            ResultSet rs = ps.executeQuery();
+//
+//            while (rs.next()) {
+//                String data = rs.getString("data");
+////                String productname = rs.getString("c_productname");
+//
+//                LogUtil.info(getClass().getName(), "CHECK WO DOC");
+//
+//                if (Integer.parseInt(data) >= 1) {
+//                    value = "The Filename and Product name are correct";
+//                } else {
+//                    value = "The file name doesn't match, please fix the file name with ('BAA')";
+//                }
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        }
+//        return value;
+//    }
+    public int checkAttachedFile(String wonum, String documentName) throws SQLException {
+        int isAttachedFile = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
-        String selectQuery = "SELECT DISTINCT count(wo.c_productname) as data "
-                + "FROM app_fd_doclinks wodoc "
-                + "JOIN APP_FD_WORKORDER wo ON wodoc.c_wonum = wo.c_wonum "
-                + "WHERE wo.c_wonum = ? AND "
-                + "wo.c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') "
-                + "AND wodoc.c_documentname IN ('BAA', 'BAST', 'BAPL', 'BAPLA', 'WO', 'KL', 'SPK')";
+        String selectQuery = "SELECT DISTINCT c_documentname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ?";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
 
             ps.setString(1, wonum);
+            ps.setString(2, documentName);
+
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                String data = rs.getString("data");
-//                String productname = rs.getString("c_productname");
-
-                LogUtil.info(getClass().getName(), "CHECK WO DOC");
-
-                if (Integer.parseInt(data) >= 1) {
-                    value = "The Filename and Product name are correct";
+                if (rs.getString("c_documentname") != null) {
+                    isAttachedFile = 1;
                 } else {
-                    value = "The file name doesn't match, please fix the file name with ('BAA', 'BAST', 'BAPL', 'BAPLA', 'WO', 'KL', 'SPK')";
+                    isAttachedFile = 0;
                 }
-//                String docname = rs.getString("c_documentname");
-//                String productname = rs.getString("c_productname");
-//
-//                LogUtil.info(getClass().getName(), "CHECK WO DOC");
-//
-//                if ((productname.equalsIgnoreCase("VPN IP Netmonk")
-//                        || productname.equalsIgnoreCase("Nadeefa Netmonk")
-//                        || productname.equalsIgnoreCase("Pijar Sekolah")
-//                        || productname.equalsIgnoreCase("Omni Comunnication Assistant"))
-//                        && !(docname.equalsIgnoreCase("BAA"))) {
-//                    value = "The file name doesn't match for product: " + productname + ", please fix the file name with BAA";
-////                    responseBuilder.append("The file name doesn't match for product: ").append(productname).append(", please fix the file name with BAA\n");
-//                    LogUtil.info(getClass().getName(), "The file name doesn't match for product: " + productname + ", please fix the file name with BAA");
-//                    LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
-//
-//                } else if (!(docname.equalsIgnoreCase("BAST")
-//                        || docname.equalsIgnoreCase("BAPL")
-//                        || docname.equalsIgnoreCase("BAPLA"))) {
-//                    value = "The file name doesn't match the valid options (BAST, BAPL, BAPLA)";
-////                    responseBuilder.append("The file name doesn't match the valid options (BAST, BAPL, BAPLA)\n");
-//                    LogUtil.info(getClass().getName(), "The file name doesn't match the valid options (BAST, BAPL, BAPLA)");
-//                    LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
-//
-//                    if (!(docname.equalsIgnoreCase("KL")
-//                            || docname.equalsIgnoreCase("WO")
-//                            || docname.equalsIgnoreCase("SPK"))) {
-//                        value = "The file name doesn't match the valid options (KL, WO, SPK)";
-////                                        responseBuilder.append("The file name doesn't match the valid options (KL, WO, SPK)\n");
-//                        LogUtil.info(getClass().getName(), "The file name doesn't match the valid options (KL, WO, SPK)");
-//                        LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
-//                    }
-//
-//                } else {
-//                    value = "The Filename and Product name are correct";
-////                    responseBuilder.append("The Filename and Product name are correct\n");
-//                    LogUtil.info(getClass().getName(), "The Filename and Product name are correct");
-//                    LogUtil.info(getClass().getName(), "Product Name: " + productname + ", Filename: " + docname);
-//                }
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
+        return isAttachedFile;
+    }
+ 
+    public int isProductNameDigital(String wonum) throws SQLException {
+        int isProductName = 0;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        
+        String selectProduct = "SELECT c_productname FROM APP_FD_WORKORDER WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') AND c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(selectProduct)) {
+            ps.setString(1, wonum);
+            
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                if(rs.getString("c_productname") != null) {
+                    return isProductName = 1;
+                } else {
+                    return isProductName = 0;
+                }
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return isProductName;
+    }
+
+    public String checkWoDoc(String wonum) throws SQLException, JSONException {
+        String value = "";
+        
+        if (checkAttachedFile(wonum, "BAA") == 0 && isProductNameDigital(wonum) == 1) {    
+            value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). \\nPastikan dokumen telah diupload dengan nama dokumen 'BAA'";
+        
+        } else if (isProductNameDigital(wonum) == 0 && checkAttachedFile(wonum, "BAST") == 0
+                && checkAttachedFile(wonum, "BAPLA") == 0
+                && checkAttachedFile(wonum, "BAPL") == 0
+                && checkAttachedFile(wonum, "WO") == 0
+                && checkAttachedFile(wonum, "SPK") == 0
+                && checkAttachedFile(wonum, "KL") == 0
+                ) {
+            value = "File BAST/BAPL/BAPLA dan KL/WO/SPK belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+        
+        } else if (isProductNameDigital(wonum) == 0 
+                && (checkAttachedFile(wonum, "BAST") == 1
+                || checkAttachedFile(wonum, "BAPLA") == 1
+                || checkAttachedFile(wonum, "BAPL") == 1)
+                && checkAttachedFile(wonum, "WO") == 0
+                && checkAttachedFile(wonum, "SPK") == 0
+                && checkAttachedFile(wonum, "KL") == 0
+                ){
+            value = "File KL/WO/SPK belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+        
+        } else if (isProductNameDigital(wonum) == 0 
+                && checkAttachedFile(wonum, "BAPLA") == 0
+                && checkAttachedFile(wonum, "BAPL") == 0
+                && (checkAttachedFile(wonum, "WO") == 1
+                || checkAttachedFile(wonum, "SPK") == 1
+                || checkAttachedFile(wonum, "KL") == 1)
+                ){
+            value = "File BAST/BAPL/BAPLA belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+        } else {
+            value = "The Filename and Product name are correct, Update Status COMPWA Successfully";
+        }
+        
         return value;
     }
 
@@ -737,4 +790,3 @@ public class TestUpdateStatusEbisDao {
         }
     }
 }
-

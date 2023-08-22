@@ -123,7 +123,8 @@ public class GenerateIPReservationDao {
         }
         LogUtil.info(this.getClass().getName(), "INI REQUEST : " + soapRequest);
 
-        String urlres = "http://10.6.28.132:7001/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
+//        String urlres = "http://10.6.28.132:7001/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
+        String urlres = "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
         String message = "";
         try {
             URL url = new URL(urlres);

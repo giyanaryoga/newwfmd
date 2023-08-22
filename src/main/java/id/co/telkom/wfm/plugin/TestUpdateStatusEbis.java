@@ -25,11 +25,12 @@ import org.joget.plugin.base.PluginWebSupport;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 /**
  *
  * @author User
  */
-public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
+public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
 
     String pluginName = "Telkom New WFM - Test Update Task Status Ebis - Web Service";
 
@@ -144,6 +145,10 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                             String checkActPlace = updateTaskStatusEbisDao.checkActPlace(wonum);
                             if (checkActPlace.equals("OUTSIDE")) {
                                 hsr1.setStatus(421);
+                                res.put("code", 200);
+                                res.put("wonum", wonum);
+                                res.put("message", "Please assign task to Laborcode / Amcrew first");
+                                res.writeJSONString(hsr1.getWriter());
                             } else {
                                 updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
 //                                if (updateTask) {
@@ -190,9 +195,13 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                     case "COMPWA":
                         boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
                         LogUtil.info(pluginName, "test: " + isMandatoryValue);
-//                        Integer isRequired = updateTaskStatusEbisDao.isRequired(wonum);
-                        if (isMandatoryValue == true) {
-                            hsr1.setStatus(422);
+                        Integer isRequired = updateTaskStatusEbisDao.isRequired(wonum);
+                        if (isMandatoryValue && isRequired != 1) {
+//                            hsr1.setStatus(422);
+                            res.put("code", 422);
+                            res.put("wonum", wonum);
+                            res.put("message", "Please insert Task Attribute in Mandatory");
+                            res.writeJSONString(hsr1.getWriter());
                         } else {
                             switch (description) {
                                 case "Registration Suplychain":
@@ -248,14 +257,15 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                                     try {
 
                                     isWoDocValue = updateTaskStatusEbisDao.checkWoDoc(parent);
-                                    if (isWoDocValue.equalsIgnoreCase("The Filename and Product name are correct")) {
+                                    if (isWoDocValue.equalsIgnoreCase("The Filename and Product name are correct, Update Status COMPWA Successfully")) {
                                         HttpServletResponse response = hsr1;
                                         response.setStatus(200);
                                         res.put("code", 200);
                                         res.put("message", isWoDocValue);
                                         res.writeJSONString(response.getWriter());
-                                        updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-                                        nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
+                                        
+                                        updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
+                                        updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
                                         taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
                                     } else {
                                         HttpServletResponse response = hsr1;
@@ -288,9 +298,6 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
                                             if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                                                 hsr1.setStatus(200);
                                                 taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-                                                res.put("code", 200);
-                                                res.put("message", "Update Task Status Berhasil");
-                                                res.writeJSONString(hsr1.getWriter());
                                             }
 
                                             // Insert data to table WFMMILESTONE
@@ -348,7 +355,6 @@ public class TestUpdateStatusEbis  extends Element implements PluginWebSupport {
     }
 }
 
-                
 //                if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) {
 //                    //Update status
 //                    if ("STARTWA".equals(body.get("status"))) {
