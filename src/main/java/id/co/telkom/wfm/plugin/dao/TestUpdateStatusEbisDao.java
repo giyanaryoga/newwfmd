@@ -102,41 +102,6 @@ public class TestUpdateStatusEbisDao {
         return assign;
     }
 
-//    public String checkWoDoc(String wonum) throws SQLException {
-////        boolean value = false;
-//        String value = "";
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//
-//        String selectQuery = "SELECT DISTINCT count(wo.c_productname) as data "
-//                + "FROM app_fd_doclinks wodoc "
-//                + "JOIN APP_FD_WORKORDER wo ON wodoc.c_wonum = wo.c_wonum "
-//                + "WHERE wo.c_wonum = ? AND "
-//                + "wo.c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') "
-//                + "AND wodoc.c_documentname IN ('BAA')";
-//
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(selectQuery)) {
-//
-//            ps.setString(1, wonum);
-//            ResultSet rs = ps.executeQuery();
-//
-//            while (rs.next()) {
-//                String data = rs.getString("data");
-////                String productname = rs.getString("c_productname");
-//
-//                LogUtil.info(getClass().getName(), "CHECK WO DOC");
-//
-//                if (Integer.parseInt(data) >= 1) {
-//                    value = "The Filename and Product name are correct";
-//                } else {
-//                    value = "The file name doesn't match, please fix the file name with ('BAA')";
-//                }
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        }
-//        return value;
-//    }
     public int checkAttachedFile(String wonum, String documentName) throws SQLException {
         int isAttachedFile = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -163,20 +128,23 @@ public class TestUpdateStatusEbisDao {
         }
         return isAttachedFile;
     }
- 
+
     public int isProductNameDigital(String wonum) throws SQLException {
         int isProductName = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+
+        String selectProduct = "SELECT c_productname FROM APP_FD_WORKORDER \n"
+                + "WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') \n"
+                + "AND c_wonum = ?";
         
-        String selectProduct = "SELECT c_productname FROM APP_FD_WORKORDER WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') AND c_wonum = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectProduct)) {
             ps.setString(1, wonum);
-            
+
             ResultSet rs = ps.executeQuery();
-            
+
             while (rs.next()) {
-                if(rs.getString("c_productname") != null) {
+                if (rs.getString("c_productname") != null) {
                     return isProductName = 1;
                 } else {
                     return isProductName = 0;
@@ -190,41 +158,38 @@ public class TestUpdateStatusEbisDao {
 
     public String checkWoDoc(String wonum) throws SQLException, JSONException {
         String value = "";
-        
-        if (checkAttachedFile(wonum, "BAA") == 0 && isProductNameDigital(wonum) == 1) {    
+
+        if (checkAttachedFile(wonum, "BAA") == 0 && isProductNameDigital(wonum) == 1) {
             value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). \\nPastikan dokumen telah diupload dengan nama dokumen 'BAA'";
-        
+
         } else if (isProductNameDigital(wonum) == 0 && checkAttachedFile(wonum, "BAST") == 0
                 && checkAttachedFile(wonum, "BAPLA") == 0
                 && checkAttachedFile(wonum, "BAPL") == 0
                 && checkAttachedFile(wonum, "WO") == 0
                 && checkAttachedFile(wonum, "SPK") == 0
-                && checkAttachedFile(wonum, "KL") == 0
-                ) {
+                && checkAttachedFile(wonum, "KL") == 0) {
             value = "File BAST/BAPL/BAPLA dan KL/WO/SPK belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
-        
-        } else if (isProductNameDigital(wonum) == 0 
+
+        } else if (isProductNameDigital(wonum) == 0
                 && (checkAttachedFile(wonum, "BAST") == 1
                 || checkAttachedFile(wonum, "BAPLA") == 1
                 || checkAttachedFile(wonum, "BAPL") == 1)
                 && checkAttachedFile(wonum, "WO") == 0
                 && checkAttachedFile(wonum, "SPK") == 0
-                && checkAttachedFile(wonum, "KL") == 0
-                ){
+                && checkAttachedFile(wonum, "KL") == 0) {
             value = "File KL/WO/SPK belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
-        
-        } else if (isProductNameDigital(wonum) == 0 
+
+        } else if (isProductNameDigital(wonum) == 0
                 && checkAttachedFile(wonum, "BAPLA") == 0
                 && checkAttachedFile(wonum, "BAPL") == 0
                 && (checkAttachedFile(wonum, "WO") == 1
                 || checkAttachedFile(wonum, "SPK") == 1
-                || checkAttachedFile(wonum, "KL") == 1)
-                ){
+                || checkAttachedFile(wonum, "KL") == 1)) {
             value = "File BAST/BAPL/BAPLA belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
         } else {
-            value = "The Filename and Product name are correct, Update Status COMPWA Successfully";
+            value = "Nama File sudah benar, Update status COMPWA berhasil";
         }
-        
+
         return value;
     }
 
@@ -251,29 +216,6 @@ public class TestUpdateStatusEbisDao {
     //===========================
     // Function Update Task
     //===========================
-//    public boolean updateTask(String wonum, String status, String modifiedBy) throws SQLException {
-//        boolean updateTask = false;
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String update = "UPDATE app_fd_workorder SET c_status = ?, modifiedby = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(update)) {
-//            ps.setString(1, status);
-//            ps.setString(2, modifiedBy);
-//            ps.setString(3, wonum);
-//            int exe = ps.executeUpdate();
-//            if (exe > 0) {
-//                LogUtil.info(getClass().getName(), "update task berhasil");
-//                updateTask = true;
-//            } else {
-//                LogUtil.info(getClass().getName(), "update task gagal");
-//            }
-//        } catch (Exception e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//        return updateTask;
-//    }
     public String updateTask(String wonum, String status, String modifiedBy) {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_workorder SET c_status = ?, modifiedby = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
@@ -495,7 +437,7 @@ public class TestUpdateStatusEbisDao {
         return completeJson;
     }
 
-    private JSONArray getListAttribute(String wonum) throws SQLException {
+    public JSONArray getListAttribute(String wonum) throws SQLException {
         JSONArray listAttr = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 //        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
@@ -560,135 +502,6 @@ public class TestUpdateStatusEbisDao {
 
         itemObj.put("ServiceDetails", serviceDetail);
         return itemObj;
-    }
-
-    //===================================
-    // UPDATE DATA IF TASK STATUS "FAILWA
-    //===================================
-    public void updateWorkFail(String wonum, String status, String errorCode, String engineerMemo, String statusDate) throws SQLException {
-        String update = "UPDATE app_fd_workorder SET c_status = ?, c_errorcode = ?, c_engineermemo = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(update)) {
-            int index = 0;
-            ps.setString(1 + index, status);
-            ps.setString(2 + index, errorCode);
-            ps.setString(3 + index, engineerMemo);
-            ps.setString(4 + index, statusDate);
-            ps.setString(5 + index, wonum);
-            int exe = ps.executeUpdate();
-            if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " | Status updated to: " + status + "| Error code: " + errorCode + "| Engineer Memo: " + engineerMemo);
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-    }
-
-    private JSONObject buildTaskAttributeWorkFail(String wonum, String name, String sequence, String correlation, String status) throws SQLException {
-        JSONObject itemObj = new JSONObject();
-        itemObj.put("Sequence", sequence);
-        itemObj.put("Name", name);
-        itemObj.put("Correlation", correlation);
-        itemObj.put("Status", status);
-
-//        JSONObject attrError = new JSONObject();
-//        attrError.put("ErrorCode", errorCode);
-//        attrError.put("EngineerMemo", engineerMemo);
-//        
-//        itemObj.put("Error", attrError);
-        // Wrapper
-        JSONObject attributes = new JSONObject();
-        attributes.put("Attributes", getListAttribute(wonum));
-
-        JSONObject serviceDetail = new JSONObject();
-        serviceDetail.put("ServiceDetail", attributes);
-
-        itemObj.put("ServiceDetails", serviceDetail);
-        return itemObj;
-    }
-
-    //===============================
-    // GET FAILWORK JSON 
-    //===============================
-    public JSONObject getFailWorkJson(String parent) throws SQLException {
-        JSONArray itemArrayObj = new JSONArray();
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status, c_wonum, FROM app_fd_workorder WHERE c_parent = ? AND c_wosequence IN ('10', '20', '30', '40', '50', '60') AND c_wfmdoctype = 'NEW' AND C_STATUS NOT LIKE 'APPR'";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, parent);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                JSONObject itemObj = buildTaskAttributeWorkFail(rs.getString("c_wonum"), rs.getString("c_detailactcode"),
-                        rs.getString("c_wosequence"), rs.getString("c_correlation"),
-                        rs.getString("c_status"));
-                itemArrayObj.add(itemObj);
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        // add the item array
-        JSONObject failWorkJson = buildFailWorkJson(parent, itemArrayObj);
-        //return complete json
-        return failWorkJson;
-    }
-
-    //================================
-    // CREATE FORMAT FAILWORK JSON
-    //================================
-    private JSONObject buildFailWorkJson(String wonum, Object itemArrayObj) throws SQLException {
-        JSONObject milestoneInput = new JSONObject();
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_jmscorrelationid, c_worevisionno, c_status, c_scorderno  FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                //Milestone input
-                milestoneInput.put("JMSCorrelationID", rs.getString("c_jmscorrelationid"));
-                milestoneInput.put("WFMWOId", wonum);
-                milestoneInput.put("WoRevisionNo", rs.getString("c_worevisionno"));
-                milestoneInput.put("WOStatus", rs.getString("c_status"));
-                milestoneInput.put("SCOrderNo", rs.getString("c_scorderno"));
-                milestoneInput.put("item", itemArrayObj);
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-
-        // XML Wrapper Configuration
-        JSONObject attrs = new JSONObject();
-        attrs.put("xmlns:soapenv", "http://schemas.xmlsoap.org/soap/envelope/");
-        attrs.put("xmlns:tel", "http://eaiprdis1/telkom/bie/newoss/integration/ws/milestoneWorkForce");
-        JSONObject header = new JSONObject();
-        header.put("@ns", "soapenv");
-        //Wrapper
-        JSONObject milestoneWorkForce = new JSONObject();
-        milestoneWorkForce.put("MilestoneInput", milestoneInput);
-        milestoneWorkForce.put("@ns", "tel");
-        //
-        JSONObject body = new JSONObject();
-        body.put("milestoneWorkForce", milestoneWorkForce);
-        body.put("@ns", "soapenv");
-        //
-        JSONObject envelope = new JSONObject();
-        envelope.put("Header", header);
-        envelope.put("Body", body);
-        envelope.put("@ns", "soapenv");
-        envelope.put("attrs", attrs);
-        //
-        JSONObject completeJson = new JSONObject();
-        completeJson.put("Envelope", envelope);
-        //End of wrapper
-        return completeJson;
     }
 
     //====================================

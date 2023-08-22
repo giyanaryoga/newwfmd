@@ -130,10 +130,9 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 currentDate = time.getCurrentTime();
 
                 int nextTaskId = Integer.parseInt(taskId) + 10;
-                String updateTask = "";
-//                boolean updateTask = false;
+                
                 boolean nextAssign = false;
-//                boolean isWoDocValue = false;
+                String updateTask = "";
                 String isWoDocValue = "";
 
                 final JSONObject res = new JSONObject();
@@ -151,15 +150,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                                 res.writeJSONString(hsr1.getWriter());
                             } else {
                                 updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-//                                if (updateTask) {
-//                                    hsr1.setStatus(200);
-//                                    taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-//                                }
-//                                res.put("code", "200");
-//                                res.put("status", status);
-//                                res.put("wonum", wonum);
-//                                res.put("message", "Successfully update status");
-//                                res.writeJSONString(hsr1.getWriter());
+
                                 if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                                     hsr1.setStatus(200);
                                     taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
@@ -172,15 +163,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                             }
                         } else {
                             updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-//                            if (updateTask) {
-//                                hsr1.setStatus(200);
-//                                taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-//                            }
-//                            res.put("code", "200");
-//                            res.put("status", status);
-//                            res.put("wonum", wonum);
-//                            res.put("message", "Successfully update status");
-//                            res.writeJSONString(hsr1.getWriter());
+
                             if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                                 hsr1.setStatus(200);
                                 taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
@@ -215,10 +198,6 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                                     hsr1.setStatus(255);
                                     updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
                                     nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
-//                                    if (nextAssign && updateTask) {
-//                                        hsr1.setStatus(200);
-//                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-//                                    }
 
                                     if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
                                         hsr1.setStatus(200);
@@ -257,13 +236,13 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                                     try {
 
                                     isWoDocValue = updateTaskStatusEbisDao.checkWoDoc(parent);
-                                    if (isWoDocValue.equalsIgnoreCase("The Filename and Product name are correct, Update Status COMPWA Successfully")) {
+                                    if (isWoDocValue.equalsIgnoreCase("Nama File sudah benar, Update status COMPWA berhasil")) {
                                         HttpServletResponse response = hsr1;
                                         response.setStatus(200);
                                         res.put("code", 200);
                                         res.put("message", isWoDocValue);
                                         res.writeJSONString(response.getWriter());
-                                        
+
                                         updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
                                         updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
                                         taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
@@ -291,10 +270,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
 
                                             // update task status
                                             updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-//                                            if (updateTask) {
-//                                                hsr1.setStatus(200);
-//                                                taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-//                                            }
+
                                             if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                                                 hsr1.setStatus(200);
                                                 taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
@@ -308,7 +284,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                                             dataRes.put("wonum", parent);
                                             dataRes.put("milestone", woStatus);
 
-                                            res.put("code", "200");
+                                            res.put("code", 200);
                                             res.put("message", "Berhasil mengupdate status, Mengirim Status COMPLETE ke OSM");
                                             res.put("data", dataRes);
                                             res.writeJSONString(hsr1.getWriter());
@@ -327,12 +303,16 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                                         }
                                     } else {
                                         //Give LABASSIGN to next task
+                                        updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
                                         nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
-                                        if (nextAssign) {
+
+                                        if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
                                             hsr1.setStatus(200);
+                                            taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
+                                            res.put("code", 200);
+                                            res.put("message", "Update task status berhasil");
+                                            res.writeJSONString(hsr1.getWriter());
                                         }
-                                        updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId), modifiedBy);
-                                        updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
                                     }
                                     break;
                             }
@@ -354,96 +334,3 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
         }
     }
 }
-
-//                if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) {
-//                    //Update status
-//                    if ("STARTWA".equals(body.get("status"))) {
-//                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
-//                        if (updateTask) {
-//                            hsr1.setStatus(200);
-//                        }
-//                        JSONObject res = new JSONObject();
-//                        res.put("code", "200");
-//                        res.put("status", status);
-//                        res.put("wonum", wonum);
-//                        res.put("message", "Successfully update status");
-//                        res.writeJSONString(hsr1.getWriter());
-//                    } else if ("COMPWA".equals(body.get("status"))) {
-//                        boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
-//                        if (isMandatoryValue == true) {
-//                            // update task status
-//                            updateTaskStatusEbisDao.updateTask(wonum, status);
-//
-//                            if (description.equals("Registration Suplychain") || description.equals("Replace NTE") || description.equals("Registration Suplychain Wifi")) {
-//                                // Start of Set Install/Set Dismantle
-//                                ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
-//                                scmtIntegrationEbisDao.sendInstall(parent);
-//
-//                                JSONObject res = new JSONObject();
-//                                res.put("code", "255");
-//                                res.put("message", "Success");
-//                                res.writeJSONString(hsr1.getWriter());
-//                                hsr1.setStatus(255);
-//                                final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
-//                                if (nextAssign) {
-//                                    hsr1.setStatus(200);
-//
-//                                }
-//    //                            updateTaskStatusEbisDao.updateTask(wonum, status);
-//                            } else {
-//                                // Define the next move
-//                                final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
-//
-//                                if ("COMPLETE".equals(nextMove)) {
-//                                    try {
-//                                        // Update parent status
-//                                        updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate);
-//                                        LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
-//
-//                                        // update task status
-//                                        final boolean updateTask = updateTaskStatusEbisDao.updateTask(wonum, status);
-//                                        if (updateTask) {
-//                                            hsr1.setStatus(200);
-//                                        }
-//
-//                                        // Insert data to table WFMMILESTONE
-//                                        updateTaskStatusEbisDao.insertToWfmMilestone(parent, siteId, currentDate);
-//
-//                                        //Create response
-//                                        JSONObject dataRes = new JSONObject();
-//                                        dataRes.put("wonum", parent);
-//                                        dataRes.put("milestone", woStatus);
-//                                        JSONObject res = new JSONObject();
-//                                        res.put("code", "200");
-//                                        res.put("message", "Success");
-//                                        res.put("data", dataRes);
-//                                        res.writeJSONString(hsr1.getWriter());
-//
-//                                        //Build Response
-//                                        JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
-//
-//                                        // Response to Kafka
-//                                        String topic = "WFM_MILESTONE_ENTERPRISE_" + siteId.replaceAll("\\s+", "");
-//                                        String kafkaRes = data.toJSONString();
-//                                        KafkaProducerTool kaf = new KafkaProducerTool();
-//                                        kaf.generateMessage(kafkaRes, topic, "");
-//                                        hsr1.setStatus(256);
-//                                    } catch (IOException | SQLException e) {
-//                                        LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-//                                    }
-//                                } else {
-//                                    //Give LABASSIGN to next task
-//                                    final boolean nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId));
-//                                    if (nextAssign) {
-//                                        hsr1.setStatus(200);
-//    //                                    updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
-//                                    }
-//                                    updateTaskStatusEbisDao.updateWoDesc(parent, Integer.toString(nextTaskId));
-//                                    updateTaskStatusEbisDao.updateTask(wonum, status);
-//                                }
-//                            }
-//                        } else {
-//                            hsr1.setStatus(422);
-//                        }
-//                    }
-//                }
