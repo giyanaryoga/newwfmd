@@ -4,17 +4,18 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
-import java.sql.SQLException;
+//import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
+import id.co.telkom.wfm.plugin.controller.validateRevised;
+//import java.sql.SQLException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-import org.joget.commons.util.UuidGenerator;
+//import org.joget.commons.util.UuidGenerator;
 import org.joget.plugin.base.DefaultApplicationPlugin;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
+//import org.json.simple.JSONObject;
+//import org.json.simple.JSONArray;
 
 /**
  *
@@ -25,7 +26,8 @@ public class RevisedTask extends DefaultApplicationPlugin {
     
     @Override
     public Object execute(Map map) {
-        RevisedTaskDao dao = new RevisedTaskDao();
+//        RevisedTaskDao dao = new RevisedTaskDao();
+        validateRevised logicValidate = new validateRevised();
         
         String parent = getPropertyString("parent");
         String task = getPropertyString("task");
@@ -40,9 +42,8 @@ public class RevisedTask extends DefaultApplicationPlugin {
         LogUtil.info(this.getClassName(), "TASK: "+ task);
         LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: "+ attrName);
         LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: "+ attrValue);
-//        int nextTaskId = taskId + 10;
 
-        dao.validateRevised(parent, wonum, attrName, attrValue, task);
+        logicValidate.validate(parent, wonum, attrName, attrValue, task);
         
         return null;
     }
