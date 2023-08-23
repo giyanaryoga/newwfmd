@@ -10,6 +10,8 @@ import id.co.telkom.wfm.plugin.dao.TestUpdateStatusEbisDao;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
+import id.co.telkom.wfm.plugin.controller.validateTaskStatus;
+import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -98,231 +100,80 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 JSONObject envelope2 = (JSONObject) envelope.get("MXTELKOWOSet");
                 JSONObject body = (JSONObject) envelope2.get("WORKORDER");
 
-                TestUpdateStatusEbisDao updateTaskStatusEbisDao = new TestUpdateStatusEbisDao();
-                ScmtIntegrationEbisDao scmtIntegrationEbisDao = new ScmtIntegrationEbisDao();
-                TaskHistoryDao taskHistoryDao = new TaskHistoryDao();
-
+                validateTaskStatus validateTask = new validateTaskStatus();
+                UpdateStatusParam param = new UpdateStatusParam();
+                final JSONObject res = new JSONObject();
+                
                 //Store param
-                String status;
-                String wonum;
-                String parent;
-                String taskId;
-                String siteId;
-                String woSequence;
-                String woStatus;
-                String description;
+                String status = (body.get("status") == null ? "" : body.get("status").toString());
+                String wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
+                String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
+                String taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
+                String siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
+                String woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
+                String woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
+                String description = (body.get("description") == null ? "" : body.get("description").toString());
                 String errorCode;
                 String engineerMemo;
-                String memo;
-                String modifiedBy;
-                String currentDate;
-
-                status = (body.get("status") == null ? "" : body.get("status").toString());
-                wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
-                parent = (body.get("parent") == null ? "" : body.get("parent").toString());
-                taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
-                siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
-                woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
-                woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
-                description = (body.get("description") == null ? "" : body.get("description").toString());
-                memo = (body.get("memo") == null ? "" : body.get("memo").toString());
-                modifiedBy = (body.get("modifiedBy") == null ? "" : body.get("modifiedBy").toString());
-                currentDate = time.getCurrentTime();
-
-                int nextTaskId = Integer.parseInt(taskId) + 10;
+                String memo = (body.get("memo") == null ? "" : body.get("memo").toString());
+                String modifiedBy = (body.get("modifiedBy") == null ? "" : body.get("modifiedBy").toString());
+                String currentDate = time.getCurrentTime();
                 
-                boolean nextAssign = false;
-                String updateTask = "";
-                String isWoDocValue = "";
-
-                final JSONObject res = new JSONObject();
-
-                switch (body.get("status").toString()) {
+                param.setParent(parent);
+                param.setWonum(wonum);
+                param.setDescription(description);
+                param.setSiteId(siteId);
+                param.setStatus(status);
+                param.setTaskId(taskId);
+                param.setWoStatus(woStatus);
+                param.setMemo(memo);
+                param.setCurrentDate(currentDate);
+                boolean validate = false;
+                
+                switch (status) {
                     case "STARTWA":
-                        boolean isAssigned = updateTaskStatusEbisDao.checkAssignment(wonum);
-                        if (!isAssigned) {
-                            String checkActPlace = updateTaskStatusEbisDao.checkActPlace(wonum);
-                            if (checkActPlace.equals("OUTSIDE")) {
-                                hsr1.setStatus(421);
-                                res.put("code", 200);
-                                res.put("wonum", wonum);
-                                res.put("message", "Please assign task to Laborcode / Amcrew first");
-                                res.writeJSONString(hsr1.getWriter());
-                            } else {
-                                updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-
-                                if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                                    hsr1.setStatus(200);
-                                    taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-                                    res.put("code", 200);
-                                    res.put("status", status);
-                                    res.put("wonum", wonum);
-                                    res.put("message", "Successfully update status");
-                                    res.writeJSONString(hsr1.getWriter());
-                                }
-                            }
+                        validate = validateTask.startTask(param);
+                        if (validate) {
+                            hsr1.setStatus(200);
+                            res.put("code", 200);
+                            res.put("status", param.getStatus());
+                            res.put("wonum", param.getWonum());
+                            res.put("message", "Successfully update status");
+                            res.writeJSONString(hsr1.getWriter());
                         } else {
-                            updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-
-                            if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                                hsr1.setStatus(200);
-                                taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-                                res.put("code", 200);
-                                res.put("status", status);
-                                res.put("wonum", wonum);
-                                res.put("message", "Successfully update status");
-                                res.writeJSONString(hsr1.getWriter());
-                            }
+                            hsr1.setStatus(422);
+                            res.put("code", 422);
+                            res.put("wonum", param.getWonum());
+                            res.put("message", "Please assign task to Laborcode / Amcrew first");
+                            res.writeJSONString(hsr1.getWriter());
                         }
                         break;
                     case "COMPWA":
-                        boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
-                        LogUtil.info(pluginName, "test: " + isMandatoryValue);
-                        Integer isRequired = updateTaskStatusEbisDao.isRequired(wonum);
-                        if (isMandatoryValue && isRequired != 1) {
-//                            hsr1.setStatus(422);
-                            res.put("code", 422);
-                            res.put("wonum", wonum);
-                            res.put("message", "Please insert Task Attribute in Mandatory");
+                        validate = validateTask.compwaTask(param);
+                        JSONObject response = validateTask.validateTask(param);
+                        if (validate) {
+                            hsr1.setStatus(200);
+                            res.put("code", response.get("code"));
+                            res.put("wonum", param.getWonum());
+                            res.put("message", response.get("message").toString());
                             res.writeJSONString(hsr1.getWriter());
                         } else {
-                            switch (description) {
-                                case "Registration Suplychain":
-                                case "Registration Suplychain Wifi":
-                                    // Start of Set Install
-                                    scmtIntegrationEbisDao.sendInstall(parent);
-
-                                    res.put("code", "255");
-                                    res.put("message", "Success");
-                                    res.writeJSONString(hsr1.getWriter());
-                                    hsr1.setStatus(255);
-                                    updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-                                    nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
-
-                                    if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                                        hsr1.setStatus(200);
-                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-                                        res.put("code", 200);
-                                        res.put("message", "Mengirim set Install Wifi");
-                                        res.writeJSONString(hsr1.getWriter());
-                                    }
-                                    break;
-                                case "Dismantle NTE":
-                                case "Dismantle AP":
-                                case "Dismantle AP MESH":
-                                    // Start of Set Install
-                                    scmtIntegrationEbisDao.sendDismantle(parent);
-
-                                    res.put("code", "255");
-                                    res.put("message", "Success");
-                                    res.writeJSONString(hsr1.getWriter());
-                                    hsr1.setStatus(255);
-                                    updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-                                    nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
-//                                    if (nextAssign && updateTask) {
-//                                        hsr1.setStatus(200);
-//                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-//                                    }
-                                    if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                                        hsr1.setStatus(200);
-                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-                                        res.put("code", 200);
-                                        res.put("message", "Mengirim set Install Dismantle");
-                                        res.writeJSONString(hsr1.getWriter());
-                                    }
-                                    break;
-                                case "Upload Berita Acara":
-                                    // check documentname
-                                    try {
-
-                                    isWoDocValue = updateTaskStatusEbisDao.checkWoDoc(parent);
-                                    if (isWoDocValue.equalsIgnoreCase("Nama File sudah benar, Update status COMPWA berhasil")) {
-                                        HttpServletResponse response = hsr1;
-                                        response.setStatus(200);
-                                        res.put("code", 200);
-                                        res.put("message", isWoDocValue);
-                                        res.writeJSONString(response.getWriter());
-
-                                        updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-                                        updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
-                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-                                    } else {
-                                        HttpServletResponse response = hsr1;
-                                        response.setStatus(200);
-                                        res.put("code", 200);
-                                        res.put("message", isWoDocValue);
-                                        res.writeJSONString(response.getWriter());
-                                        LogUtil.info(this.getClassName(), "RESULT : " + isWoDocValue);
-                                        LogUtil.info(this.getClassName(), "RESPONSE : " + res);
-                                    }
-                                } catch (Exception e) {
-                                }
-                                break;
-                                default:
-                                    // Define the next move
-                                    final String nextMove = updateTaskStatusEbisDao.nextMove(parent, Integer.toString(nextTaskId));
-
-                                    if ("COMPLETE".equals(nextMove)) {
-                                        try {
-                                            // Update parent status
-                                            updateTaskStatusEbisDao.updateParentStatus(parent, "COMPLETE", currentDate, modifiedBy);
-                                            LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
-
-                                            // update task status
-                                            updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-
-                                            if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                                                hsr1.setStatus(200);
-                                                taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-                                            }
-
-                                            // Insert data to table WFMMILESTONE
-                                            updateTaskStatusEbisDao.insertToWfmMilestone(wonum, siteId, currentDate);
-
-                                            //Create response
-                                            JSONObject dataRes = new JSONObject();
-                                            dataRes.put("wonum", parent);
-                                            dataRes.put("milestone", woStatus);
-
-                                            res.put("code", 200);
-                                            res.put("message", "Berhasil mengupdate status, Mengirim Status COMPLETE ke OSM");
-                                            res.put("data", dataRes);
-                                            res.writeJSONString(hsr1.getWriter());
-
-                                            //Build Response
-                                            JSONObject data = updateTaskStatusEbisDao.getCompleteJson(parent);
-
-                                            // Response to Kafka
-                                            String topic = "WFM_MILESTONE_ENTERPRISE_" + siteId.replaceAll("\\s+", "");
-                                            String kafkaRes = data.toJSONString();
-                                            KafkaProducerTool kaf = new KafkaProducerTool();
-                                            kaf.generateMessage(kafkaRes, topic, "");
-                                            hsr1.setStatus(256);
-                                        } catch (IOException | SQLException e) {
-                                            LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-                                        }
-                                    } else {
-                                        //Give LABASSIGN to next task
-                                        updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
-                                        nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
-
-                                        if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                                            hsr1.setStatus(200);
-                                            taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
-                                            res.put("code", 200);
-                                            res.put("message", "Update task status berhasil");
-                                            res.writeJSONString(hsr1.getWriter());
-                                        }
-                                    }
-                                    break;
-                            }
+                            hsr1.setStatus(422);
+                            res.put("code", 422);
+                            res.put("wonum", param.getWonum());
+                            res.put("message", "Please insert Task Attribute in Mandatory");
+                            res.writeJSONString(hsr1.getWriter());
                         }
                         break;
                     default:
-                        hsr1.setStatus(420);
+                        hsr1.setStatus(422);
+                        res.put("code", 422);
+                        res.put("wonum", param.getWonum());
+                        res.put("message", "Status Task is not found");
+                        res.writeJSONString(hsr1.getWriter());
                         break;
                 }
-            } catch (ParseException | SQLException e) {
+            } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
         } else if (!"POST".equals(hsr.getMethod())) {

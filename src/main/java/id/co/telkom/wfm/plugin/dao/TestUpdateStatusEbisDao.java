@@ -119,8 +119,10 @@ public class TestUpdateStatusEbisDao {
             while (rs.next()) {
                 if (rs.getString("c_documentname") != null) {
                     isAttachedFile = 1;
+                    LogUtil.info(getClass().getName(), "isAttachedFile = " + isAttachedFile);
                 } else {
                     isAttachedFile = 0;
+                    LogUtil.info(getClass().getName(), "isAttachedFile = " + isAttachedFile);
                 }
             }
         } catch (SQLException e) {
@@ -145,9 +147,11 @@ public class TestUpdateStatusEbisDao {
 
             while (rs.next()) {
                 if (rs.getString("c_productname") != null) {
-                    return isProductName = 1;
+                    LogUtil.info(getClass().getName(), "isProductName = " + isProductName);
+                    isProductName = 1;
                 } else {
-                    return isProductName = 0;
+                    isProductName = 0;
+                    LogUtil.info(getClass().getName(), "isProductName = " + isProductName);
                 }
             }
         } catch (SQLException e) {
