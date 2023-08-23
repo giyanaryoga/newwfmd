@@ -12,13 +12,39 @@ import org.json.simple.JSONObject;
  * @author ASUS
  */
 public class ResponseAPI {
-    public JSONObject response(int statusCode, String status, String message, String data) {
-        JSONObject jsonResponse = new JSONObject();
-        jsonResponse.put("code", statusCode);
-        jsonResponse.put("status", status);
-        jsonResponse.put("message", message);
-        jsonResponse.put("data", data);
-        
-        return jsonResponse;
+    public JSONObject getUpdateStatusSuccessResp(String wonum, String status, String message) {
+        //Create response
+        JSONObject data = new JSONObject();
+        data.put("wonum", wonum);
+        data.put("status", status);
+        JSONObject res = new JSONObject(); 
+        res.put("code", 200);
+        res.put("message", message);
+        res.put("data", data);
+        return res;
+    }
+    
+    public JSONObject getAmcrewResp(String wonum, String status, String message) {
+        //Create response
+        JSONObject data = new JSONObject();
+        data.put("wonum", wonum);
+        data.put("status", status);
+        JSONObject res = new JSONObject(); 
+        res.put("code", 422);
+        res.put("message", message);
+        res.put("data", data);
+        return res;
+    }
+    
+    public JSONObject getUpdateStatusErrorResp(String wonum, String status, String message, int errorCode) {
+        //Create response
+        JSONObject data = new JSONObject();
+        data.put("wonum", wonum);
+        data.put("status", status);
+        JSONObject res = new JSONObject(); 
+        res.put("code", errorCode);
+        res.put("message", message);
+        res.put("data", data);
+        return res;
     }
 }

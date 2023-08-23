@@ -12,6 +12,7 @@ import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import id.co.telkom.wfm.plugin.controller.validateTaskStatus;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
+import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -102,8 +103,10 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
 
                 validateTaskStatus validateTask = new validateTaskStatus();
                 UpdateStatusParam param = new UpdateStatusParam();
-                final JSONObject res = new JSONObject();
-                
+                ResponseAPI responseTemplete = new ResponseAPI();
+
+                JSONObject res = new JSONObject();
+
                 //Store param
                 String status = (body.get("status") == null ? "" : body.get("status").toString());
                 String wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
@@ -118,7 +121,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 String memo = (body.get("memo") == null ? "" : body.get("memo").toString());
                 String modifiedBy = (body.get("modifiedBy") == null ? "" : body.get("modifiedBy").toString());
                 String currentDate = time.getCurrentTime();
-                
+
                 param.setParent(parent);
                 param.setWonum(wonum);
                 param.setDescription(description);
@@ -127,24 +130,21 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 param.setTaskId(taskId);
                 param.setWoStatus(woStatus);
                 param.setMemo(memo);
+                param.setModifiedBy(modifiedBy);
                 param.setCurrentDate(currentDate);
                 boolean validate = false;
-                
+                String message = "";
+
                 switch (status) {
                     case "STARTWA":
                         validate = validateTask.startTask(param);
                         if (validate) {
-                            hsr1.setStatus(200);
-                            res.put("code", 200);
-                            res.put("status", param.getStatus());
-                            res.put("wonum", param.getWonum());
-                            res.put("message", "Successfully update status");
+                            message = "Successfully update status";
+                            res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), message);
                             res.writeJSONString(hsr1.getWriter());
                         } else {
-                            hsr1.setStatus(422);
-                            res.put("code", 422);
-                            res.put("wonum", param.getWonum());
-                            res.put("message", "Please assign task to Laborcode / Amcrew first");
+                            message = "Please assign task to Laborcode / Amcrew first";
+                            res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
                             res.writeJSONString(hsr1.getWriter());
                         }
                         break;
@@ -152,24 +152,17 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                         validate = validateTask.compwaTask(param);
                         JSONObject response = validateTask.validateTask(param);
                         if (validate) {
-                            hsr1.setStatus(200);
-                            res.put("code", response.get("code"));
-                            res.put("wonum", param.getWonum());
-                            res.put("message", response.get("message").toString());
+                            res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());
                             res.writeJSONString(hsr1.getWriter());
                         } else {
-                            hsr1.setStatus(422);
-                            res.put("code", 422);
-                            res.put("wonum", param.getWonum());
-                            res.put("message", "Please insert Task Attribute in Mandatory");
+                            message = "Please insert Task Attribute in Mandatory";
+                            res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
                             res.writeJSONString(hsr1.getWriter());
                         }
                         break;
                     default:
-                        hsr1.setStatus(422);
-                        res.put("code", 422);
-                        res.put("wonum", param.getWonum());
-                        res.put("message", "Status Task is not found");
+                        message = "Status Task is not found";
+                        res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
                         res.writeJSONString(hsr1.getWriter());
                         break;
                 }
