@@ -465,12 +465,6 @@ public class TestUpdateStatusEbisDao {
         } finally {
             ds.getConnection().close();
         }
-//        JSONObject attributeObj = new JSONObject();
-//        if (listAttr.isEmpty()) {
-//            attributeObj.put("Attribute", "");
-//        } else {
-//            attributeObj.put("Attribute", listAttr);
-//        }
         return listAttr;
     }
 
