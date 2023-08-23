@@ -5,7 +5,7 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
-import id.co.telkom.wfm.plugin.dao.UpdateStatusMyStaffDao;
+import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
@@ -70,7 +70,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         TimeUtil time = new TimeUtil();
         //@@Start..
-        UpdateStatusMyStaffDao dao = new UpdateStatusMyStaffDao();
+        UpdateTaskStatusEbisDao dao = new UpdateTaskStatusEbisDao();
         boolean isAuthSuccess = dao.getApiAttribute(hsr.getHeader("api_id"), hsr.getHeader("api_key"));
         boolean methodStatus = false;
         LogUtil.info(getClass().getName(), "Start Process: Update Task Status MyStaff");
@@ -122,6 +122,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                 String engineermemo = (body.get("engineermemo") == null ? "" : body.get("engineermemo").toString());
                 String urlevidence = (body.get("urlevidence") == null ? "" : body.get("urlevidence").toString());
                 String currentDate = time.getCurrentTime();
+                String modifiedBy = "MyStaff";
                 
                 JSONObject getTaskUpdate = dao.getTask(wonum);
                 taskObj.put("taskid", (int) getTaskUpdate.get("taskid"));
@@ -144,7 +145,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                     //Update status
 //                    UpdateTaskStatusEbisDao updateTaskStatusEbisDao = new UpdateTaskStatusEbisDao();
                     if ("STARTWA".equals(body.get("status"))) {
-                        final boolean updateTask = dao.updateTask(wonum, status);
+                        final boolean updateTask = dao.updateTask(wonum, status, modifiedBy);
                         if (updateTask) {
                             hsr1.setStatus(200);
                         }
@@ -156,7 +157,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                         res.writeJSONString(hsr1.getWriter());
                     } else if ("COMPWA".equals(body.get("status"))) {
                         // update task status
-                        dao.updateTask(wonum, status);
+                        dao.updateTask(wonum, status, modifiedBy);
                         
                         if (description.equals("Registration Suplychain") || description.equals("Replace NTE") || description.equals("Registration Suplychain Wifi")) {
                             // Start of Set Install/Set Dismantle
@@ -168,7 +169,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                             res.put("message", "Success");
                             res.writeJSONString(hsr1.getWriter());
                             hsr1.setStatus(255);
-                            final boolean nextAssign = dao.nextAssign(parent, Integer.toString(nextTaskId));
+                            final boolean nextAssign = dao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
                             if (nextAssign) {
                                 hsr1.setStatus(200);
                             }
@@ -180,11 +181,11 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                             if ("COMPLETE".equals(nextMove)) {
                                 try {
                                     // Update parent status
-                                    dao.updateParentStatus(parent, "COMPLETE", currentDate);
+                                    dao.updateParentStatus(parent, "COMPLETE", currentDate, modifiedBy);
                                     LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
                                     // update task status
-                                    final boolean updateTask = dao.updateTask(wonum, status);
+                                    final boolean updateTask = dao.updateTask(wonum, status, modifiedBy);
                                     if (updateTask) {
                                         hsr1.setStatus(200);
                                     }
@@ -216,12 +217,12 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                                 }
                             } else {
                                 //Give LABASSIGN to next task
-                                final boolean nextAssign = dao.nextAssign(parent, Integer.toString(nextTaskId));
+                                final boolean nextAssign = dao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
                                 if (nextAssign) {
                                     hsr1.setStatus(200);
                                 }
-                                dao.updateWoDesc(parent, Integer.toString(nextTaskId));
-                                dao.updateTask(wonum, status);
+                                dao.updateWoDesc(parent, Integer.toString(nextTaskId), modifiedBy);
+                                dao.updateTask(wonum, status, modifiedBy);
                             }
                         }
                     }
