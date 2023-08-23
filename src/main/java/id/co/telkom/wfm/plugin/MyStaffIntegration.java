@@ -111,14 +111,14 @@ public class MyStaffIntegration extends Element implements PluginWebSupport {
                 } else if (task.equalsIgnoreCase("updateTaskAttributes")) {
                     Object request = (Object)body.get("workorderspec");
                     JSONArray request_wospec = new JSONArray();
+                    JSONArray data = new JSONArray();
                     boolean updateAttr = false;
+                    
                     if (request instanceof JSONObject){
                         request_wospec.add(request);
                     } else if (request instanceof JSONArray) {
                         request_wospec = (JSONArray) request;
                     }
-
-                    JSONArray data = new JSONArray();
                     
                     for (Object obj : request_wospec) {
                         JSONObject attrObj = (JSONObject)obj;
