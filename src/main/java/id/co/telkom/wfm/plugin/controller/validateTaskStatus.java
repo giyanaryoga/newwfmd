@@ -76,7 +76,7 @@ public class validateTaskStatus {
             boolean isMandatoryValue = daoTestUpdate.checkMandatory(param.getWonum());
             LogUtil.info(getClass().getName(), "test: " + isMandatoryValue);
             Integer isRequired = daoTestUpdate.isRequired(param.getWonum());
-            compwa = !(isMandatoryValue && isRequired != 1);//               validateTask(param);
+            compwa = !(isMandatoryValue && isRequired != 1);
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -189,7 +189,7 @@ public class validateTaskStatus {
                             response.put("code", 200);
                             response.put("message", "Update Status compwa is success");
 //                            response = "Update Status compwa is success";
-                            LogUtil.info(getClass().getName(), "RESPONSE : " + res);
+//                            LogUtil.info(getClass().getName(), "RESPONSE : " + res);
                         }
                         daoTestUpdate.updateWoDesc(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
                         daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
