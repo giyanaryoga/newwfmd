@@ -253,7 +253,84 @@ public class GenerateWonumEbisDao {
         }
         return insertStatus;
     }
-       
+
+     public boolean insertToWoTable2(JSONObject param){
+        boolean insertStatus = false;    
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        
+        String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, "
+                + "c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, c_tk_custom_header_01, c_estdur, c_latitude, c_longitude, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        //c_schedstart1 dan c_statusdate1 TEMPORARY masih, angka 1 dihilangkan jika sudah di hapus column di table
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(insert);
+                try {
+                    ps.setString(1, UuidGenerator.getInstance().getUuid());
+                    ps.setString(2, param.get("wonum").toString());
+                    ps.setString(3, param.get("crmOrderType").toString());
+                    ps.setString(4, param.get("custName").toString());
+                    ps.setString(5, param.get("custAddress").toString());
+                    ps.setString(6, param.get("description").toString());
+                    ps.setString(7, param.get("prodName").toString());
+                    ps.setString(8, param.get("prodType").toString());
+                    ps.setString(9, param.get("scOrderNo").toString());
+                    ps.setString(10, param.get("workZone").toString());
+                    ps.setString(11, param.get("siteId").toString());
+                    ps.setString(12, param.get("workType").toString());
+                    ps.setTimestamp(13, (param.get("schedStart").toString() == "" ? getTimeStamp() : Timestamp.valueOf(param.get("schedStart").toString())));
+                    ps.setString(14, param.get("reportBy").toString());
+                    ps.setString(15, param.get("woClass").toString());
+                    ps.setString(16, param.get("woRevisionNo").toString());
+                    ps.setString(17, param.get("jmsCorrelationId").toString());
+                    ps.setString(18, param.get("status").toString());
+                    ps.setString(19, param.get("serviceNum").toString());
+                    ps.setString(20, param.get("tkWo4").toString());
+                    ps.setString(21, param.get("ownerGroup").toString());
+                    ps.setTimestamp(22, Timestamp.valueOf(param.get("statusDate").toString()));
+                    ps.setString(23, param.get("tkCustomHeader01").toString());
+                    ps.setInt(24, (int) param.get("duration"));
+                    ps.setString(25, param.get("latitude").toString());
+                    ps.setString(26, param.get("longitude").toString());
+                    ps.setTimestamp(27, getTimeStamp());
+                    
+                    int exe = ps.executeUpdate();
+                    //Checking insert status
+                    if (exe > 0) {
+                        insertStatus = true;
+                        LogUtil.info(getClass().getName(), "Work Order param for '" + param.get("wonum").toString() + "' inserted to DB");
+                    }
+                    if (ps != null)
+                        ps.close();
+                } catch (SQLException throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (SQLException throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (SQLException throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (SQLException throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+        return insertStatus;
+    } 
+    
     public boolean insertToOssItem(String wonum, JSONObject taskObj){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;

@@ -26,6 +26,7 @@ import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 //import org.json.simple.JSONArray;
 
@@ -135,7 +136,7 @@ public class TaskActivityDao {
         }
         return ownerGroup;
     }
-    
+
     public String getOwnerGroupPerson(String personGroup) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -181,6 +182,30 @@ public class TaskActivityDao {
         return activityProp;
     }
     
+    public JSONArray getDetailTaskNonCore(String productName, String crmOrderType) throws SQLException {
+        JSONArray taskArray = new JSONArray();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_activity, c_sequence, c_crmordertype FROM app_fd_wfmproducttask WHERE c_productname = ? AND c_crmordertype = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, productName);
+            ps.setString(2, crmOrderType);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("activity", rs.getString("c_activity"));
+                activityProp.put("sequence", rs.getInt("c_sequence"));
+                activityProp.put("crmOrderType", rs.getString("c_crmordertype"));
+                taskArray.add(activityProp);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return taskArray;
+    }
+    
     public String getTaskAttrName(String attrName) throws SQLException {
         String taskAttrName = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -198,9 +223,8 @@ public class TaskActivityDao {
         }
         return taskAttrName;
     }
-
+    
     public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String wonum){
-//        ActivityTask act = new ActivityTask();
 //        String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
         boolean updateCpe = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
@@ -268,7 +292,7 @@ public class TaskActivityDao {
         return updateCpe;
     }
     
-    public void generateActivityTask(String parent, String siteId, String correlationId, JSONObject taskObj, String ownerGroup) throws SQLException {
+    public void generateActivityTask(String parent, String siteId, String correlationId, JSONObject taskObj, String ownerGroup, JSONObject workorder) throws SQLException {
         StringBuilder insert = new StringBuilder();
         insert
                 .append(" INSERT INTO app_fd_workorder ( ")
@@ -289,9 +313,13 @@ public class TaskActivityDao {
                 .append(" c_taskid, ")
                 .append(" c_correlation, ")
                 .append(" c_estdur, ")
+                .append(" c_scorderno, ")
+                .append(" c_jmscorrelationid, ")
                 .append(" c_ownergroup ")
                 .append(" ) ")
                 .append(" VALUES ( ")
+                .append(" ?, ")
+                .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
@@ -331,7 +359,9 @@ public class TaskActivityDao {
             ps.setString(15, taskObj.get("taskid").toString());
             ps.setString(16, correlationId);
             ps.setInt(17, (int) taskObj.get("duration"));
-            ps.setString(18, ownerGroup);
+            ps.setString(18, workorder.get("scOrderNo").toString());
+            ps.setString(19, workorder.get("jmsCorrelationId").toString());
+            ps.setString(20, ownerGroup);
             
             int exe = ps.executeUpdate();
             //Checking insert status
@@ -354,7 +384,6 @@ public class TaskActivityDao {
                 .append(" c_assetattrid, ")
                 .append(" c_description, ")
                 .append(" c_sequence, ")
-                .append(" c_samplevalue, ")
                 .append(" c_domainid, ")
                 .append(" c_readonly, ")
                 .append(" c_isrequired, ") //joinan dari classspecusewith
@@ -369,7 +398,7 @@ public class TaskActivityDao {
                 //TEMPLATE CONFIGURATION
                 .append(" id, dateCreated, createdBy, createdByName,  ")
                 //TASK ATTRIBUTE
-                .append(" c_wonum, c_assetattrid, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, c_samplevalue,")
+                .append(" c_wonum, c_assetattrid, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
                 //PERMISSION
                 .append(" c_readonly, c_isrequired, c_isshared ")
                 .append(" ) ")
@@ -378,7 +407,7 @@ public class TaskActivityDao {
                 //VALUES TEMPLATE CONFIGURATION
                 .append(" ?, ?, 'admin', 'Admin admin', ")
                 //VALUES TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
+                .append(" ?, ?, ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
                 .append(" ?, ?, ? ")
                 .append(" ) ");
@@ -403,10 +432,9 @@ public class TaskActivityDao {
                     psInsert.setString(8, orderId);
                     psInsert.setString(9, rs.getString("c_sequence"));
                     psInsert.setString(10, rs.getString("c_domainid"));
-                    psInsert.setString(11, rs.getString("c_samplevalue"));
-                    psInsert.setString(12, rs.getString("c_readonly"));
-                    psInsert.setString(13, rs.getString("c_isrequired"));
-                    psInsert.setString(14, rs.getString("c_isshared"));
+                    psInsert.setString(11, rs.getString("c_readonly"));
+                    psInsert.setString(12, rs.getString("c_isrequired"));
+                    psInsert.setString(13, rs.getString("c_isshared"));
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();

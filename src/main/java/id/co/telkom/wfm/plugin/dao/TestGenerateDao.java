@@ -179,6 +179,30 @@ public class TestGenerateDao {
         return activityProp;
     }
     
+    public JSONArray getDetailTaskNonCore(String productName, String crmOrderType) throws SQLException {
+        JSONArray taskArray = new JSONArray();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_activity, c_sequence, c_crmordertype FROM app_fd_wfmproducttask WHERE c_productname = ? AND c_crmordertype = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, productName);
+            ps.setString(2, crmOrderType);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("activity", rs.getString("c_activity"));
+                activityProp.put("sequence", rs.getInt("c_sequence"));
+                activityProp.put("crmOrderType", rs.getString("c_crmordertype"));
+                taskArray.add(activityProp);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return taskArray;
+    }
+    
     public String getTaskAttrName(String attrName) throws SQLException {
         String taskAttrName = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -265,7 +289,7 @@ public class TestGenerateDao {
         return updateCpe;
     }
     
-    public void generateActivityTask(String parent, String siteId, String correlationId, JSONObject taskObj, String ownerGroup) throws SQLException {
+    public void generateActivityTask(String parent, String siteId, String correlationId, JSONObject taskObj, String ownerGroup, JSONObject workorder) throws SQLException {
         StringBuilder insert = new StringBuilder();
         insert
                 .append(" INSERT INTO app_fd_workorder ( ")
@@ -286,9 +310,13 @@ public class TestGenerateDao {
                 .append(" c_taskid, ")
                 .append(" c_correlation, ")
                 .append(" c_estdur, ")
+                .append(" c_scorderno, ")
+                .append(" c_jmscorrelationid, ")
                 .append(" c_ownergroup ")
                 .append(" ) ")
                 .append(" VALUES ( ")
+                .append(" ?, ")
+                .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
@@ -328,7 +356,9 @@ public class TestGenerateDao {
             ps.setString(15, taskObj.get("taskid").toString());
             ps.setString(16, correlationId);
             ps.setInt(17, (int) taskObj.get("duration"));
-            ps.setString(18, ownerGroup);
+            ps.setString(18, workorder.get("scOrderNo").toString());
+            ps.setString(19, workorder.get("jmsCorrelationId").toString());
+            ps.setString(20, ownerGroup);
             
             int exe = ps.executeUpdate();
             //Checking insert status

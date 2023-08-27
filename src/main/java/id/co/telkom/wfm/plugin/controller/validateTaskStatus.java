@@ -37,7 +37,6 @@ public class validateTaskStatus {
     TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     TimeUtil time = new TimeUtil();
     final JSONObject res = new JSONObject();
-    HttpServletResponse hsr1;
     
     private Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
@@ -181,15 +180,12 @@ public class validateTaskStatus {
                         completeTask(param);
                         response.put("code", 200);
                         response.put("message", "Berhasil mengupdate status, Mengirim Status COMPLETE ke OSM");
-//                        response = "Berhasil mengupdate status, Mengirim Status COMPLETE ke OSM";
                     } else {
                         //Give LABASSIGN to next task
                         nextAssign = daoTestUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
                         if (nextAssign) {
                             response.put("code", 200);
                             response.put("message", "Update Status compwa is success");
-//                            response = "Update Status compwa is success";
-//                            LogUtil.info(getClass().getName(), "RESPONSE : " + res);
                         }
                         daoTestUpdate.updateWoDesc(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
                         daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
