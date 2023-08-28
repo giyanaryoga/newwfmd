@@ -154,7 +154,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 workorder.put("serviceNum", (body.get("SERVICENUM") == null ? "" : body.get("SERVICENUM").toString()));
                 workorder.put("workZone", (body.get("WORKZONE") == null ? "" : body.get("WORKZONE").toString()));
                 workorder.put("siteId", (body.get("SITEID") == null ? dao.lookupSiteId(workorder.get("workZone").toString()) : body.get("SITEID").toString()));
-                workorder.put("status", (body.get("STATUS").toString() == "WAPPR" ? "STARTWORK" : body.get("STATUS").toString()));
+                workorder.put("status", (body.get("STATUS").toString() != "STARTWORK" ? "STARTWORK" : body.get("STATUS").toString()));
                 workorder.put("tkCustomHeader01", (body.get("TK_CUSTOM_HEADER_01") == null ? "" : body.get("TK_CUSTOM_HEADER_01").toString()));
                 workorder.put("tkWo4", (body.get("TK_WORKORDER_04") == null ? "" : body.get("TK_WORKORDER_04").toString()));
                 workorder.put("woRevisionNo", (body.get("WOREVISIONNO") == null ? "" : body.get("WOREVISIONNO").toString()));
