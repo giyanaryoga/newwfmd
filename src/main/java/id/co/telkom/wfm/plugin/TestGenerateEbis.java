@@ -9,6 +9,7 @@ import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
 import id.co.telkom.wfm.plugin.dao.TestGenerateDao;
+import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
 import id.co.telkom.wfm.plugin.model.ListAttributes;
 import id.co.telkom.wfm.plugin.model.ListOssItem;
 import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
@@ -97,6 +98,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
 //        TaskActivityDao dao2 = new TaskActivityDao();
         TestGenerateDao dao2 = new TestGenerateDao();
         TaskHistoryDao taskHistory = new TaskHistoryDao();
+        validateGenerateTask validateTask = new validateGenerateTask();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;
@@ -169,13 +171,17 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 String parent = wonum;
                 //Checking the match of siteId and wonum w/ previous 'generate wonum request'
                 LogUtil.info(getClass().getName(), "Start Process: Generate task | Wonum: " + parent);
+                //Define JSON WORKORDER request
+                JSONArray attr_array = (JSONArray)body.get("WORKORDERATTRIBUTE");
+                Object ossitem_arrayObj = (Object)body.get("OSSITEM");
+                
                 //Getting Owner group from tkmapping
                 String ownerGroup = dao2.getOwnerGroup(workorder.get("workZone").toString());
                 workorder.put("wonum", wonum);
                 workorder.put("ownerGroup", ownerGroup);
                 
                 //@Work Order attribute
-                JSONArray attr_array = (JSONArray)body.get("WORKORDERATTRIBUTE");
+                
                 JSONArray AttributeWO = new JSONArray();
                 
                 ListAttributes listAttr = new ListAttributes();
@@ -200,15 +206,8 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 }
                 
                 //@OSSItem
-                Object ossitem_arrayObj = (Object)body.get("OSSITEM");
                 
-//                ListOssItem listOssItem = new ListOssItem();
-//                ActivityTask act = new ActivityTask();
-//                ListOssItemAttribute listOssItemAtt = new ListOssItemAttribute();
-//                ListAttributes listAttribute = new ListAttributes();
-//                ListCpeValidate cpeValidated = new ListCpeValidate();
-
-//                    act.setTaskId(10);
+                
                 int counter = 1;
                 String TaskDescription = "";
                 String ownerGroupTask = "";
@@ -217,8 +216,10 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 JSONArray oss_item = new JSONArray();
                 List<JSONObject> taskList = new ArrayList<>();
                 
+                LogUtil.info(getClass().getName(), "OSS ITEM = " +ossitem_arrayObj);
+                
                 if (ossitem_arrayObj == null) {
-                    JSONArray taskAttrNonCore = new JSONArray();
+                    JSONArray arrayNull = new JSONArray();
                     JSONArray detailTaskNonCore = dao2.getDetailTaskNonCore(workorder.get("prodName").toString(), workorder.get("crmOrderType").toString());
                     for (Object obj : detailTaskNonCore) {
                         JSONObject taskNonCoreObj = (JSONObject)obj;
@@ -226,142 +227,148 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                         taskNoncore.put("ACTION", "ADD");
                         taskNoncore.put("CORRELATIONID", "35363732383333303936333333323130");
                         taskNoncore.put("ITEMNAME", taskNonCoreObj.get("activity").toString());
-                        taskNoncore.put("OSSITEMATTRIBUTE", taskAttrNonCore);
+                        taskNoncore.put("OSSITEMATTRIBUTE", arrayNull);
                         oss_item.add(taskNoncore);
                     }
                     LogUtil.info(getClass().getName(), "TASK : " +oss_item);
+                } else {
+                    LogUtil.info(getClass().getName(), "TASK : " +oss_item);
+                    validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, AttributeWO, duration);
                 }
                 
-                JSONObject oss = (JSONObject)((JSONArray) oss_item).get(0);
-                JSONObject detailAct1 = dao2.getDetailTask(((JSONObject) oss).get("ITEMNAME").toString());
-                TaskDescription = (String) detailAct1.get("description");
-                workorder.put("TaskDescription", TaskDescription);
+////                JSONObject oss = (JSONObject)((JSONArray) oss_item).get(0);
+//                String task1 = ((JSONObject)((JSONArray) oss_item).get(0)).get("ITEMNAME").toString();
+////                JSONObject detailAct1 = dao2.getDetailTask(((JSONObject) oss).get("ITEMNAME").toString());
+////                TaskDescription = (String) detailAct1.get("description");
+//                TaskDescription = task1;
+//                workorder.put("TaskDescription", TaskDescription);
+//
+//                if (ossitem_arrayObj instanceof JSONObject){
+//                    oss_item.add(ossitem_arrayObj);
+////                    LogUtil.info(getClass().getName(), "TASK :" + oss_item);
+//                } else if (ossitem_arrayObj instanceof JSONArray) {
+//                    oss_item = (JSONArray) ossitem_arrayObj;
+////                    LogUtil.info(getClass().getName(), "TASK :" + oss_item);
+//                }
+                
+//                boolean isGenerate = dao2.isGenerateTask(sortedTask.get("wonum").toString(), sortedTask.get("activity").toString(), workorder.get("prodName").toString());
+//                LogUtil.info(getClass().getName(), "isGenerateTask :" + isGenerate);
+//                if (dao2.isGenerateTask(sortedTask.get("parent").toString(), sortedTask.get("activity").toString(), workorder.get("prodName").toString())) {
 
-                if (ossitem_arrayObj instanceof JSONObject){
-                    oss_item.add(ossitem_arrayObj);
-//                    LogUtil.info(getClass().getName(), "TASK :" + oss_item);
-                } else if (ossitem_arrayObj instanceof JSONArray) {
-                    oss_item = (JSONArray) ossitem_arrayObj;
-//                    LogUtil.info(getClass().getName(), "TASK :" + oss_item);
-                }
+//                } else {
 
-                for(int j = 0; j < ((JSONArray) oss_item).size(); j++) {
-                    JSONObject oss_itemObj = (JSONObject)((JSONArray) oss_item).get(j);
-                    JSONObject task = new JSONObject();
+//                }
 
-//                    listOssItem.setAction(((JSONObject) oss_itemObj).get("ACTION").toString());
-//                    listOssItem.setCorrelationid(((JSONObject) oss_itemObj).get("CORRELATIONID").toString());
-//                    listOssItem.setItemname(((JSONObject) oss_itemObj).get("ITEMNAME").toString());
-                    String itemName = ((JSONObject) oss_itemObj).get("ITEMNAME").toString();
-                    String correlationId = ((JSONObject) oss_itemObj).get("CORRELATIONID").toString();
-                    //TASK GENERATE
-                    JSONObject detailAct = dao2.getDetailTask(itemName);
-//                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
-                    task.put("activity", detailAct.get("activity"));
-                    task.put("description", detailAct.get("description"));
-                    task.put("correlation", correlationId);
-                    task.put("sequence", (int) detailAct.get("sequence"));
-                    task.put("actplace", detailAct.get("actPlace"));
-                    task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
-                    task.put("duration", (int) detailAct.get("duration"));
-                    duration = (int) task.get("duration");
+//                for(int j = 0; j < ((JSONArray) oss_item).size(); j++) {
+//                    JSONObject oss_itemObj = (JSONObject)((JSONArray) oss_item).get(j);
+//                    JSONObject task = new JSONObject();
+//
+//                    String itemName = ((JSONObject) oss_itemObj).get("ITEMNAME").toString();
+//                    String correlationId = ((JSONObject) oss_itemObj).get("CORRELATIONID").toString();
+//                    //TASK GENERATE
+//                    JSONObject detailAct = dao2.getDetailTask(itemName);
+////                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
+//                    task.put("activity", detailAct.get("activity"));
+//                    task.put("description", detailAct.get("description"));
+//                    task.put("correlation", correlationId);
+//                    task.put("sequence", (int) detailAct.get("sequence"));
+//                    task.put("actplace", detailAct.get("actPlace"));
+//                    task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
+//                    task.put("duration", (int) detailAct.get("duration"));
+//                    duration = (int) task.get("duration");
+//
+//                    JSONArray taskAttrList = new JSONArray();
+//                    JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
+//                    for (Object ossItemAttr : ossitem_attr) {
+//                        JSONObject arrayObj2 = (JSONObject)ossItemAttr;
+//                        JSONObject taskAttrItem = new JSONObject();
+//
+//                        taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
+//                        taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
+//                        taskAttrList.add(taskAttrItem);
+//                    }
+//
+//                    task.put("task_attr", taskAttrList);
+//                    taskList.add(task);
+////                    LogUtil.info(getClass().getName(), "TASK "+j+" :" + taskList);
+//                }
+//
+//                Collections.sort(taskList, new Comparator<JSONObject>(){
+//                    @Override
+//                    public int compare(JSONObject o1, JSONObject o2) {
+//                        int valA = (int) o1.get("sequence");
+//                        int valB = (int) o2.get("sequence"); 
+//                        System.out.println("valA: " + valA);
+////                        LogUtil.info(getClass().getName(), "Compare 1 =" +valA);
+//                        System.out.println("valB: " + valB);
+////                        LogUtil.info(getClass().getName(), "Compare 2 =" +valB);
+//                        return valA - valB;
+//                    }
+//                });
 
-                    JSONArray taskAttrList = new JSONArray();
-                    JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
-                    for (Object ossItemAttr : ossitem_attr) {
-                        JSONObject arrayObj2 = (JSONObject)ossItemAttr;
-                        JSONObject taskAttrItem = new JSONObject();
-
-//                        listOssItemAtt.setAttrName(arrayObj2.get("ATTR_NAME").toString());
-//                        String attrName = listOssItemAtt.getAttrName();
-//                        listOssItemAtt.setAttrValue(arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
-//                        String attrValue = listOssItemAtt.getAttrValue();
-
-                        taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
-                        taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
-                        taskAttrList.add(taskAttrItem);
-                    }
-
-                    task.put("task_attr", taskAttrList);
-                    taskList.add(task);
-//                    LogUtil.info(getClass().getName(), "TASK "+j+" :" + taskList);
-                }
-
-                Collections.sort(taskList, new Comparator<JSONObject>(){
-                    @Override
-                    public int compare(JSONObject o1, JSONObject o2) {
-                        int valA = (int) o1.get("sequence");
-                        int valB = (int) o2.get("sequence"); 
-                        System.out.println("valA: " + valA);
-//                        LogUtil.info(getClass().getName(), "Compare 1 =" +valA);
-                        System.out.println("valB: " + valB);
-//                        LogUtil.info(getClass().getName(), "Compare 2 =" +valB);
-                        return valA - valB;
-                    }
-                });
-
-                for(JSONObject sortedTask: taskList) {
-                    String wonumChild = dao.getWonum();
-                    sortedTask.put("wonum", wonumChild);
-                    sortedTask.put("parent", parent);
-                    sortedTask.put("taskid", counter*10);
-
-                    if ((int) sortedTask.get("taskid") != 10) {
-                        sortedTask.put("status", "APPR"); 
-                    } else {
-                        sortedTask.put("status", "LABASSIGN");   
-                    }
-
-                    if (sortedTask.get("ownerGroup").toString() != "") {
-                        ownerGroupTask = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
-                    } else {
-                        ownerGroupTask = dao2.getOwnerGroup(workorder.get("workZone").toString());
-                    }
-
-                    counter = counter + 1;
-//                    LogUtil.info(getClass().getName(), "SORTED TASK :" + sortedTask);
-                    //GENERATE OSS ITEM
-                    dao.insertToOssItem((String) sortedTask.get("wonum"), sortedTask);
-                    //GENERATE TASK
-                    dao2.generateActivityTask(parent, workorder.get("siteId").toString(), sortedTask.get("correlation").toString(), sortedTask, ownerGroupTask, workorder);
-                    //GENERATE ASSIGNMENT
-                    dao2.generateAssignment(sortedTask.get("activity").toString(), workorder.get("schedStart").toString(), parent);
-                    //GENERATE TASK HISTORY
-                    taskHistory.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum from OSM", "extOSM");
-
-                    //TASK ATTRIBUTE GENERATE
-                    dao2.GenerateTaskAttribute((String) sortedTask.get("activity"), (String) sortedTask.get("wonum"), orderId, workorder.get("siteId").toString());
-
-                    JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
-//                    LogUtil.info(getClass().getName(), "SORTED TASK ATTRIBUTE :" + taskAttrArray);
-                    for (Object taskAttrArrayObj: taskAttrArray) {
-                        String attrName = "";
-                        String attrValue = "";
-                        JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
-                        attrName = taskAttrObj.get("attrName").toString();
-                        attrValue = taskAttrObj.get("attrValue").toString();
-                        if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
-                            if (attrValue.isEmpty()) {
-                                //GENERATE VALUE FROM WORKORDERATTRIBUTE
-                                for (Object objWoAttr : AttributeWO) {
-                                    JSONObject arrayObj3 = (JSONObject)objWoAttr;
-                                    JSONObject resp = dao.getWoAttrName(parent, arrayObj3.get("woAttrName").toString());
-                                    String AttrNameWo = resp.get("attr_name").toString().toUpperCase();
-                                    String AttrValueWo = (arrayObj3.get("woAttrValue").toString() == null ? "" : arrayObj3.get("woAttrValue").toString());
-                                    if (AttrNameWo.equals(attrName)) {
-                                        dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, AttrValueWo);
-//                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
-                                    }
-                                }
-                            } else {
-                                dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
-//                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
-                            }
-                        }
-                        //@insert Oss Item Attribute
-                        dao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
-                    }
-                }
+//                for(JSONObject sortedTask: taskList) {
+//                    String wonumChild = dao.getWonum();
+//                    sortedTask.put("wonum", wonumChild);
+//                    sortedTask.put("parent", parent);
+//                    sortedTask.put("taskid", counter*10);
+//
+//                    if ((int) sortedTask.get("taskid") != 10) {
+//                        sortedTask.put("status", "APPR"); 
+//                    } else {
+//                        sortedTask.put("status", "LABASSIGN");   
+//                    }
+//
+//                    if (sortedTask.get("ownerGroup").toString() != "") {
+//                        ownerGroupTask = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+//                    } else {
+//                        ownerGroupTask = dao2.getOwnerGroup(workorder.get("workZone").toString());
+//                    }
+//
+//                    counter = counter + 1;
+////                    LogUtil.info(getClass().getName(), "SORTED TASK :" + sortedTask);
+//
+//                    //GENERATE OSS ITEM
+//                    dao.insertToOssItem(sortedTask);
+//                    //GENERATE TASK
+//                    dao2.generateActivityTask(sortedTask, workorder, ownerGroupTask);
+//                    //GENERATE ASSIGNMENT
+//                    dao2.generateAssignment(sortedTask, workorder);
+//                    //GENERATE TASK HISTORY
+//                    taskHistory.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum from OSM", "extOSM");
+//
+//                    //TASK ATTRIBUTE GENERATE
+//                    dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
+//
+//                    JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
+////                    LogUtil.info(getClass().getName(), "SORTED TASK ATTRIBUTE :" + taskAttrArray);
+//                    for (Object taskAttrArrayObj: taskAttrArray) {
+//                        String attrName = "";
+//                        String attrValue = "";
+//                        JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
+//                        attrName = taskAttrObj.get("attrName").toString();
+//                        attrValue = taskAttrObj.get("attrValue").toString();
+//                        if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
+//                            if (attrValue.isEmpty()) {
+//                                //GENERATE VALUE FROM WORKORDERATTRIBUTE
+//                                for (Object objWoAttr : AttributeWO) {
+//                                    JSONObject arrayObj3 = (JSONObject)objWoAttr;
+//                                    JSONObject resp = dao.getWoAttrName(parent, arrayObj3.get("woAttrName").toString());
+//                                    String AttrNameWo = resp.get("attr_name").toString().toUpperCase();
+//                                    String AttrValueWo = (arrayObj3.get("woAttrValue").toString() == null ? "" : arrayObj3.get("woAttrValue").toString());
+//                                    if (AttrNameWo.equals(attrName)) {
+//                                        dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, AttrValueWo);
+////                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
+//                                    }
+//                                }
+//                            } else {
+//                                dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
+////                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
+//                            }
+//                        }
+//                        //@insert Oss Item Attribute
+//                        dao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
+//                    }
+//                }
                 
                 workorder.put("duration", duration);
                 final boolean insertWoStatus = dao.insertToWoTable2(workorder);
@@ -467,45 +474,8 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
 //            cpeValidated.setUpdateCpeValidate(updateCpe);
 //        }
     }
+    
+    private void generateTaskNonCore() {
+        
+    }
 }
-
-//                            switch (attrName) {
-//                                case "NTE_MODEL":
-//                                    cpeValidated.setModel(attrValue);
-//                                    LogUtil.info(getClass().getName(), "list model " +cpeValidated.getModel()+ " done");
-//                                    break;
-//                                case "NTE_MANUFACTUR":
-//                                    cpeValidated.setVendor(attrValue);
-//                                    LogUtil.info(getClass().getName(), "list vendor " +cpeValidated.getVendor()+ " done");
-//                                    break;
-//                                case "NTE_SERIALNUMBER":
-//                                    cpeValidated.setSerial_number(attrValue);
-//                                    LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
-//                                    break;
-//                                case "AP_SERIALNUMBER":
-//                                    cpeValidated.setSerial_number(attrValue);
-//                                    LogUtil.info(getClass().getName(), "list serial_number " +cpeValidated.getSerial_number()+ " done");
-//                                    break;
-//                                default:
-//                                    cpeValidated.setModel(null);
-//                                    cpeValidated.setVendor(null);
-//                                    cpeValidated.setSerial_number(null);
-//                                    break;
-//                            }
-//                            String cpeValidate = "";
-//                            LogUtil.info(getClass().getName(), "list cpe " + cpeValidated.getModel() + ", " + cpeValidated.getVendor() + ", " + cpeValidated.getSerial_number() + ", " +cpeValidate+ " done");
-//                            if (cpeValidated.getModel() != null && cpeValidated.getVendor() != null) {
-//                                if (cpeValidated.getSerial_number() == null) {
-//                                    cpeValidate = "";
-//                                    boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, (String) sortedTask.get("wonum"));
-//                                    cpeValidated.setUpdateCpeValidate(updateCpe);
-//                                } else {
-//                                    cpeValidate = "PASS";
-//                                    boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, (String) sortedTask.get("wonum"));
-//                                    cpeValidated.setUpdateCpeValidate(updateCpe);
-//                                }
-//                            } else {
-//                                cpeValidate = "";
-//                                boolean updateCpe = dao2.updateWoCpe(cpeValidated.getModel(), cpeValidated.getVendor(), cpeValidated.getSerial_number(), cpeValidate, (String) sortedTask.get("wonum"));
-//                                cpeValidated.setUpdateCpeValidate(updateCpe);
-//                            }

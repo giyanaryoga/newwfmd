@@ -133,6 +133,68 @@ public class TestGenerateDao {
         }
         return ownerGroup;
     }
+    
+    public boolean isTSAProduct(String productName) throws SQLException {
+        boolean product = false;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_productname FROM app_fd_wfmproduct WHERE c_productname in ('TSA_CONSPART','TSA_OSS_ISP','TSA_OSS_OSP','TSA_SPMS','TSA_PM_ISP')";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, productName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                product = true;
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return product;
+    }
+    
+    public String getValueWorkorderAttribute(String wonum, String woAttrName) throws SQLException {
+        String woAttrValue = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_attr_name = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ps.setString(2, woAttrName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                woAttrValue = rs.getString("c_attr_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return woAttrValue;
+    }
+    
+    public boolean isGenerateTask(String wonum, String activity, String productName) throws SQLException {
+        boolean isGenerate = true;
+        String[] woAttrValue = new String[]{"CIS", "Wholesale"};
+        String[] actTask = new String[]{"WFMNonCore Activate SS","WFMNonCore Activate IMS","WFMNonCore Activate TDM"};
+        if (productName == "INF_IPPBX" && activity == "WFMNonCore Registration Number To CRM") {
+            if ("Wholesale".equals(getValueWorkorderAttribute(wonum, "DC_Type"))) {
+                isGenerate = false;
+            }
+        }
+        if (productName == "MM_IP_TRANSIT" && activity == "WFMNonCore Create MRTG") {
+            if (!getValueWorkorderAttribute(wonum, "DC_Type").equalsIgnoreCase("DGS")) {
+                isGenerate = false;
+            }
+        }
+        if (productName == "INF_CALLCENTER" && activity.equals(actTask)) {
+            if (!getValueWorkorderAttribute(wonum, "IN_NUMBER").equalsIgnoreCase("")) {
+                String value = getValueWorkorderAttribute(wonum, "IN_NUMBER");
+                if (value.length() == 3) {
+                    isGenerate = false;
+                }
+            }
+        }
+        return isGenerate;
+    }
 
     public String getOwnerGroupPerson(String personGroup) throws SQLException {
         String ownerGroup = "";
@@ -289,7 +351,7 @@ public class TestGenerateDao {
         return updateCpe;
     }
     
-    public void generateActivityTask(String parent, String siteId, String correlationId, JSONObject taskObj, String ownerGroup, JSONObject workorder) throws SQLException {
+    public void generateActivityTask(JSONObject taskObj, JSONObject workorder, String ownerGroup) throws SQLException {
         StringBuilder insert = new StringBuilder();
         insert
                 .append(" INSERT INTO app_fd_workorder ( ")
@@ -341,7 +403,7 @@ public class TestGenerateDao {
             PreparedStatement ps = con.prepareStatement(insert.toString());){
             ps.setString(1, UuidGenerator.getInstance().getUuid());
             ps.setTimestamp(2, getTimeStamp());
-            ps.setString(3, parent);
+            ps.setString(3, taskObj.get("parent").toString());
             ps.setString(4, taskObj.get("wonum").toString());
             ps.setString(5, taskObj.get("activity").toString()); //activity
             ps.setString(6, taskObj.get("description").toString());   //activity
@@ -350,11 +412,11 @@ public class TestGenerateDao {
             ps.setString(9, taskObj.get("status").toString());
             ps.setString(10, "NEW");
             ps.setString(11, "TELKOM");     
-            ps.setString(12, siteId);
+            ps.setString(12, workorder.get("siteId").toString());
             ps.setString(13, "WFM");
             ps.setString(14, "ACTIVITY");       
             ps.setString(15, taskObj.get("taskid").toString());
-            ps.setString(16, correlationId);
+            ps.setString(16, taskObj.get("correlation").toString());
             ps.setInt(17, (int) taskObj.get("duration"));
             ps.setString(18, workorder.get("scOrderNo").toString());
             ps.setString(19, workorder.get("jmsCorrelationId").toString());
@@ -372,7 +434,7 @@ public class TestGenerateDao {
         }
     }
     
-    public void GenerateTaskAttribute(String activity, String wonum, String orderId, String siteId) throws SQLException {
+    public void GenerateTaskAttribute(JSONObject taskObj, JSONObject workorder, String orderId) throws SQLException {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
@@ -416,14 +478,14 @@ public class TestGenerateDao {
             con.setAutoCommit(false);
             try(PreparedStatement ps = con.prepareStatement(query.toString());
                 PreparedStatement psInsert = con.prepareStatement(insert.toString())) {
-                    ps.setString(1, activity);
+                    ps.setString(1, taskObj.get("activity").toString());
                     ResultSet rs = ps.executeQuery();
                 while (rs.next()) {
                     psInsert.setString(1, UuidGenerator.getInstance().getUuid());
                     psInsert.setTimestamp(2, getTimeStamp());
-                    psInsert.setString(3, wonum);
+                    psInsert.setString(3, taskObj.get("wonum").toString());
                     psInsert.setString(4, rs.getString("c_description"));
-                    psInsert.setString(5, siteId);
+                    psInsert.setString(5, workorder.get("siteId").toString());
                     psInsert.setString(6, rs.getString("c_orgid"));
                     psInsert.setString(7, rs.getString("c_classspecid"));
                     psInsert.setString(8, orderId);
@@ -436,7 +498,7 @@ public class TestGenerateDao {
                 }
                 int[] exe = psInsert.executeBatch();
                 if (exe.length > 0) {
-                    LogUtil.info(getClass().getName(), "Success generated task attributes, for " + activity);
+                    LogUtil.info(getClass().getName(), "Success generated task attributes, for " + taskObj.get("activity").toString());
                 }
                 con.commit();
             } catch(SQLException e) {
@@ -526,7 +588,7 @@ public class TestGenerateDao {
         ps.setString(9, scheduledate);
     }
     
-    public void generateAssignment(String detailtask, String scheduledate, String parent) {
+    public void generateAssignment(JSONObject taskObj, JSONObject workorder) {
         String insert = "INSERT INTO app_fd_assignment "
                 + "(id, c_parent, c_wonum, c_taskid, c_status, c_description, c_wfmdoctype, c_woclass, c_scheduledate, dateCreated) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
@@ -540,19 +602,19 @@ public class TestGenerateDao {
                     PreparedStatement ps = con.prepareStatement(insert);
                     PreparedStatement stmt = con.prepareStatement(query);
                     try {       
-                        stmt.setString(1, detailtask);
-                        stmt.setString(2, parent);
+                        stmt.setString(1, taskObj.get("activity").toString());
+                        stmt.setString(2, taskObj.get("parent").toString());
                         ResultSet rs = stmt.executeQuery();
                         if (rs.next()){
                             ps.setString(1, UuidGenerator.getInstance().getUuid());
-                            ps.setString(2, parent);
+                            ps.setString(2, taskObj.get("parent").toString());
                             ps.setString(3, rs.getString("c_wonum"));
                             ps.setString(4, rs.getString("c_taskid"));
                             ps.setString(5, "WAITASSIGN");
                             ps.setString(6, rs.getString("c_description"));
                             ps.setString(7, "WFM");
                             ps.setString(8, "ACTIVITY");
-                            ps.setString(9, scheduledate);
+                            ps.setString(9, workorder.get("schedStart").toString());
                             
                             int exe = ps.executeUpdate();
                             //Checking insert status
