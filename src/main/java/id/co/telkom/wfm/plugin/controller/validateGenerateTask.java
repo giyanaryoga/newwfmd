@@ -145,7 +145,7 @@ public class validateGenerateTask {
                 //GENERATE ASSIGNMENT
                 dao2.generateAssignment(sortedTask, workorder);
                 //GENERATE TASK HISTORY
-                historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum from OSM", "extOSM");
+                historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum from OSM", "extOSM", "extOSM");
                 //TASK ATTRIBUTE GENERATE
                 dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
                 JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");

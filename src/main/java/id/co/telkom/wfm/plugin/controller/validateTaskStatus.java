@@ -40,12 +40,7 @@ public class validateTaskStatus {
     validateNonCoreProduct validateNonCoreProduct = new validateNonCoreProduct();
     TimeUtil time = new TimeUtil();
     final JSONObject res = new JSONObject();
-<<<<<<< HEAD
-    HttpServletResponse hsr1;
 
-=======
-    
->>>>>>> cffb5c42a1e6241d30f374415fc11da28c835786
     private Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
