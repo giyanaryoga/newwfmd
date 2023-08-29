@@ -33,7 +33,7 @@ import org.json.simple.parser.ParseException;
  */
 public class CpeValidationEbis extends Element implements PluginWebSupport {
 
-    String pluginName = "Telkom New WFM - CPE Validation - Web Service";
+    String pluginName = "Telkom New WFM - CPE Validation EBIS - Web Service";
 
     @Override
     public String renderTemplate(FormData fd, Map map) {
@@ -123,9 +123,6 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         String cpeModel = "";
                         String cpeVendor = "";
                         int snLength = cpeSerialNumber.length();
-//                        List<String> taskList = new ArrayList<>();
-//                        
-//                        taskList.add("ONT");
                         
                         for (Object object : item_array){
                             JSONObject obj = (JSONObject)object;
@@ -155,7 +152,6 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                         JSONObject res = new JSONObject();
                         res.put("cpeVendor", cpeVendor);
                         res.put("cpeModel", cpeModel);
-//                        if (isDeviceInTech && isVendorExist && isModelExist && isModelVendorMatch && isSerialNumMatch && isCpeTaskMatch){
                         if (isDeviceInTech && isVendorExist && isModelExist && isModelVendorMatch && isSerialNumMatch){
                             boolean updateValidation = dao.updateCpeValidation(wonum, cpeVendor, cpeModel, cpeSerialNumber);
                             if (updateValidation){
@@ -184,10 +180,6 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                             res.put("status", "nok5");
                             res.put("message", "panjang serial number tidak sesuai");
                             res.writeJSONString(hsr1.getWriter());
-//                        } else if (!isCpeTaskMatch) {
-//                            res.put("status", "nok6");
-//                            res.put("message", "tipe perangkat tidak sesuai dengan task");
-//                            res.writeJSONString(hsr1.getWriter());
                         }
                         break;
                     case "404":
