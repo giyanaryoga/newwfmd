@@ -163,7 +163,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                     case "COMPWA":
                         boolean isMandatoryValue = updateTaskStatusEbisDao.checkMandatory(wonum);
                         Integer isRequired = updateTaskStatusEbisDao.isRequired(wonum);
-                        if (!isMandatoryValue && isRequired != 1) {
+                        if (!isMandatoryValue && isRequired == 1) {
                             hsr1.setStatus(422);
                         } else {
                             switch (description) {
