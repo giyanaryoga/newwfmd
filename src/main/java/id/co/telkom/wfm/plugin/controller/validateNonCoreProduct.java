@@ -53,7 +53,33 @@ public class validateNonCoreProduct {
         return "888" + formattedDateTime + num;
     }
 
-    // Get CRMOrdertype
+    // Get Params
+    public JSONObject getParams(String parent) throws SQLException, JSONException {
+        JSONObject resultObj = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT wo1.c_crmordertype, wo1.c_productname, wo1.c_producttype, wo2.c_detailactcode, wo2.c_worktype\n"
+                + "FROM app_fd_workorder wo1\n"
+                + "JOIN app_fd_workorder wo2 ON wo1.c_wonum = wo2.c_parent\n"
+                + "WHERE wo1.c_woclass = 'WORKORDER'\n"
+                + "AND wo2.c_woclass = 'ACTIVITY'\n"
+                + "AND wo1.c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, parent);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                resultObj.put("crmordertype", rs.getString("c_crmordertype"));
+                resultObj.put("productname", rs.getString("c_productname"));
+                resultObj.put("producttype", rs.getString("c_producttype"));
+                resultObj.put("detailactcode", rs.getString("c_detailactcode"));
+                resultObj.put("worktype", rs.getString("c_worktype"));
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return resultObj;
+    }
+
     public JSONObject getParentCRMOrdertype(String parent) throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -115,45 +141,16 @@ public class validateNonCoreProduct {
         return result;
     }
 
-    // get WO params
-    public JSONObject getParamValue(String parent) throws SQLException, JSONException {
-        JSONObject resultObj = new JSONObject();
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_detailactcode, c_worktype \n"
-                + "FROM app_fd_workorder \n"
-                + "where c_woclass = 'ACTIVITY' \n"
-                + "AND c_parent = ?";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, parent);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                resultObj.put("worktype", rs.getString("c_worktype"));;
-                resultObj.put("detailactcode", rs.getString("c_detailactcode"));
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        }
-        return resultObj;
-    }
-
     // validate status STARTWA
     public boolean validateStartwa(UpdateStatusParam param) throws SQLException, JSONException {
         boolean startwa = false;
         try {
-            String response = "";
-            String updateTask = "";
-            boolean nextAssign = false;
-            int nextTaskId = Integer.parseInt(param.getTaskId()) + 10;
-
             // Get Params
-            JSONObject assetAttributes = getParamValue(param.getParent());
-            String detailactcode = (assetAttributes.get("detailactcode") == null ? "" : assetAttributes.get("detailactcode").toString());
-            String worktype = (assetAttributes.get("worktype") == null ? "" : assetAttributes.get("worktype").toString());
-
-            JSONObject parentCRMOrdertype = getParentCRMOrdertype(param.getParent());
-            String crmordertype = (parentCRMOrdertype.get("crmordertype") == null ? "" : parentCRMOrdertype.get("crmordertype").toString());
-            String productname = (parentCRMOrdertype.get("productname") == null ? "" : parentCRMOrdertype.get("productname").toString());
+            JSONObject params = getParams(param.getParent());
+            String detailactcode = (params.get("detailactcode") == null ? "" : params.get("detailactcode").toString());
+            String worktype = (params.get("worktype") == null ? "" : params.get("worktype").toString());
+            String crmordertype = (params.get("crmordertype") == null ? "" : params.get("crmordertype").toString());
+            String productname = (params.get("productname") == null ? "" : params.get("productname").toString());
 
             LogUtil.info(this.getClass().getName(), "WORKTYPE : " + worktype);
             LogUtil.info(this.getClass().getName(), "PRODUCTNAME : " + productname);
@@ -172,19 +169,15 @@ public class validateNonCoreProduct {
         return startwa;
     }
 
-    public boolean validateComplete(UpdateStatusParam param) throws SQLException, JSONException {
-        boolean complete = false;
-        // Get Params
-        JSONObject assetAttributes = getParamValue(param.getParent());
-        String detailactcode = (assetAttributes.get("detailactcode") == null ? "" : assetAttributes.get("detailactcode").toString());
-        String worktype = (assetAttributes.get("worktype") == null ? "" : assetAttributes.get("worktype").toString());
-
-        JSONObject parentCRMOrdertype = getParentCRMOrdertype(param.getParent());
-        String crmordertype = (parentCRMOrdertype.get("crmordertype") == null ? "" : parentCRMOrdertype.get("crmordertype").toString());
-        String productname = (parentCRMOrdertype.get("productname") == null ? "" : parentCRMOrdertype.get("productname").toString());
-
-        if ("WFM".equals(worktype) && Arrays.asList(listProduct).contains(productname) && getTaskattributeValue(param.getWonum(), "APPROVAL") != "REJECTED") {
-
-        }
-    }
+//    public boolean validateComplete(UpdateStatusParam param) throws SQLException, JSONException {
+//        boolean complete = false;
+//        // Get Params
+//        JSONObject params = getParams(param.getParent());
+//        String productname = (params.get("productname") == null ? "" : params.get("productname").toString());
+//        String worktype = (params.get("worktype") == null ? "" : params.get("worktype").toString());
+//
+////        if ("WFM".equals(worktype) && Arrays.asList(listProduct).contains(productname) && getTaskattributeValue(param.getWonum(), "APPROVAL") != "REJECTED") {
+////
+////        }
+//    }
 }
