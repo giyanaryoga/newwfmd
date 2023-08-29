@@ -253,11 +253,13 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
 //                    listOssItem.setAction(((JSONObject) oss_itemObj).get("ACTION").toString());
 //                    listOssItem.setCorrelationid(((JSONObject) oss_itemObj).get("CORRELATIONID").toString());
 //                    listOssItem.setItemname(((JSONObject) oss_itemObj).get("ITEMNAME").toString());
-                    String itemName = ((JSONObject) oss_itemObj).get("ITEMNAME").toString();
-                    String correlationId = ((JSONObject) oss_itemObj).get("CORRELATIONID").toString();
+                    String itemName = oss_itemObj.get("ITEMNAME").toString();
+                    String correlationId = oss_itemObj.get("CORRELATIONID").toString();
+                    LogUtil.info(getClass().getName(), "TASK NAME :" + oss_itemObj.get("ITEMNAME").toString());
+                    LogUtil.info(getClass().getName(), "CORRELATIONID :" + oss_itemObj.get("CORRELATIONID").toString());
                     //TASK GENERATE
                     JSONObject detailAct = dao2.getDetailTask(itemName);
-//                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
+                    LogUtil.info(getClass().getName(), "DETAIL TASK :" + detailAct);
                     task.put("activity", detailAct.get("activity"));
                     task.put("description", detailAct.get("description"));
                     task.put("correlation", correlationId);
@@ -322,7 +324,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     counter = counter + 1;
 //                    LogUtil.info(getClass().getName(), "SORTED TASK :" + sortedTask);
                     //GENERATE OSS ITEM
-                    dao.insertToOssItem((String) sortedTask.get("wonum"), sortedTask);
+                    dao.insertToOssItem(sortedTask);
                     //GENERATE TASK
                     dao2.generateActivityTask(parent, workorder.get("siteId").toString(), sortedTask.get("correlation").toString(), sortedTask, ownerGroupTask, workorder);
                     //GENERATE ASSIGNMENT

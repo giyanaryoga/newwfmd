@@ -331,7 +331,7 @@ public class GenerateWonumEbisDao {
         return insertStatus;
     } 
     
-    public boolean insertToOssItem(String wonum, JSONObject taskObj){
+    public boolean insertToOssItem(JSONObject taskObj){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -342,7 +342,7 @@ public class GenerateWonumEbisDao {
                 PreparedStatement ps = con.prepareStatement(insert);
                 try {
                     ps.setString(1, uuId);
-                    ps.setString(2, wonum);
+                    ps.setString(2, taskObj.get("wonum").toString());
                     ps.setString(3, "ADD");
                     ps.setString(4, taskObj.get("correlation").toString());
                     ps.setString(5, taskObj.get("activity").toString());
