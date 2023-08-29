@@ -36,7 +36,7 @@ public class NonCoreCompleteDao {
         boolean value = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
-        String selectQuery = "SELECT c_productname FROM app_fd_wfmproducttask WHERE c_productname = ?";
+        String selectQuery = "SELECT c_productname FROM app_fd_wfmproduct WHERE c_productname = ?";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -161,12 +161,13 @@ public class NonCoreCompleteDao {
                 = "INSERT INTO app_fd_serviceaddress\n"
                 + "    (\n"
                 + "        id,\n"
+                + "        c_serviceaddressid,\n"
                 + "        c_addresscode,\n"
                 + "        c_country,\n"
                 + "        c_siteid,\n"
                 + "        c_description,\n"
                 + "        c_orgid\n"
-                + "    ) VALUES (?, ?, ?, ?, ?)";
+                + "    ) VALUES (?, WFMDBDEV01.SERVICEADDRESSIDSEQ.NEXTVAL, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -174,6 +175,7 @@ public class NonCoreCompleteDao {
             ps.setString(2, addresscode);
             ps.setString(3, "ID");
             ps.setString(4, siteid);
+            ps.setString(4, description);
             ps.setString(5, "TELKOM");
 
             ResultSet rs = ps.executeQuery();

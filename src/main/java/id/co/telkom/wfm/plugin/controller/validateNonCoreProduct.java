@@ -5,6 +5,7 @@
  */
 package id.co.telkom.wfm.plugin.controller;
 
+import id.co.telkom.wfm.plugin.dao.NonCoreCompleteDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
 import id.co.telkom.wfm.plugin.dao.TestUpdateStatusEbisDao;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
@@ -26,6 +27,7 @@ public class validateNonCoreProduct {
 
     TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     TaskHistoryDao daoHistory = new TaskHistoryDao();
+    NonCoreCompleteDao daoNoncore = new NonCoreCompleteDao();
 
     // List Task
     String[] listTask = {
@@ -37,6 +39,8 @@ public class validateNonCoreProduct {
         "WFMNonCore Review Order TSQ IPPBX NeuAPIX", "WFMNonCore Review Order Integrasi Link SMS A2P",
         "WFMNonCore Review Order neuCentrIX Layer 1"
     };
+
+    String[] listProduct = {"WIFI_HOMESPOT", "TSA_CONSPART", "TSA_OSS_ISP", "TSA_OSS_OSP", "TSA_SPMS", "TSA_PM_ISP"};
 
     // Generate SID
     public static String generateSid(String wonum) {
@@ -146,11 +150,11 @@ public class validateNonCoreProduct {
             JSONObject assetAttributes = getParamValue(param.getParent());
             String detailactcode = (assetAttributes.get("detailactcode") == null ? "" : assetAttributes.get("detailactcode").toString());
             String worktype = (assetAttributes.get("worktype") == null ? "" : assetAttributes.get("worktype").toString());
-            
+
             JSONObject parentCRMOrdertype = getParentCRMOrdertype(param.getParent());
             String crmordertype = (parentCRMOrdertype.get("crmordertype") == null ? "" : parentCRMOrdertype.get("crmordertype").toString());
             String productname = (parentCRMOrdertype.get("productname") == null ? "" : parentCRMOrdertype.get("productname").toString());
-            
+
             LogUtil.info(this.getClass().getName(), "WORKTYPE : " + worktype);
             LogUtil.info(this.getClass().getName(), "PRODUCTNAME : " + productname);
             LogUtil.info(this.getClass().getName(), "DETAILACTCODE : " + detailactcode);
@@ -166,5 +170,21 @@ public class validateNonCoreProduct {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
         return startwa;
+    }
+
+    public boolean validateComplete(UpdateStatusParam param) throws SQLException, JSONException {
+        boolean complete = false;
+        // Get Params
+        JSONObject assetAttributes = getParamValue(param.getParent());
+        String detailactcode = (assetAttributes.get("detailactcode") == null ? "" : assetAttributes.get("detailactcode").toString());
+        String worktype = (assetAttributes.get("worktype") == null ? "" : assetAttributes.get("worktype").toString());
+
+        JSONObject parentCRMOrdertype = getParentCRMOrdertype(param.getParent());
+        String crmordertype = (parentCRMOrdertype.get("crmordertype") == null ? "" : parentCRMOrdertype.get("crmordertype").toString());
+        String productname = (parentCRMOrdertype.get("productname") == null ? "" : parentCRMOrdertype.get("productname").toString());
+
+        if ("WFM".equals(worktype) && Arrays.asList(listProduct).contains(productname) && getTaskattributeValue(param.getWonum(), "APPROVAL") != "REJECTED") {
+
+        }
     }
 }
