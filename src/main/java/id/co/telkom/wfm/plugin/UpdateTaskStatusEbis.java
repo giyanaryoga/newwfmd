@@ -139,7 +139,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                 updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
                                 if (updateTask) {
                                     hsr1.setStatus(200);
-                                    taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
+                                    taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy, "WFM");
                                 }
                                 res.put("code", "200");
                                 res.put("status", status);
@@ -151,7 +151,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
                             if (updateTask) {
                                 hsr1.setStatus(200);
-                                taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
+                                taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy, "WFM");
                             }
                             res.put("code", "200");
                             res.put("status", status);
@@ -180,7 +180,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
                                     if (nextAssign && updateTask) {
                                         hsr1.setStatus(200);
-                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
+                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy, "WFM");
                                     }
                                     break;
                                 case "Dismantle NTE":
@@ -197,7 +197,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                     nextAssign = updateTaskStatusEbisDao.nextAssign(parent, Integer.toString(nextTaskId), modifiedBy);
                                     if (nextAssign && updateTask) {
                                         hsr1.setStatus(200);
-                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
+                                        taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy, "WFM");
                                     }
                                     break;
                                 default:
@@ -214,7 +214,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                                             updateTask = updateTaskStatusEbisDao.updateTask(wonum, status, modifiedBy);
                                             if (updateTask) {
                                                 hsr1.setStatus(200);
-                                                taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy);
+                                                taskHistoryDao.insertTaskStatus(wonum, memo, modifiedBy, "WFM");
                                             }
 
                                             // Insert data to table WFMMILESTONE

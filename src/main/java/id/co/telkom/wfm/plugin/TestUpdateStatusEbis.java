@@ -4,30 +4,24 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
-import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
-import id.co.telkom.wfm.plugin.dao.TestUpdateStatusEbisDao;
-import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
-import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
+import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import id.co.telkom.wfm.plugin.controller.validateTaskStatus;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.*;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.joget.apps.datalist.service.JsonUtil;
-import org.joget.apps.form.model.Element;
-import org.joget.apps.form.model.FormData;
+import javax.servlet.http.*;
+import org.joget.apps.form.model.*;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.simple.parser.*;
 
 /**
  *
@@ -133,6 +127,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 param.setModifiedBy(modifiedBy);
                 param.setCurrentDate(currentDate);
                 boolean validate = false;
+                boolean validatenoncore = false;
                 String message = "";
 
                 switch (status) {
@@ -168,6 +163,8 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 }
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
+            } catch (JSONException ex) {
+                Logger.getLogger(TestUpdateStatusEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
