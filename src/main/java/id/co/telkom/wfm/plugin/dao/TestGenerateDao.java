@@ -10,12 +10,12 @@ package id.co.telkom.wfm.plugin.dao;
 //import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
 //import id.co.telkom.wfm.plugin.model.ListCpeValidate;
 import id.co.telkom.wfm.plugin.model.ActivityTask;
-import id.co.telkom.wfm.plugin.model.ListClassSpec;
+//import id.co.telkom.wfm.plugin.model.ListClassSpec;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
+//import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -134,66 +134,22 @@ public class TestGenerateDao {
         return ownerGroup;
     }
     
-    public boolean isTSAProduct(String productName) throws SQLException {
-        boolean product = false;
+    public String getActivityNonCore(String productName) throws SQLException {
+        String activity = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_productname FROM app_fd_wfmproduct WHERE c_productname in ('TSA_CONSPART','TSA_OSS_ISP','TSA_OSS_OSP','TSA_SPMS','TSA_PM_ISP')";
+        String query = "SELECT c_activity FROM app_fd_wfmproducttask WHERE c_productname = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, productName);
             ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                product = true;
+            while (rs.next())
+                activity = rs.getString("c_activity");
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close();
         }
-        return product;
-    }
-    
-    public String getValueWorkorderAttribute(String wonum, String woAttrName) throws SQLException {
-        String woAttrValue = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_attr_name = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ps.setString(2, woAttrName);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                woAttrValue = rs.getString("c_attr_value");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return woAttrValue;
-    }
-    
-    public boolean isGenerateTask(String wonum, String activity, String productName) throws SQLException {
-        boolean isGenerate = true;
-        String[] woAttrValue = new String[]{"CIS", "Wholesale"};
-        String[] actTask = new String[]{"WFMNonCore Activate SS","WFMNonCore Activate IMS","WFMNonCore Activate TDM"};
-        if (productName == "INF_IPPBX" && activity == "WFMNonCore Registration Number To CRM") {
-            if ("Wholesale".equals(getValueWorkorderAttribute(wonum, "DC_Type"))) {
-                isGenerate = false;
-            }
-        }
-        if (productName == "MM_IP_TRANSIT" && activity == "WFMNonCore Create MRTG") {
-            if (!getValueWorkorderAttribute(wonum, "DC_Type").equalsIgnoreCase("DGS")) {
-                isGenerate = false;
-            }
-        }
-        if (productName == "INF_CALLCENTER" && activity.equals(actTask)) {
-            if (!getValueWorkorderAttribute(wonum, "IN_NUMBER").equalsIgnoreCase("")) {
-                String value = getValueWorkorderAttribute(wonum, "IN_NUMBER");
-                if (value.length() == 3) {
-                    isGenerate = false;
-                }
-            }
-        }
-        return isGenerate;
+        return activity;
     }
 
     public String getOwnerGroupPerson(String personGroup) throws SQLException {
