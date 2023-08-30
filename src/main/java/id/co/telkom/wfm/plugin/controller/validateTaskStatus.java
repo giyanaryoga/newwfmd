@@ -47,6 +47,7 @@ public class validateTaskStatus {
             boolean isAssigned = daoTestUpdate.checkAssignment(param.getWonum());
             String checkActPlace = daoTestUpdate.checkActPlace(param.getWonum());
             boolean validatenoncore = validateNonCoreProduct.validateStartwa(param);
+            boolean autoFill = validateNonCoreProduct.nonCoreAutoFill(param.getParent());
             if (!isAssigned && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
                 response = "Task is not Assign to Labor yet";
                 startwa = false;
@@ -60,6 +61,10 @@ public class validateTaskStatus {
                     daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                     startwa = true;
                 }
+            }
+
+            if(autoFill){
+                response = response + "\nAuto Fill Successfully";
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);

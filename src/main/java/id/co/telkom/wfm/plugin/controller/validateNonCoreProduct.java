@@ -11,11 +11,14 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import javax.sql.DataSource;
+
+import org.apache.commons.lang.ArrayUtils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.json.JSONException;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 /**
  *
@@ -75,6 +78,7 @@ public class validateNonCoreProduct {
                 resultObj.put("producttype", rs.getString("c_producttype"));
                 resultObj.put("detailactcode", rs.getString("c_detailactcode"));
                 resultObj.put("worktype", rs.getString("c_worktype"));
+                resultObj.put("workzone", rs.getString("c_workzone"));
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -286,4 +290,52 @@ public class validateNonCoreProduct {
 //            }
 //        }
 //    }
+
+    public void updateNonCoreAutoFillWorkorderSpec(String wonum, String attrname, String value){
+        boolean status = false;
+        java.util.Date date = new Date();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String queryUpdate = "UPDATE app_fd_tk_workorderspec SET set c_value=? WHERE c_wonum=? AND c_assetattrid=?";
+        try{
+            Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(queryUpdate);
+            ps.setString(1, value);
+            ps.setString(2, wonum);
+            ps.setString(3, attrname);
+            int count= ps.executeUpdate();
+            if(count>0){
+                status = true;
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+
+        LogUtil.info(getClass().getName(), "Status Insert : "+status);
+//        return status;
+    }
+
+    public boolean nonCoreAutoFill(String wonum) {
+        // workorder where c_wonum ,c_woclass='activ'
+        boolean status = false;
+        String[] productlist = {"MM_IP_TRANSIT"};
+        String[] detailactcodeList = {"WFMNonCore Allocate Service IPTransit", "WFMNonCore Validate Service IPTransit"};
+        try{
+            JSONObject dataWO = getParams(wonum);
+            String workzone =dataWO.has("workzone")? dataWO.get("workzone").toString():null;
+            String productname =dataWO.has("productname")? dataWO.get("productname").toString():null;
+            String detailactcode =dataWO.has("detailactcode")? dataWO.get("detailactcode").toString():null;
+
+            String devicetype = "ROUTER";
+            String ServiceType = "TRANSIT";
+            if (ArrayUtils.contains(productlist, productname) && ArrayUtils.contains(detailactcodeList, detailactcode)){
+                updateNonCoreAutoFillWorkorderSpec("SERVICE_TYPE",ServiceType,wonum);
+                updateNonCoreAutoFillWorkorderSpec("DEVICETYPE",devicetype,wonum);
+                updateNonCoreAutoFillWorkorderSpec("AREANAME",workzone,wonum);
+                status= true;
+            }
+        } catch (Exception e) {
+            LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
+        }
+        return status;
+    }
 }
