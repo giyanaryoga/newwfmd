@@ -149,10 +149,15 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                         validate = validateTask.compwaTask(param);
                         JSONObject response = validateTask.validateTask(param);
                         if (validate) {
-                            res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());
-                            res.writeJSONString(hsr1.getWriter());
+                            if ((int) response.get("code") == 200) {
+                                res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());
+                                res.writeJSONString(hsr1.getWriter());   
+                            } else {
+                                hsr1.sendError(422, response.get("message").toString());
+                            }
                         } else {
                             message = "Please insert Task Attribute in Mandatory";
+                            hsr1.sendError(422, message);
                             res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
                             res.writeJSONString(hsr1.getWriter());
                         }
@@ -161,6 +166,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                         message = "Status Task is not found";
                         res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
                         res.writeJSONString(hsr1.getWriter());
+                        hsr1.sendError(422, message);
                         break;
                 }
             } catch (ParseException e) {
