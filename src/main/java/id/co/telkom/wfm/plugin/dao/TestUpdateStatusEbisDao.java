@@ -49,6 +49,45 @@ public class TestUpdateStatusEbisDao {
         }
         return required;
     }
+    
+    public String getProductName(String wonum) throws SQLException {
+        String productName = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT parent.c_productname FROM app_fd_workorder parent, app_fd_workorder child WHERE parent.c_wonum = child.c_parent AND child.c_woclass = 'ACTIVITY' AND child.c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                productName = rs.getString("parent.c_productname");
+                LogUtil.info(getClass().getName(), "Product Name = " + productName);
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return productName;
+    }
+    
+    public String getTaskAttrValue(String wonum, String attrName) throws SQLException {
+        String taskAttrValue = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ps.setString(1, attrName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                taskAttrValue = rs.getString("c_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return taskAttrValue;
+    }
 
     public boolean checkMandatory(String wonum) throws SQLException {
         boolean value = false;
@@ -92,7 +131,6 @@ public class TestUpdateStatusEbisDao {
             } else {
                 assign = false;
                 LogUtil.info(getClass().getName(), "Task belum assign ke labor");
-//                LogUtil.info(getClass().getName(), rs.getString("c_chief_code") + " = " + rs.getString("c_assignment_status"));
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
