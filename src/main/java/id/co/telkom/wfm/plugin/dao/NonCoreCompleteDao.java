@@ -201,7 +201,8 @@ public class NonCoreCompleteDao {
         String selectQuery
                 = "INSERT INTO app_fd_asset\n"
                 + "(\n"
-                + " id,\n"
+                + " id, \n"
+                + " c_assetid, \n"
                 + " c_assetnum,\n"
                 + " c_location,\n"
                 + " c_saddresscode,\n"
@@ -211,7 +212,7 @@ public class NonCoreCompleteDao {
                 + " c_status\n"
                 + " )\n"
                 + " VALUES\n"
-                + " (?, ?, ?, ?, ?, ?, ?)";
+                + " (?, WFMDBDEV01.ASSETIDSEQ.NEXTVAL, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -262,6 +263,7 @@ public class NonCoreCompleteDao {
 //        }
 //        
 //    }
+    
     public void generateAssetWorkzone(String assetnum, String workzone, String siteid) {
         String uuId = UuidGenerator.getInstance().getUuid();
 
@@ -271,6 +273,7 @@ public class NonCoreCompleteDao {
                 = "INSERT INTO app_fd_assetworkzone \n"
                 + "(\n"
                 + " id,\n"
+                + " c_assetworkzoneid,\n"
                 + " c_assetnum,\n"
                 + " c_workzone,\n"
                 + " c_siteid,\n"
@@ -278,7 +281,7 @@ public class NonCoreCompleteDao {
                 + " c_orgid\n"
                 + " )\n"
                 + " VALUES\n"
-                + " (?, ?, ?, ?, ?)";
+                + " (?, WFMDBDEV01.ASSETWORKZONEIDSEQ.NEXTVAL, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -376,8 +379,4 @@ public class NonCoreCompleteDao {
             }
         }
     }
-
-//    private String getAssetSpec(String assetnum) {
-//        
-//    }
 }

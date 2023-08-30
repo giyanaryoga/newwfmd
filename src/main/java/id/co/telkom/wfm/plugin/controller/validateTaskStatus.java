@@ -6,25 +6,15 @@ package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
-import id.co.telkom.wfm.plugin.UpdateTaskStatusEbis;
-import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
-import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
-import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
-import id.co.telkom.wfm.plugin.dao.TestUpdateStatusEbisDao;
+import id.co.telkom.wfm.plugin.dao.*;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.sql.*;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletResponse;
+import java.util.logging.*;
 import org.joget.commons.util.LogUtil;
 import org.json.JSONException;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**

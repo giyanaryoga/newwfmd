@@ -136,7 +136,7 @@ public class TestUpdateStatusEbisDao {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
         String selectProduct = "SELECT c_productname FROM APP_FD_WORKORDER \n"
-                + "WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') \n"
+                + "WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Communication Assistant') \n"
                 + "AND c_wonum = ?";
         
         try (Connection con = ds.getConnection();
@@ -162,7 +162,9 @@ public class TestUpdateStatusEbisDao {
 
     public String checkWoDoc(String wonum) throws SQLException, JSONException {
         String value = "";
-
+        int checkDoc = isProductNameDigital(wonum);
+        LogUtil.info(this.getClass().getName(), "Is Product: " + checkDoc);
+        
         if (checkAttachedFile(wonum, "BAA") == 0 && isProductNameDigital(wonum) == 1) {
             value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). \\nPastikan dokumen telah diupload dengan nama dokumen 'BAA'";
 
