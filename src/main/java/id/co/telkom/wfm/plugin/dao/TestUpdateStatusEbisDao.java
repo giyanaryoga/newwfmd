@@ -69,6 +69,25 @@ public class TestUpdateStatusEbisDao {
         }
         return productName;
     }
+    
+    public String getTaskAttrValue(String wonum, String attrName) throws SQLException {
+        String taskAttrValue = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ps.setString(1, attrName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                taskAttrValue = rs.getString("c_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return taskAttrValue;
+    }
 
     public boolean checkMandatory(String wonum) throws SQLException {
         boolean value = false;

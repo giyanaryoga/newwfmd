@@ -175,32 +175,93 @@ public class validateTaskStatus {
                 break;
                 case "WFMNonCore Review Order TSQ IP Transit":
                     if(productName.equalsIgnoreCase("MM_IP_TRANSIT")) {
-                        
+                        String sbrValue = daoTestUpdate.getTaskAttrValue(param.getWonum(), "SBR");
+                        int document = daoTestUpdate.checkAttachedFile(param.getParent(), "LOA");
+                        if (sbrValue.equalsIgnoreCase("YES") && document == 1) {
+                            response.put("code", 200);
+                            response.put("message", "Document LOA ada...");
+                            daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                            daoTestUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        } else {
+                            response.put("code", 400);
+                            response.put("message", "Document LOA Tidak ada...");
+                        }
                     }
                 break;
                 case "WFMNonCore Deactivate Access WDM":
                     if (Arrays.asList(productList).contains(productName)) {
-                        
+                        int document = daoTestUpdate.checkAttachedFile(param.getParent(), "BA DEAKTIVASI AKSES");
+                        if (document == 1) {
+                            response.put("code", 200);
+                            response.put("message", "Document BA DEAKTIVASI AKSES ada...");
+                            daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                            daoTestUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        } else {
+                            response.put("code", 400);
+                            response.put("message", "Document BA DEAKTIVASI AKSES Tidak ada...");
+                        }
                     }
                 break;
                 case "WFMNonCore Deactivate WDM":
                     if (Arrays.asList(productList).contains(productName)) {
-                        
+                        int document = daoTestUpdate.checkAttachedFile(param.getParent(), "BA DEAKTIVASI TRANS");
+                        if (document == 1) {
+                            response.put("code", 200);
+                            response.put("message", "Document BA DEAKTIVASI TRANS ada...");
+                            daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                            daoTestUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        } else {
+                            response.put("code", 400);
+                            response.put("message", "Document BA DEAKTIVASI TRANS Tidak ada...");
+                        }
                     }
                 break;
                 case "WFMNonCore Allocate Access":
                     if (Arrays.asList(productList).contains(productName)) {
-                        
+                        int document = daoTestUpdate.checkAttachedFile(param.getParent(), "DATEK AKSES");
+                        if (document == 1) {
+                            response.put("code", 200);
+                            response.put("message", "Document DATEK AKSES ada...");
+                            daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                            daoTestUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        } else {
+                            response.put("code", 400);
+                            response.put("message", "Document DATEK AKSES Tidak ada...");
+                        }
                     }
                 break;
                 case "WFMNonCore Allocate WDM":
                     if (Arrays.asList(productList).contains(productName)) {
-                        
+                        int document = daoTestUpdate.checkAttachedFile(param.getParent(), "DATEK TRANSPORT");
+                        if (document == 1) {
+                            response.put("code", 200);
+                            response.put("message", "Document DATEK TRANSPORT ada...");
+                            daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                            daoTestUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        } else {
+                            response.put("code", 400);
+                            response.put("message", "Document DATEK TRANSPORT Tidak ada...");
+                        }
                     }
                 break;
                 case "WFMNonCore Activate And Integration WDM":
                     if (Arrays.asList(productList).contains(productName)) {
-                        
+                        int document = daoTestUpdate.checkAttachedFile(param.getParent(), "BA INTEGRASI TRANS");
+                        if (document == 1) {
+                            response.put("code", 200);
+                            response.put("message", "Document BA INTEGRASI TRANS ada...");
+                            daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                            daoTestUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        } else {
+                            response.put("code", 400);
+                            response.put("message", "Document BA INTEGRASI TRANS Tidak ada...");
+                        }
                     }
                 break;
                 default:
