@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.*;
+import org.json.JSONException;
 import org.json.simple.*;
 
 /**
@@ -94,7 +95,7 @@ public class UpdateTaskStatusEbisDao {
         }
         return activityProp;
     }
-
+    
     public Integer isRequired(String wonum) throws SQLException {
         int required = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -113,6 +114,45 @@ public class UpdateTaskStatusEbisDao {
             ds.getConnection().close();
         }
         return required;
+    }
+    
+    public String getProductName(String wonum) throws SQLException {
+        String productName = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT parent.c_productname FROM app_fd_workorder parent, app_fd_workorder child WHERE parent.c_wonum = child.c_parent AND child.c_woclass = 'ACTIVITY' AND child.c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                productName = rs.getString("parent.c_productname");
+                LogUtil.info(getClass().getName(), "Product Name = " + productName);
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return productName;
+    }
+    
+    public String getTaskAttrValue(String wonum, String attrName) throws SQLException {
+        String taskAttrValue = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ps.setString(1, attrName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                taskAttrValue = rs.getString("c_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return taskAttrValue;
     }
 
     public boolean checkMandatory(String wonum) throws SQLException {
@@ -157,7 +197,6 @@ public class UpdateTaskStatusEbisDao {
             } else {
                 assign = false;
                 LogUtil.info(getClass().getName(), "Task belum assign ke labor");
-//                LogUtil.info(getClass().getName(), rs.getString("c_chief_code") + " = " + rs.getString("c_assignment_status"));
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -167,85 +206,100 @@ public class UpdateTaskStatusEbisDao {
         return assign;
     }
 
-    public String checkWoDoc(String wonum) throws SQLException {
-//        boolean value = false;
-        String value = "";
+    public int checkAttachedFile(String wonum, String documentName) throws SQLException {
+        int isAttachedFile = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
-        StringBuilder responseBuilder = new StringBuilder();
-
-//        String selectQuery = "SELECT DISTINCT wodoc.c_documentname, wo.c_productname, wodoc.c_wonum\n"
-//                + "FROM app_fd_doclinks wodoc \n"
-//                + "JOIN APP_FD_WORKORDER wo ON wodoc.c_wonum = wo.c_wonum\n"
-//                + "WHERE wo.c_wonum = ? AND\n"
-//                + "wo.c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant')\n"
-//                + "OR wodoc.c_documentname IN ('BAA', 'BAST', 'BAPL', 'BAPLA', 'WO', 'KL', 'SPK')";
-        String selectQuery = "SELECT DISTINCT count(wo.c_productname) as data "
-                + "FROM app_fd_doclinks wodoc "
-                + "JOIN APP_FD_WORKORDER wo ON wodoc.c_wonum = wo.c_wonum "
-                + "WHERE wo.c_wonum = ? AND "
-                + "wo.c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Comunnication Assistant') "
-                + "AND wodoc.c_documentname IN ('BAA', 'BAST', 'BAPL', 'BAPLA', 'WO', 'KL', 'SPK')";
+        String selectQuery = "SELECT DISTINCT c_documentname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ?";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
 
             ps.setString(1, wonum);
+            ps.setString(2, documentName);
+
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                String data = rs.getString("data");
-//                String productname = rs.getString("c_productname");
-
-                LogUtil.info(getClass().getName(), "CHECK WO DOC");
-
-                if (Integer.parseInt(data) >= 1) {
-                    value = "The Filename and Product name are correct";
+                if (rs.getString("c_documentname") != null) {
+                    isAttachedFile = 1;
+                    LogUtil.info(getClass().getName(), "isAttachedFile = " + isAttachedFile);
                 } else {
-                    value = "The file name doesn't match, please fix the file name with ('BAA', 'BAST', 'BAPL', 'BAPLA', 'WO', 'KL', 'SPK')";
+                    isAttachedFile = 0;
+                    LogUtil.info(getClass().getName(), "isAttachedFile = " + isAttachedFile);
                 }
-//                String docname = rs.getString("c_documentname");
-//                String productname = rs.getString("c_productname");
-//
-//                LogUtil.info(getClass().getName(), "CHECK WO DOC");
-//
-//                if ((productname.equalsIgnoreCase("VPN IP Netmonk")
-//                        || productname.equalsIgnoreCase("Nadeefa Netmonk")
-//                        || productname.equalsIgnoreCase("Pijar Sekolah")
-//                        || productname.equalsIgnoreCase("Omni Comunnication Assistant"))
-//                        && !(docname.equalsIgnoreCase("BAA"))) {
-//                    value = "The file name doesn't match for product: " + productname + ", please fix the file name with BAA";
-////                    responseBuilder.append("The file name doesn't match for product: ").append(productname).append(", please fix the file name with BAA\n");
-//                    LogUtil.info(getClass().getName(), "The file name doesn't match for product: " + productname + ", please fix the file name with BAA");
-//                    LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
-//
-//                } else if (!(docname.equalsIgnoreCase("BAST")
-//                        || docname.equalsIgnoreCase("BAPL")
-//                        || docname.equalsIgnoreCase("BAPLA"))) {
-//                    value = "The file name doesn't match the valid options (BAST, BAPL, BAPLA)";
-////                    responseBuilder.append("The file name doesn't match the valid options (BAST, BAPL, BAPLA)\n");
-//                    LogUtil.info(getClass().getName(), "The file name doesn't match the valid options (BAST, BAPL, BAPLA)");
-//                    LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
-//
-//                    if (!(docname.equalsIgnoreCase("KL")
-//                            || docname.equalsIgnoreCase("WO")
-//                            || docname.equalsIgnoreCase("SPK"))) {
-//                        value = "The file name doesn't match the valid options (KL, WO, SPK)";
-////                                        responseBuilder.append("The file name doesn't match the valid options (KL, WO, SPK)\n");
-//                        LogUtil.info(getClass().getName(), "The file name doesn't match the valid options (KL, WO, SPK)");
-//                        LogUtil.info(getClass().getName(), "Filename : " + " = " + docname);
-//                    }
-//
-//                } else {
-//                    value = "The Filename and Product name are correct";
-////                    responseBuilder.append("The Filename and Product name are correct\n");
-//                    LogUtil.info(getClass().getName(), "The Filename and Product name are correct");
-//                    LogUtil.info(getClass().getName(), "Product Name: " + productname + ", Filename: " + docname);
-//                }
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
+        return isAttachedFile;
+    }
+
+    public int isProductNameDigital(String wonum) throws SQLException {
+        int isProductName = 0;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+
+        String selectProduct = "SELECT c_productname FROM APP_FD_WORKORDER \n"
+                + "WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Communication Assistant') \n"
+                + "AND c_wonum = ?";
+        
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(selectProduct)) {
+            ps.setString(1, wonum);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                if (rs.getString("c_productname") != null) {
+                    LogUtil.info(getClass().getName(), "isProductName = " + isProductName);
+                    isProductName = 1;
+                } else {
+                    isProductName = 0;
+                    LogUtil.info(getClass().getName(), "isProductName = " + isProductName);
+                }
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return isProductName;
+    }
+
+    public String checkWoDoc(String wonum) throws SQLException, JSONException {
+        String value = "";
+        int checkDoc = isProductNameDigital(wonum);
+        LogUtil.info(this.getClass().getName(), "Is Product: " + checkDoc);
+        
+        if (checkAttachedFile(wonum, "BAA") == 0 && isProductNameDigital(wonum) == 1) {
+            value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). \\nPastikan dokumen telah diupload dengan nama dokumen 'BAA'";
+
+        } else if (isProductNameDigital(wonum) == 0 && checkAttachedFile(wonum, "BAST") == 0
+                && checkAttachedFile(wonum, "BAPLA") == 0
+                && checkAttachedFile(wonum, "BAPL") == 0
+                && checkAttachedFile(wonum, "WO") == 0
+                && checkAttachedFile(wonum, "SPK") == 0
+                && checkAttachedFile(wonum, "KL") == 0) {
+            value = "File BAST/BAPL/BAPLA dan KL/WO/SPK belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+
+        } else if (isProductNameDigital(wonum) == 0
+                && (checkAttachedFile(wonum, "BAST") == 1
+                || checkAttachedFile(wonum, "BAPLA") == 1
+                || checkAttachedFile(wonum, "BAPL") == 1)
+                && checkAttachedFile(wonum, "WO") == 0
+                && checkAttachedFile(wonum, "SPK") == 0
+                && checkAttachedFile(wonum, "KL") == 0) {
+            value = "File KL/WO/SPK belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+
+        } else if (isProductNameDigital(wonum) == 0
+                && checkAttachedFile(wonum, "BAPLA") == 0
+                && checkAttachedFile(wonum, "BAPL") == 0
+                && (checkAttachedFile(wonum, "WO") == 1
+                || checkAttachedFile(wonum, "SPK") == 1
+                || checkAttachedFile(wonum, "KL") == 1)) {
+            value = "File BAST/BAPL/BAPLA belum diupload. Attach/upload file BAST/BAPL/BAPLA dan KL/WO/SPK sebelum update status Complete Work Activity (COMPWA). \\nPastikan minimal 2 dokumen telah diupload dengan nama dokumen 'BAST'/ 'BAPL' / 'BAPLA' dan 'KL'/ 'WO' / 'SPK'";
+        } else {
+            value = "Nama File sudah benar, Update status COMPWA berhasil";
+        }
+
         return value;
     }
 
@@ -272,28 +326,26 @@ public class UpdateTaskStatusEbisDao {
     //===========================
     // Function Update Task
     //===========================
-    public boolean updateTask(String wonum, String status, String modifiedBy) throws SQLException {
-        boolean updateTask = false;
+    public String updateTask(String wonum, String status, String modifiedBy) {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_workorder SET c_status = ?, modifiedby = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
+
             ps.setString(1, status);
             ps.setString(2, modifiedBy);
             ps.setString(3, wonum);
             int exe = ps.executeUpdate();
+
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), "update task berhasil");
-                updateTask = true;
+                return "Update task status berhasil";
             } else {
-                LogUtil.info(getClass().getName(), "update task gagal");
+                return "Update task gagal";
             }
         } catch (Exception e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
+            return "Error: " + e.getMessage();
         }
-        return updateTask;
     }
 
     //===========================================================================

@@ -62,7 +62,7 @@ public class validateNonCoreProduct {
     public JSONObject getParams(String parent) throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT wo1.c_crmordertype, wo1.c_productname, wo1.c_producttype, wo2.c_detailactcode, wo2.c_worktype\n"
+        String query = "SELECT wo1.c_crmordertype, wo1.c_productname, wo1.c_producttype, wo2.c_detailactcode, wo2.c_worktype, wo1.c_workzone\n"
                 + "FROM app_fd_workorder wo1\n"
                 + "JOIN app_fd_workorder wo2 ON wo1.c_wonum = wo2.c_parent\n"
                 + "WHERE wo1.c_woclass = 'WORKORDER'\n"
