@@ -110,6 +110,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 String woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
                 String woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
                 String description = (body.get("description") == null ? "" : body.get("description").toString());
+                String activity = (body.get("activity") == null ? "" : body.get("activity").toString());
                 String errorCode;
                 String engineerMemo;
                 String memo = (body.get("memo") == null ? "" : body.get("memo").toString());
@@ -119,6 +120,7 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 param.setParent(parent);
                 param.setWonum(wonum);
                 param.setDescription(description);
+                param.setActivity(activity);
                 param.setSiteId(siteId);
                 param.setStatus(status);
                 param.setTaskId(taskId);

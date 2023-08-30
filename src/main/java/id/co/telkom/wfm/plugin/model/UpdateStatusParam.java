@@ -39,6 +39,7 @@ public class UpdateStatusParam {
     private String modifiedBy;
     private String memo;
     private String currentDate;
+    private String activity;
     
 //    private UpdateStatusParam(Builder builder) {
 //        this.parent = builder.parent;
@@ -189,5 +190,19 @@ public class UpdateStatusParam {
      */
     public void setMemo(String memo) {
         this.memo = memo;
+    }
+
+    /**
+     * @return the activity
+     */
+    public String getActivity() {
+        return activity;
+    }
+
+    /**
+     * @param activity the activity to set
+     */
+    public void setActivity(String activity) {
+        this.activity = activity;
     }
 }
