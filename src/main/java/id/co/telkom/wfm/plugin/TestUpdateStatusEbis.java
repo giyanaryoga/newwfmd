@@ -98,7 +98,6 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 validateTaskStatus validateTask = new validateTaskStatus();
                 UpdateStatusParam param = new UpdateStatusParam();
                 ResponseAPI responseTemplete = new ResponseAPI();
-
                 JSONObject res = new JSONObject();
 
                 //Store param
@@ -141,30 +140,22 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                             res.writeJSONString(hsr1.getWriter());
                         } else {
                             message = "Please assign task to Laborcode / Amcrew first";
-                            res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
-                            res.writeJSONString(hsr1.getWriter());
+                            hsr1.sendError(422, message);
                         }
                         break;
                     case "COMPWA":
-                        validate = validateTask.compwaTask(param);
+//                        validate = validateTask.compwaTask(param);
                         JSONObject response = validateTask.validateTask(param);
-                        if (validate) {
                             if ((int) response.get("code") == 200) {
                                 res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());
                                 res.writeJSONString(hsr1.getWriter());   
                             } else {
-                                hsr1.sendError(400, response.get("message").toString());
+                                hsr1.sendError((int) response.get("code"), response.get("message").toString());
                             }
-                        } else {
-                            message = "Please insert Task Attribute in Mandatory";
-                            hsr1.sendError(422, message);
-                            res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
-//                            res.writeJSONString(hsr1.getWriter());
-                        }
                         break;
                     default:
                         message = "Status Task is not found";
-                        res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
+//                        res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
 //                        res.writeJSONString(hsr1.getWriter());
                         hsr1.sendError(422, message);
                         break;

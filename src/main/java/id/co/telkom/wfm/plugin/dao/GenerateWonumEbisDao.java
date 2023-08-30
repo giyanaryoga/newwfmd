@@ -503,7 +503,59 @@ public class GenerateWonumEbisDao {
         }
         return insertStatus;
     }
-    
+
+        public boolean insertToWoAttrTable2(String wonum, JSONObject woAttr){
+        String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
+        boolean insertStatus = false;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String insert = "INSERT INTO app_fd_workorderattribute (id, c_workorderattributeid, c_wonum, c_attr_name, c_attr_value, c_sequence, dateCreated) VALUES (?, WFMDBDEV01.WORKORDERATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(insert);
+                try {
+                    ps.setString(1, uuId);
+                    ps.setString(2, wonum);
+                    ps.setString(3, woAttr.get("woAttrName").toString());
+                    ps.setString(4, woAttr.get("woAttrValue").toString());
+                    ps.setString(5, woAttr.get("woAttrSequence").toString());
+                    ps.setTimestamp(6, getTimeStamp());
+                    int exe = ps.executeUpdate();
+                    //Checking insert status
+                    if (exe > 0) {
+                        insertStatus = true;
+                        LogUtil.info(getClass().getName(), "Add | Attr : " + woAttr.get("woAttrName").toString() + ", Value: " + woAttr.get("woAttrValue").toString() + ", sequence: " + woAttr.get("woAttrSequence").toString());
+                    }   
+                    if (ps != null)
+                        ps.close();
+                } catch (SQLException throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (SQLException throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (SQLException throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (SQLException throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+        return insertStatus;
+    }
+
     public JSONObject getWoAttrName(String wonum, String attrName) throws SQLException {
         JSONObject attrProp = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
