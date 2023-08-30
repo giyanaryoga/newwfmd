@@ -159,13 +159,13 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                             message = "Please insert Task Attribute in Mandatory";
                             hsr1.sendError(422, message);
                             res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
-                            res.writeJSONString(hsr1.getWriter());
+//                            res.writeJSONString(hsr1.getWriter());
                         }
                         break;
                     default:
                         message = "Status Task is not found";
                         res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
-                        res.writeJSONString(hsr1.getWriter());
+//                        res.writeJSONString(hsr1.getWriter());
                         hsr1.sendError(422, message);
                         break;
                 }
