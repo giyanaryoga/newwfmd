@@ -35,13 +35,6 @@ public class validateTaskStatus {
     TimeUtil time = new TimeUtil();
     final JSONObject res = new JSONObject();
 
-    private Timestamp getTimeStamp() {
-        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-        Timestamp ts = Timestamp.valueOf(zdt.toLocalDateTime().format(format));
-        return ts;
-    }
-
     public boolean startTask(UpdateStatusParam param) throws JSONException {
         boolean startwa = false;
 
@@ -50,14 +43,14 @@ public class validateTaskStatus {
             String response = "";
             boolean isAssigned = daoUpdate.checkAssignment(param.getWonum());
             String checkActPlace = daoUpdate.checkActPlace(param.getWonum());
-//            boolean validatenoncore = validateNonCoreProduct.validateStartwa(param);
+            boolean validatenoncore = validateNonCoreProduct.validateStartwa(param);
 //            boolean autoFill = validateNonCoreProduct.nonCoreAutoFill(param.getParent());
             if (!isAssigned && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
                 response = "Task is not Assign to Labor yet";
                 startwa = false;
-//            } else if (validatenoncore) {
-//                response = "Generate SID Successfully, Update Status STARTWA";
-//                startwa = true;
+            } else if (validatenoncore) {
+                response = "Generate SID Successfully, Update Status STARTWA";
+                startwa = true;
             } else {
                 updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                 if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
@@ -82,10 +75,19 @@ public class validateTaskStatus {
             boolean isMandatoryValue = daoUpdate.checkMandatory(param.getWonum());
             LogUtil.info(getClass().getName(), "test: " + isMandatoryValue);
             Integer isRequired = daoUpdate.isRequired(param.getWonum());
-            if (isMandatoryValue && isRequired != 1) {
-                compwa = true;
-            } else {
-                compwa = false;
+            switch(isRequired) {
+                case 0:
+                    compwa = true;
+                    break;
+                case 1:
+                    if (isMandatoryValue == false) {
+                        compwa = false;
+                    } else {
+                        compwa = true;
+                    }
+                    break;
+                default:
+                    compwa = false;
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
@@ -282,28 +284,20 @@ public class validateTaskStatus {
                 default:
                     // Define the next move
                     final String nextMove = daoUpdate.nextMove(param.getParent(), Integer.toString(nextTaskId));
-
                     if ("COMPLETE".equals(nextMove)) {
                         completeTask(param);
                         response.put("code", 200);
                         response.put("message", "Berhasil mengupdate status, Mengirim Status COMPLETE ke OSM");
                     } else {
-                        boolean isMandatoryValue = daoUpdate.checkMandatory(param.getWonum());
-                        Integer isRequired = daoUpdate.isRequired(param.getWonum());
-                        if (isMandatoryValue && isRequired == 1) {
-                            //Give LABASSIGN to next task
-                            nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
-                            if (nextAssign) {
-                                response.put("code", 200);
-                                response.put("message", "Update Status compwa is success");
-                            }
-                            daoUpdate.updateWoDesc(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
-                            daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                        } else {
-                            response.put("code", 422);
-                            response.put("message", "Please insert Task Attribute in Mandatory");
+                        //Give LABASSIGN to next task
+                        nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                        if (nextAssign) {
+                            response.put("code", 200);
+                            response.put("message", "Update Status compwa is success");
                         }
+                        daoUpdate.updateWoDesc(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                        daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                     }
                     break;
             }

@@ -128,7 +128,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 param.setMemo(memo);
                 param.setModifiedBy(modifiedBy);
                 param.setCurrentDate(currentDate);
-                boolean validate = false;
+                boolean validate = true;
                 boolean validatenoncore = false;
                 String message = "";
 
@@ -145,14 +145,20 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         }
                         break;
                     case "COMPWA":
-//                        validate = validateTask.compwaTask(param);
-                        JSONObject response = validateTask.validateTask(param);
+                        validate = validateTask.compwaTask(param);
+                        LogUtil.info(getClass().getName(), "VALIDATE: " + validate);
+                        if (validate) {
+                            JSONObject response = validateTask.validateTask(param);
                             if ((int) response.get("code") == 200) {
                                 res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());
                                 res.writeJSONString(hsr1.getWriter());   
                             } else {
                                 hsr1.sendError((int) response.get("code"), response.get("message").toString());
                             }
+                        } else {
+                            message = "Please insert Task Attribute in Mandatory";
+                            hsr1.sendError(422, message);
+                        }
                         break;
                     default:
                         message = "Status Task is not found";
@@ -162,7 +168,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             } catch (JSONException ex) {
-                Logger.getLogger(TestUpdateStatusEbis.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(UpdateTaskStatusEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (!"POST".equals(hsr.getMethod())) {
             try {
