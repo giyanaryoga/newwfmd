@@ -204,6 +204,8 @@ public class validateGenerateTask {
                 JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
                 String attrName = taskAttrObj.get("attrName").toString();
                 String attrValue = taskAttrObj.get("attrValue").toString();
+                //@insert Oss Item Attribute
+                generateDao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
                 if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
                     if (attrValue.isEmpty()) {
                         //GENERATE VALUE FROM WORKORDERATTRIBUTE
@@ -222,8 +224,6 @@ public class validateGenerateTask {
 //                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
                     }
                 }
-                //@insert Oss Item Attribute
-                generateDao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
             }
             counter = counter + 1;
         }

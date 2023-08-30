@@ -19,6 +19,7 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
@@ -81,7 +82,7 @@ public class validateTaskStatus {
         boolean compwa = false;
         try {
             boolean isMandatoryValue = daoTestUpdate.checkMandatory(param.getWonum());
-            LogUtil.info(getClass().getName(), "test: " + isMandatoryValue);
+//            LogUtil.info(getClass().getName(), "test: " + isMandatoryValue);
             Integer isRequired = daoTestUpdate.isRequired(param.getWonum());
             compwa = !(isMandatoryValue && isRequired != 1);
         } catch (SQLException ex) {
@@ -129,8 +130,10 @@ public class validateTaskStatus {
             boolean nextAssign = false;
             int nextTaskId = Integer.parseInt(param.getTaskId()) + 10;
             String isWoDocValue = "";
+            String productName = daoTestUpdate.getProductName(param.getWonum());
+            String[] productList = {"SL_WDM", "INF_SL", "MM_GLOBAL_LINK"};
 
-            switch (param.getDescription()) {
+            switch (param.getActivity()) {
                 case "Registration Suplychain":
                 case "Registration Suplychain Wifi":
                     // Start of Set Install
@@ -156,7 +159,7 @@ public class validateTaskStatus {
                         response.put("message", "Mengirim set Dismantle ke SCMT");
                     }
                     break;
-                case "Upload Berita Acara":
+                case "Upload_Berita_Acara":
                     // check documentname
                     try {
                     isWoDocValue = daoTestUpdate.checkWoDoc(param.getParent());
@@ -168,10 +171,8 @@ public class validateTaskStatus {
                         daoTestUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                     } else {
-                        response.put("code", 200);
+                        response.put("code", 400);
                         response.put("message", isWoDocValue);
-                        LogUtil.info(getClass().getName(), "RESULT : " + isWoDocValue);
-                        LogUtil.info(getClass().getName(), "RESPONSE : " + res);
                     }
                 } catch (SQLException e) {
                     LogUtil.info(getClass().getName(), "ERROR : " + e);
@@ -179,7 +180,36 @@ public class validateTaskStatus {
                     Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
-
+                case "WFMNonCore Review Order TSQ IP Transit":
+                    if(productName.equalsIgnoreCase("MM_IP_TRANSIT")) {
+                        
+                    }
+                break;
+                case "WFMNonCore Deactivate Access WDM":
+                    if (Arrays.asList(productList).contains(productName)) {
+                        
+                    }
+                break;
+                case "WFMNonCore Deactivate WDM":
+                    if (Arrays.asList(productList).contains(productName)) {
+                        
+                    }
+                break;
+                case "WFMNonCore Allocate Access":
+                    if (Arrays.asList(productList).contains(productName)) {
+                        
+                    }
+                break;
+                case "WFMNonCore Allocate WDM":
+                    if (Arrays.asList(productList).contains(productName)) {
+                        
+                    }
+                break;
+                case "WFMNonCore Activate And Integration WDM":
+                    if (Arrays.asList(productList).contains(productName)) {
+                        
+                    }
+                break;
                 default:
                     // Define the next move
                     final String nextMove = daoTestUpdate.nextMove(param.getParent(), Integer.toString(nextTaskId));
