@@ -53,7 +53,7 @@ public class validateTaskStatus {
             int isNoncore = daoNonCore.isNonCoreProduct(productname);
             if (isNoncore == 1) {
                 boolean validatenoncore = validateNonCoreProduct.validateStartwa(param);
-                boolean autoFill = validateNonCoreProduct.nonCoreAutoFill(param.getParent());
+                boolean autofillnoncore = validateNonCoreProduct.nonCoreAutoFill(param.getParent());
                 if (validatenoncore) {
                     updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                     if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
@@ -62,8 +62,13 @@ public class validateTaskStatus {
                         startwa = true;
                     }
                     response = "Generate SID Berhasil";
-                } else if (autoFill) {
-                    response = "Update Attribute Value Berhasil";
+                } else if (autofillnoncore) {
+                    response = "success";
+                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                        response = "Success";
+                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        startwa = true;
+                    }
                 } else {
                     updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                     if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
@@ -97,7 +102,7 @@ public class validateTaskStatus {
             boolean isMandatoryValue = daoUpdate.checkMandatory(param.getWonum());
             LogUtil.info(getClass().getName(), "test: " + isMandatoryValue);
             Integer isRequired = daoUpdate.isRequired(param.getWonum());
-            switch(isRequired) {
+            switch (isRequired) {
                 case 0:
                     compwa = true;
                     break;

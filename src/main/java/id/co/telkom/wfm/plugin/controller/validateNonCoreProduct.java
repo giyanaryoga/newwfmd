@@ -40,12 +40,14 @@ public class validateNonCoreProduct {
         "WFMNonCore Review Order TSQ IPPBX NeuAPIX", "WFMNonCore Review Order Integrasi Link SMS A2P",
         "WFMNonCore Review Order neuCentrIX Layer 1"
     };
-
     // List Product
     String[] listProduct = {"WIFI_HOMESPOT", "TSA_CONSPART", "TSA_OSS_ISP", "TSA_OSS_OSP", "TSA_SPMS", "TSA_PM_ISP"};
-
     // List MO DO RO SO
     String[] listMoDoRoSo = {"Modify", "Disconnect", "Resume", "Suspend"};
+    // List Product MM IP TRANSIT
+    String[] productlist = {"MM_IP_TRANSIT"};
+    // List Detailactcode 
+    String[] detailactcodeList = {"WFMNonCore Allocate Service IPTransit", "WFMNonCore Validate Service IPTransit"};
 
     // Generate Format Number
     public String generate(String wonum, String defaultFormat) {
@@ -54,7 +56,6 @@ public class validateNonCoreProduct {
         String formattedDateTime = currentDateTime.format(formatter);
 
         String num = wonum.substring(wonum.length() - 3);
-
         return defaultFormat + formattedDateTime + num;
     }
 
@@ -445,8 +446,7 @@ public class validateNonCoreProduct {
     public boolean nonCoreAutoFill(String wonum) {
         // workorder where c_wonum ,c_woclass='activ'
         boolean status = false;
-        String[] productlist = {"MM_IP_TRANSIT"};
-        String[] detailactcodeList = {"WFMNonCore Allocate Service IPTransit", "WFMNonCore Validate Service IPTransit"};
+
         try {
             JSONObject dataWO = getParams(wonum);
             String workzone = dataWO.has("workzone") ? dataWO.get("workzone").toString() : null;
@@ -455,7 +455,8 @@ public class validateNonCoreProduct {
 
             String devicetype = "ROUTER";
             String ServiceType = "TRANSIT";
-            if (ArrayUtils.contains(productlist, productname) && ArrayUtils.contains(detailactcodeList, detailactcode)) {
+
+            if (Arrays.asList(productlist).contains(productname) && Arrays.asList(detailactcodeList).contains(detailactcode)) {
                 updateNonCoreAutoFillWorkorderSpec("SERVICE_TYPE", ServiceType, wonum);
                 updateNonCoreAutoFillWorkorderSpec("DEVICETYPE", devicetype, wonum);
                 updateNonCoreAutoFillWorkorderSpec("AREANAME", workzone, wonum);
