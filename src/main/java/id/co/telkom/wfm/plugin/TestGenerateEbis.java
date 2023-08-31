@@ -10,24 +10,10 @@ import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
 import id.co.telkom.wfm.plugin.dao.TestGenerateDao;
 import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
-import id.co.telkom.wfm.plugin.model.ListAttributes;
-//import id.co.telkom.wfm.plugin.model.ListOssItem;
-//import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
-//import id.co.telkom.wfm.plugin.model.ActivityTask;
-//import id.co.telkom.wfm.plugin.model.ListCpeValidate;
-//import id.co.telkom.wfm.plugin.util.JsonUtil;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
-//import java.time.LocalDateTime;
-//import java.time.ZoneId;
-//import java.time.ZonedDateTime;
-//import java.time.format.DateTimeFormatter;
-//import java.util.ArrayList;
-//import java.util.Collections;
-//import java.util.Comparator;
-//import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -181,25 +167,19 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 
                 //@Work Order attribute
                 JSONArray AttributeWO = new JSONArray();
-                ListAttributes listAttr = new ListAttributes();
+//                ListAttributes listAttr = new ListAttributes();
                 //Loop getting each attribute
                 for (int i = 0 ; i < attr_array.size() ; i++){
                     JSONObject attr_arrayObj = (JSONObject)attr_array.get(i);
                     JSONObject woAttribute = new JSONObject();
                     //Store attribute
-                    listAttr.setTlkwoAttrName(attr_arrayObj.get("ATTR_NAME").toString());
-                    listAttr.setTlkwoAttrValue(attr_arrayObj.get("ATTR_VALUE").toString() == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString());
-                    String sequence = (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString());
-                    listAttr.setSequence(sequence);
-                    
                     woAttribute.put("woAttrName", (attr_arrayObj.get("ATTR_NAME") == null ? "" : attr_arrayObj.get("ATTR_NAME").toString()));
                     woAttribute.put("woAttrValue", (attr_arrayObj.get("ATTR_VALUE") == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString()));
                     woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString()));
                     AttributeWO.add(woAttribute);
                     
                     //Insert attribute
-                    boolean insertAttrStatus = dao.insertToWoAttrTable(workorder.get("wonum").toString(), listAttr);
-                    listAttr.setTlkwoInsertAttrStatus(insertAttrStatus);
+                    dao.insertToWoAttrTable2(workorder.get("wonum").toString(), woAttribute);
                 }
                 
                 JSONArray oss_item = new JSONArray();

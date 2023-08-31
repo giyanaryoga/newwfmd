@@ -64,6 +64,7 @@ public class validateRevised {
                                                 JSONObject taskObj = (JSONObject)obj2;
                                                 LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
                                                 dao.generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
+                                                dao.updateWoDesc(taskObj.get("parent").toString());
                                             }
                                             break;
                                         case "REJECTED TO SHIPMENT AND DELIVERY TASK":
@@ -75,6 +76,7 @@ public class validateRevised {
                                                 JSONObject taskObj = (JSONObject)obj2;
                                                 LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
                                                 dao.generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
+                                                dao.updateWoDesc(taskObj.get("parent").toString());
                                             }
                                             break;
                                         case "REJECTED TO ACTIVATE SERVICE":
@@ -86,6 +88,7 @@ public class validateRevised {
                                                 JSONObject taskObj = (JSONObject)obj2;
                                                 LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
                                                 dao.generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
+                                                dao.updateWoDesc(taskObj.get("parent").toString());
                                             }
                                             break;
                                         case "REJECTED TO UPLOAD BERITA ACARA":
@@ -97,6 +100,7 @@ public class validateRevised {
                                                 JSONObject taskObj = (JSONObject)obj2;
                                                 LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
                                                 dao.generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
+                                                dao.updateWoDesc(taskObj.get("parent").toString());
                                             }
                                             break;
                                         default:

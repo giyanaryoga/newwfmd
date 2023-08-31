@@ -139,14 +139,15 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                 LogUtil.info(getClassName(), "parent: " + parent);
                 LogUtil.info(getClassName(), "wosequence: " + woSequence);
                 LogUtil.info(getClassName(), "description: " + description);
+                String updateTask = "";
                 
 //                int nextTaskId = Integer.parseInt(taskId) + 10;
                 if (woSequence.equals("10") || woSequence.equals("20") || woSequence.equals("30") || woSequence.equals("40") || woSequence.equals("50") || woSequence.equals("60")) {
                     //Update status
 //                    UpdateTaskStatusEbisDao updateTaskStatusEbisDao = new UpdateTaskStatusEbisDao();
                     if ("STARTWA".equals(body.get("status"))) {
-                        final boolean updateTask = dao.updateTask(wonum, status, modifiedBy);
-                        if (updateTask) {
+                        updateTask = dao.updateTask(wonum, status, modifiedBy);
+                        if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                             hsr1.setStatus(200);
                         }
                         JSONObject res = new JSONObject();
@@ -185,8 +186,8 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                                     LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
                                     // update task status
-                                    final boolean updateTask = dao.updateTask(wonum, status, modifiedBy);
-                                    if (updateTask) {
+                                    updateTask = dao.updateTask(wonum, status, modifiedBy);
+                                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                                         hsr1.setStatus(200);
                                     }
 
