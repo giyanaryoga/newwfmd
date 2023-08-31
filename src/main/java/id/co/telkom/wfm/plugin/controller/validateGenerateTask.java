@@ -191,14 +191,6 @@ public class validateGenerateTask {
 
             //GENERATE OSS ITEM
             generateDao.insertToOssItem(sortedTask);
-            //GENERATE TASK
-            dao2.generateActivityTask(sortedTask, workorder, ownerGroupTask);
-            //GENERATE ASSIGNMENT
-            dao2.generateAssignment(sortedTask, workorder);
-            //GENERATE TASK HISTORY
-            historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum from OSM", "extOSM", "extOSM");
-            //TASK ATTRIBUTE GENERATE
-            dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
             JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
             for (Object taskAttrArrayObj: taskAttrArray) {
                 JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
@@ -225,6 +217,14 @@ public class validateGenerateTask {
                     }
                 }
             }
+            //GENERATE TASK
+            dao2.generateActivityTask(sortedTask, workorder, ownerGroupTask);
+            //GENERATE ASSIGNMENT
+            dao2.generateAssignment(sortedTask, workorder);
+            //GENERATE TASK HISTORY
+            historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum OSM", "OSM", "OSM");
+            //TASK ATTRIBUTE GENERATE
+            dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
             counter = counter + 1;
         }
     }
