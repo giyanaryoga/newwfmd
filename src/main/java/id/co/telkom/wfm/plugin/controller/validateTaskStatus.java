@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import java.util.logging.*;
+import static javassist.runtime.Desc.getParams;
 import org.joget.commons.util.LogUtil;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
@@ -32,6 +33,8 @@ public class validateTaskStatus {
     TaskHistoryDao daoHistory = new TaskHistoryDao();
     TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     validateNonCoreProduct validateNonCoreProduct = new validateNonCoreProduct();
+    NonCoreCompleteDao daoNonCore = new NonCoreCompleteDao();
+
     TimeUtil time = new TimeUtil();
     final JSONObject res = new JSONObject();
 
@@ -44,31 +47,49 @@ public class validateTaskStatus {
 
     public boolean startTask(UpdateStatusParam param) throws JSONException {
         boolean startwa = false;
-
         try {
             String updateTask = "";
             String response = "";
             boolean isAssigned = daoTestUpdate.checkAssignment(param.getWonum());
             String checkActPlace = daoTestUpdate.checkActPlace(param.getWonum());
-            boolean validatenoncore = validateNonCoreProduct.validateStartwa(param);
-            boolean autoFill = validateNonCoreProduct.nonCoreAutoFill(param.getParent());
-            if (!isAssigned && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
-                response = "Task is not Assign to Labor yet";
-                startwa = false;
-            } else if (validatenoncore) {
-                response = "Generate SID Successfully, Update Status STARTWA";
-                startwa = true;
-            } else {
-                updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                    response = "Success";
-                    daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                    startwa = true;
-                }
-            }
 
-            if(autoFill){
-                response = response + "\nAuto Fill Successfully";
+            org.json.JSONObject params = validateNonCoreProduct.getParams(param.getParent());
+            String productname = (params.optString("productname", null));
+
+            int isNoncore = daoNonCore.isNonCoreProduct(productname);
+            if (isNoncore == 1) {
+                boolean validatenoncore = validateNonCoreProduct.validateStartwa(param);
+                boolean autoFill = validateNonCoreProduct.nonCoreAutoFill(param.getParent());
+                if (validatenoncore) {
+                    updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                        response = "Success";
+                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        startwa = true;
+                    }
+                    response = "Generate SID Berhasil";
+                } else if (autoFill) {
+                    response = "Update Attribute Value Berhasil";
+                } else {
+                    updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                        response = "Success";
+                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        startwa = true;
+                    }
+                }
+            } else {
+                if (!isAssigned && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
+                    response = "Task is not Assign to Labor yet";
+                    startwa = false;
+                } else {
+                    updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                        response = "Success";
+                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        startwa = true;
+                    }
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
@@ -89,39 +110,72 @@ public class validateTaskStatus {
         return compwa;
     }
 
-    private void completeTask(UpdateStatusParam param) {
+    private void completeTask(UpdateStatusParam param) throws JSONException {
         String updateTask = "";
         String response = "";
         try {
-            // Update parent status
-            daoTestUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
-            LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
+            org.json.JSONObject params = validateNonCoreProduct.getParams(param.getParent());
+            String productname = (params.optString("productname", null));
+            int isNoncore = daoNonCore.isNonCoreProduct(productname);
 
-            // update task status
-            updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-            if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+            if (isNoncore == 1) {
+                // Update parent status
+                daoTestUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
+                LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
+
+                // update task status
+                updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                    daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                }
+                //Validate Non-Core COMPLETE
+                validateNonCoreProduct.validateComplete(param);
+
+                // Insert data to table WFMMILESTONE
+                daoTestUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
+                //Create response
+                JSONObject dataRes = new JSONObject();
+                dataRes.put("wonum", param.getParent());
+                dataRes.put("milestone", param.getWoStatus());
+
+                //Build Response
+                JSONObject data = daoTestUpdate.getCompleteJson(param.getParent());
+                // Response to Kafka
+                String topic = "WFM_MILESTONE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
+                String kafkaRes = data.toJSONString();
+                KafkaProducerTool kaf = new KafkaProducerTool();
+                kaf.generateMessage(kafkaRes, topic, "");
+            } else {
+                // Update parent status
+                daoTestUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
+                LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
+
+                // update task status
+                updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                    daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                }
+                // Insert data to table WFMMILESTONE
+                daoTestUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
+                //Create response
+                JSONObject dataRes = new JSONObject();
+                dataRes.put("wonum", param.getParent());
+                dataRes.put("milestone", param.getWoStatus());
+
+                //Build Response
+                JSONObject data = daoTestUpdate.getCompleteJson(param.getParent());
+                // Response to Kafka
+                String topic = "WFM_MILESTONE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
+                String kafkaRes = data.toJSONString();
+                KafkaProducerTool kaf = new KafkaProducerTool();
+                kaf.generateMessage(kafkaRes, topic, "");
             }
-            // Insert data to table WFMMILESTONE
-            daoTestUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
-            //Create response
-            JSONObject dataRes = new JSONObject();
-            dataRes.put("wonum", param.getParent());
-            dataRes.put("milestone", param.getWoStatus());
-
-            //Build Response
-            JSONObject data = daoTestUpdate.getCompleteJson(param.getParent());
-            // Response to Kafka
-            String topic = "WFM_MILESTONE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
-            String kafkaRes = data.toJSONString();
-            KafkaProducerTool kaf = new KafkaProducerTool();
-            kaf.generateMessage(kafkaRes, topic, "");
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public JSONObject validateTask(UpdateStatusParam param) {
+    public JSONObject validateTask(UpdateStatusParam param) throws JSONException {
         JSONObject response = new JSONObject();
         try {
             String updateTask = "";
@@ -179,7 +233,7 @@ public class validateTaskStatus {
                 }
                 break;
                 case "WFMNonCore Review Order TSQ IP Transit":
-                    if(productName.equalsIgnoreCase("MM_IP_TRANSIT")) {
+                    if (productName.equalsIgnoreCase("MM_IP_TRANSIT")) {
                         String sbrValue = daoTestUpdate.getTaskAttrValue(param.getWonum(), "SBR");
                         int document = daoTestUpdate.checkAttachedFile(param.getParent(), "LOA");
                         if (sbrValue.equalsIgnoreCase("YES") && document == 1) {
@@ -193,7 +247,7 @@ public class validateTaskStatus {
                             response.put("message", "Document LOA Tidak ada...");
                         }
                     }
-                break;
+                    break;
                 case "WFMNonCore Deactivate Access WDM":
                     if (Arrays.asList(productList).contains(productName)) {
                         int document = daoTestUpdate.checkAttachedFile(param.getParent(), "BA DEAKTIVASI AKSES");
@@ -208,7 +262,7 @@ public class validateTaskStatus {
                             response.put("message", "Document BA DEAKTIVASI AKSES Tidak ada...");
                         }
                     }
-                break;
+                    break;
                 case "WFMNonCore Deactivate WDM":
                     if (Arrays.asList(productList).contains(productName)) {
                         int document = daoTestUpdate.checkAttachedFile(param.getParent(), "BA DEAKTIVASI TRANS");
@@ -223,7 +277,7 @@ public class validateTaskStatus {
                             response.put("message", "Document BA DEAKTIVASI TRANS Tidak ada...");
                         }
                     }
-                break;
+                    break;
                 case "WFMNonCore Allocate Access":
                     if (Arrays.asList(productList).contains(productName)) {
                         int document = daoTestUpdate.checkAttachedFile(param.getParent(), "DATEK AKSES");
@@ -238,7 +292,7 @@ public class validateTaskStatus {
                             response.put("message", "Document DATEK AKSES Tidak ada...");
                         }
                     }
-                break;
+                    break;
                 case "WFMNonCore Allocate WDM":
                     if (Arrays.asList(productList).contains(productName)) {
                         int document = daoTestUpdate.checkAttachedFile(param.getParent(), "DATEK TRANSPORT");
@@ -253,7 +307,7 @@ public class validateTaskStatus {
                             response.put("message", "Document DATEK TRANSPORT Tidak ada...");
                         }
                     }
-                break;
+                    break;
                 case "WFMNonCore Activate And Integration WDM":
                     if (Arrays.asList(productList).contains(productName)) {
                         int document = daoTestUpdate.checkAttachedFile(param.getParent(), "BA INTEGRASI TRANS");
@@ -268,7 +322,7 @@ public class validateTaskStatus {
                             response.put("message", "Document BA INTEGRASI TRANS Tidak ada...");
                         }
                     }
-                break;
+                    break;
                 default:
                     // Define the next move
                     final String nextMove = daoTestUpdate.nextMove(param.getParent(), Integer.toString(nextTaskId));

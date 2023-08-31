@@ -21,6 +21,7 @@ import javax.xml.soap.*;
  * @author ASUS
  */
 public class NonCoreCompleteDao {
+
     public String getStringSoapMessage(SOAPMessage soapMessage) {
         try {
             SOAPPart soapPart = soapMessage.getSOAPPart();
@@ -32,8 +33,8 @@ public class NonCoreCompleteDao {
     }
 
     // Check Product Non-Core
-    public boolean isNonCoreProduct(String productname) {
-        boolean value = false;
+    public int isNonCoreProduct(String productname) {
+        int value = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
         String selectQuery = "SELECT c_productname FROM app_fd_wfmproduct WHERE c_productname = ?";
@@ -47,9 +48,9 @@ public class NonCoreCompleteDao {
 
             while (rs.next()) {
                 if (rs.getString("c_productname") != null) {
-                    value = true;
+                    value = 1;
                 } else {
-                    value = false;
+                    value = 0;
                 }
             }
         } catch (SQLException e) {
@@ -59,18 +60,19 @@ public class NonCoreCompleteDao {
     }
 
     // Get Workorderattribute value
-    public JSONObject getWorkorderattributeValue(String wonum) throws SQLException {
+    public JSONObject getWorkorderattributeValue(String wonum, String attrname) throws SQLException {
         JSONObject result = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
         String selectQuery = "SELECT c_attr_name, c_attr_value \n"
                 + "FROM app_fd_workorderattribute \n"
-                + "WHERE c_attr_name IN ('SID', 'CUSTOMERPARTY_ACCOUNTID')\n"
+                + "WHERE c_attr_name IN ('?')\n"
                 + "AND c_wonum = ?";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
             ps.setString(1, wonum);
+            ps.setString(2, attrname);
 
             ResultSet rs = ps.executeQuery();
 
@@ -240,30 +242,36 @@ public class NonCoreCompleteDao {
         }
     }
 
-//    public void generateServiceSpecFromWorkorder(String assetnum, String parent) throws SQLException {
-////        String assetSpecValue = "";
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        
-//        String selectAssetSpec = "SELECT c_assetattrid, c_value FROM app_fd_assetspec WHERE c_assetnum = ?";
-//        String insertAssetSpecValue = "INSERT INTO app_fd_assetspec (c_value) VALUES (?) WHERE c_assetnum = ?";
-//        
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(selectAssetSpec)) {
-//            ps.setString(1, assetnum);
-//            
-//            ResultSet rs = ps.executeQuery();
-//            
-//            while (rs != null) {
-//                String assetSpecValue = getTaskattributeValue(parent, rs.getString("c_assetattrid")).toJSONString();
-//                if (assetSpecValue != "") {
-//                    
-//                }
-//                
-//            }
-//        }
-//        
-//    }
-    
+    public void generateServiceSpecFromWorkorder(String assetnum, String parent) throws SQLException {
+        String assetattrid = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+
+        String selectAssetSpec = "SELECT c_assetattrid, c_value FROM app_fd_assetspec WHERE c_assetnum = ?";
+        String insertAssetSpecValue = "INSERT INTO app_fd_assetspec (c_value) VALUES (?) WHERE c_assetnum = ?";
+
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(selectAssetSpec);
+                PreparedStatement psInsert = con.prepareStatement(insertAssetSpecValue)) {
+            ps.setString(1, assetnum);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                assetattrid = rs.getString("c_assetattrid");
+            }
+            if (assetattrid == null) {
+                String assetSpecValue = getTaskattributeValue(parent, rs.getString("c_assetattrid")).toJSONString();
+                if (assetSpecValue != "") {
+                    psInsert.setString(1, assetSpecValue);
+                    psInsert.setString(2, assetnum);
+                    psInsert.executeQuery();
+
+                }
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+    }
+
     public void generateAssetWorkzone(String assetnum, String workzone, String siteid) {
         String uuId = UuidGenerator.getInstance().getUuid();
 
@@ -336,7 +344,7 @@ public class NonCoreCompleteDao {
 
     public void reserveResourceUIM(String wonum, String SID) {
         InsertIntegrationHistory insertIntegration = new InsertIntegrationHistory();
-        
+
         if (true) {
             Map<String, String> attributeInfo = new HashMap<>();
             try {
