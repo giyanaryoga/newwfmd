@@ -7,6 +7,7 @@ package id.co.telkom.wfm.plugin.controller;
 import id.co.telkom.wfm.plugin.dao.NonCoreCompleteDao;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.dao.TkMappingOwnerGroupDao;
+import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,7 @@ public class validateOwnerGroup {
     NonCoreCompleteDao productNonCore = new NonCoreCompleteDao();
     UpdateTaskStatusEbisDao product = new UpdateTaskStatusEbisDao();
     TkMappingOwnerGroupDao tkMapping = new TkMappingOwnerGroupDao();
+    TaskActivityDao taskDao = new TaskActivityDao();
     String dc_type;
     String dc_type_segment;
     String dcType1[] = {"Wholesale", "OLO_MS"};
@@ -104,7 +106,22 @@ public class validateOwnerGroup {
         return workzone;
     }
     
-    public void validateTkMapping(JSONObject taskObj, JSONObject workorder) throws SQLException {
+    public void ownerGroupParent(JSONObject workorder) throws SQLException {
+        String workzone = taskDao.getWorkzone(workorder.get("wonum").toString());
+        String siteId = workorder.get("siteId").toString();
+        dc_type = product.getTaskAttrValue(workorder.get("wonum").toString(), "DC_Type");
+        if (dc_type == null) {
+            
+        } else if (Arrays.asList(dcType1).contains(dc_type)) {
+            
+        } else if (Arrays.asList(dcType2).contains(dc_type)) {
+            
+        } else {
+            
+        }
+    }
+    
+    public void ownerGroupTask(JSONObject taskObj, JSONObject workorder) throws SQLException {
         boolean isTaskNonConn = tkMapping.getTaskNonConn(taskObj.get("activity").toString());
         String dcType = this.getDCTypeSegment(workorder);
         String supplier = this.getSupplier(workorder);

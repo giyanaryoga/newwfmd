@@ -48,6 +48,24 @@ public class TkMappingOwnerGroupDao {
         }
         return task;
     }
+    
+    public String getOwnerGroupParent(String workzone) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping WHERE c_workzone = ? AND c_classstructureid IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid = 'WFM' AND c_parent IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid='FULFILLMENT'))";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
 
     public String get(String wonum, String attrName) throws SQLException {
         String taskAttrValue = "";
