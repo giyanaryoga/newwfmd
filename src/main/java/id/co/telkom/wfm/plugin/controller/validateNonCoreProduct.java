@@ -316,13 +316,13 @@ public class validateNonCoreProduct {
         org.json.simple.JSONObject taskattribute = daoNoncore.getTaskattributeValue(param.getParent(), "SID");
         // Get Params
         JSONObject params = getParams(param.getParent());
-        String productname = (params.get("productname") == null ? "" : params.get("productname").toString());
-        String worktype = (params.get("worktype") == null ? "" : params.get("worktype").toString());
-        String crmordertype = (params.get("crmordertype") == null ? "" : params.get("crmordertype").toString());
+        String productname = params.optString("productname", null);
+        String worktype = params.optString("worktype", null);
+        String crmordertype = params.optString("crmordertype", null);
 
         isNoncore = daoNoncore.isNonCoreProduct(productname);
 
-        if ("WFM".equals(worktype) && Arrays.asList(listProduct).contains(productname) && !"REJECTED".equals(daoNoncore.getTaskattributeValue(param.getWonum(), "APPROVAL"))) {
+        if ("WFM".equals(worktype) && Arrays.asList(listProduct).contains(productname) && !(daoNoncore.getTaskattributeValue(param.getWonum(), "APPROVAL")).equals("REJECTED")) {
             if (isNoncore == 1) {
                 if (Arrays.asList(listMoDoRoSo).contains(crmordertype)) {
                     validateProduct(productname, crmordertype, param.getModifiedBy(), param.getWonum(), param.getParent());

@@ -141,6 +141,7 @@ public class validateTaskStatus {
                 if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                     daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                 }
+
                 //Validate Non-Core COMPLETE
                 validateNonCoreProduct.validateComplete(param);
 
