@@ -31,7 +31,7 @@ public class validateTaskStatus {
     UpdateTaskStatusEbisDao daoUpdate = new UpdateTaskStatusEbisDao();
     ScmtIntegrationEbisDao daoScmt = new ScmtIntegrationEbisDao();
     TaskHistoryDao daoHistory = new TaskHistoryDao();
-    TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
+//    TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     validateNonCoreProduct validateNonCoreProduct = new validateNonCoreProduct();
     NonCoreCompleteDao daoNonCore = new NonCoreCompleteDao();
 
@@ -44,10 +44,10 @@ public class validateTaskStatus {
             String updateTask = "";
             String response = "";
 
-            boolean isAssigned = daoTestUpdate.checkAssignment(param.getWonum());
-            String checkActPlace = daoTestUpdate.checkActPlace(param.getWonum());
+            boolean isAssigned = daoUpdate.checkAssignment(param.getWonum());
+            String checkActPlace = daoUpdate.checkActPlace(param.getWonum());
 
-            org.json.JSONObject params = validateNonCoreProduct.getParams(param.getParent());
+            org.json.JSONObject params = validateNonCoreProduct.getParams(param.getWonum());
             String productname = (params.optString("productname", null));
 
             int isNoncore = daoNonCore.isNonCoreProduct(productname);
@@ -55,7 +55,7 @@ public class validateTaskStatus {
                 boolean validatenoncore = validateNonCoreProduct.validateStartwa(param);
                 boolean autofillnoncore = validateNonCoreProduct.nonCoreAutoFill(param.getParent());
                 if (validatenoncore) {
-                    updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                     if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                         response = "Success";
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
@@ -70,7 +70,7 @@ public class validateTaskStatus {
                         startwa = true;
                     }
                 } else {
-                    updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                     if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                         response = "Success";
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
@@ -82,7 +82,7 @@ public class validateTaskStatus {
                     response = "Task is not Assign to Labor yet";
                     startwa = false;
                 } else {
-                    updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                     if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                         response = "Success";
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
@@ -127,17 +127,17 @@ public class validateTaskStatus {
 //        String response = "";
         try {
 
-            org.json.JSONObject params = validateNonCoreProduct.getParams(param.getParent());
+            org.json.JSONObject params = validateNonCoreProduct.getParams(param.getWonum());
             String productname = (params.optString("productname", null));
             int isNoncore = daoNonCore.isNonCoreProduct(productname);
 
             if (isNoncore == 1) {
                 // Update parent status
-                daoTestUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
+                daoUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
                 LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
                 // update task status
-                updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                 if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                     daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                 }
@@ -146,14 +146,14 @@ public class validateTaskStatus {
                 validateNonCoreProduct.validateComplete(param);
 
                 // Insert data to table WFMMILESTONE
-                daoTestUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
+                daoUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
                 //Create response
                 JSONObject dataRes = new JSONObject();
                 dataRes.put("wonum", param.getParent());
                 dataRes.put("milestone", param.getWoStatus());
 
                 //Build Response
-                JSONObject data = daoTestUpdate.getCompleteJson(param.getParent());
+                JSONObject data = daoUpdate.getCompleteJson(param.getParent());
                 // Response to Kafka
                 String topic = "WFM_MILESTONE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
                 String kafkaRes = data.toJSONString();
@@ -161,23 +161,23 @@ public class validateTaskStatus {
                 kaf.generateMessage(kafkaRes, topic, "");
             } else {
                 // Update parent status
-                daoTestUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
+                daoUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
                 LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
                 // update task status
-                updateTask = daoTestUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                 if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                     daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                 }
                 // Insert data to table WFMMILESTONE
-                daoTestUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
+                daoUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
                 //Create response
                 JSONObject dataRes = new JSONObject();
                 dataRes.put("wonum", param.getParent());
                 dataRes.put("milestone", param.getWoStatus());
 
                 //Build Response
-                JSONObject data = daoTestUpdate.getCompleteJson(param.getParent());
+                JSONObject data = daoUpdate.getCompleteJson(param.getParent());
                 // Response to Kafka
                 String topic = "WFM_MILESTONE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
                 String kafkaRes = data.toJSONString();
@@ -248,8 +248,8 @@ public class validateTaskStatus {
                 break;
                 case "WFMNonCore Review Order TSQ IP Transit":
                     if (productName.equalsIgnoreCase("MM_IP_TRANSIT")) {
-                        String sbrValue = daoTestUpdate.getTaskAttrValue(param.getWonum(), "SBR");
-                        int document = daoTestUpdate.checkAttachedFile(param.getParent(), "LOA");
+                        String sbrValue = daoUpdate.getTaskAttrValue(param.getWonum(), "SBR");
+                        int document = daoUpdate.checkAttachedFile(param.getParent(), "LOA");
                         if (sbrValue.equalsIgnoreCase("YES") && document == 1) {
                             response.put("code", 200);
                             response.put("message", "Document LOA ada...");

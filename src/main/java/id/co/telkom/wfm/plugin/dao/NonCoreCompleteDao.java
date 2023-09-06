@@ -88,32 +88,30 @@ public class NonCoreCompleteDao {
     }
 
     // Get Task Attribute
-    public JSONObject getTaskattributeValue(String parent, String assetattrid) throws SQLException {
-        JSONObject result = new JSONObject();
-
+    public String getTaskattributeValue(String parent, String assetattrid) throws SQLException {
+        String result = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-
-        String selectQuery = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec \n"
-                + "WHERE c_wonum \n"
-                + "IN (\n"
-                + "    SELECT c_wonum \n"
-                + "    FROM app_fd_workorder \n"
-                + "    WHERE c_parent = ? \n"
-                + "    AND c_wfmdoctype = 'NEW' \n"
-                + "    AND c_woclass = 'ACTIVITY' \n"
-                + "    ) AND c_assetattrid = 'WORKGROUP_SHIPMENT' ORDER BY c_wonum desc";
+        String selectQuery = "SELECT c_value "
+                + "FROM app_fd_workorderspec "
+                + "WHERE c_wonum IN ( "
+                + "    SELECT c_wonum "
+                + "    FROM app_fd_workorder "
+                + "    WHERE c_parent = ? "
+                + "    AND c_wfmdoctype = 'NEW' "
+                + "    AND c_woclass = 'ACTIVITY' "
+                + ") "
+                + "AND c_assetattrid = ? "
+                + "ORDER BY c_wonum DESC";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
             ps.setString(1, parent);
             ps.setString(2, assetattrid);
-
+            
             ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                if (rs.getString("c_assetattrid") != null) {
-                    result.put("attrvalue", rs.getString("c_value"));
-                }
+            if (rs.next()) {
+                result = rs.getString("c_value");
+                LogUtil.info(getClass().getName(), "Attribute Value " + assetattrid + " :" + result);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -259,7 +257,7 @@ public class NonCoreCompleteDao {
                 assetattrid = rs.getString("c_assetattrid");
             }
             if (assetattrid == null) {
-                String assetSpecValue = getTaskattributeValue(parent, rs.getString("c_assetattrid")).toJSONString();
+                String assetSpecValue = getTaskattributeValue(parent, rs.getString("c_assetattrid"));
                 if (assetSpecValue != "") {
                     psInsert.setString(1, assetSpecValue);
                     psInsert.setString(2, assetnum);
