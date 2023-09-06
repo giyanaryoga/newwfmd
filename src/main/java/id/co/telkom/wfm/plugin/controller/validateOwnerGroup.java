@@ -28,10 +28,10 @@ public class validateOwnerGroup {
     UpdateTaskStatusEbisDao product = new UpdateTaskStatusEbisDao();
     TkMappingOwnerGroupDao tkMapping = new TkMappingOwnerGroupDao();
     TaskActivityDao taskDao = new TaskActivityDao();
-    String dc_type;
-    String dc_type_segment;
-    String dcType1[] = {"Wholesale", "OLO_MS"};
-    String dcType2[] = {"DBS", "DES", "DGS"};
+    private static String dc_type;
+    private static String dc_type_segment;
+    private static final String dcType1[] = {"Wholesale", "OLO_MS"};
+    private static final String dcType2[] = {"DBS", "DES", "DGS"};
     
     private String BastFlag(JSONObject workorder) throws SQLException {
         String bastflag = product.getTaskAttrValue(workorder.get("wonum").toString(), "BASTFlag");
