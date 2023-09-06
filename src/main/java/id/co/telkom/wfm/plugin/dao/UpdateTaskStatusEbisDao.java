@@ -362,11 +362,11 @@ public class UpdateTaskStatusEbisDao {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 final String result = rs.getString("c_wosequence");
-                if (result.equals("10") || result.equals("20") || result.equals("30") || result.equals("40") || result.equals("50") || result.equals("60")) {
+//                if (result.equals("10") || result.equals("20") || result.equals("30") || result.equals("40") || result.equals("50") || result.equals("60")) {
                     nextMove = "ASSIGNTASK";
-                } else {
-                    nextMove = "COMPLETE";
-                }
+//                } else {
+//                    nextMove = "COMPLETE";
+//                }
                 LogUtil.info(getClass().getName(), "next move: " + nextMove);
             } else {
                 nextMove = "COMPLETE";
