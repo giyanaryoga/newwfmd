@@ -13,7 +13,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import javax.sql.DataSource;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;

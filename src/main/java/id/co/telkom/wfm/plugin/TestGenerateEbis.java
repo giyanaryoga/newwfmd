@@ -227,7 +227,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     } catch (IOException e) {
                         LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                     }  
-                } 
+                }
             } catch (ParseException e){
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             } catch (SQLException ex) {

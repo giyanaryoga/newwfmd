@@ -22,11 +22,10 @@ import org.joget.plugin.base.DefaultApplicationPlugin;
  * @author User
  */
 public class RevisedTask extends DefaultApplicationPlugin {
-    String pluginName = "Telkom New WFM - Revised Task - Default Plugin";
+    String pluginName = "Telkom New WFM - Task Attribute Save Button - Default Plugin";
     
     @Override
     public Object execute(Map map) {
-//        RevisedTaskDao dao = new RevisedTaskDao();
         validateRevised logicValidate = new validateRevised();
         
         String parent = getPropertyString("parent");
