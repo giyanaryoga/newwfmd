@@ -8,7 +8,9 @@ import id.co.telkom.wfm.plugin.dao.TestGenerateDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
+import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,14 +28,16 @@ import org.json.simple.JSONObject;
  */
 public class validateGenerateTask {
     GenerateWonumEbisDao generateDao = new GenerateWonumEbisDao();
-    TestGenerateDao dao2 = new TestGenerateDao();
-    TaskActivityDao dao = new TaskActivityDao();
+    TestGenerateDao dao = new TestGenerateDao();
+    TaskActivityDao dao2 = new TaskActivityDao();
     TaskHistoryDao historyDao = new TaskHistoryDao();
     List<JSONObject> taskList = new ArrayList<>();
+    TimeUtil time = new TimeUtil();
     String TaskDescription = "";
     String ownerGroupTask = "";
+    String ownerGroup = "";
     
-    public void generateTaskNonCore(JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, int duration) {
+    public void generateTaskNonCore(JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
         try {
             JSONArray arrayNull = new JSONArray();
             boolean isGenerateTask = true;
@@ -57,12 +61,33 @@ public class validateGenerateTask {
                 String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");
                 String orderId = splittedJms[0];
                 
-                defineTask(oss_item, duration);
+                defineTask(oss_item, workorder, duration);
                 sortedTask();
-                generateTask(workorder, AttributeWO, counter, orderId);
+                generateTask(workorder, counter, orderId);
             } else {
                 LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
             }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void generateTaskCore(Object ossitem_arrayObj, JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
+        try {
+            int counter = 1;
+            String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");
+            String orderId = splittedJms[0];
+            
+            if (ossitem_arrayObj instanceof JSONObject){
+                oss_item.add(ossitem_arrayObj);
+            } else if (ossitem_arrayObj instanceof JSONArray) {
+                oss_item = (JSONArray) ossitem_arrayObj;
+            }
+            duration = 0;
+            defineTask(oss_item, workorder, duration);
+            sortedTask();
+            generateTask(workorder, counter, orderId);
+            LogUtil.info(getClass().getName(), "duration = "+ duration);
         } catch (SQLException ex) {
             Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -98,26 +123,6 @@ public class validateGenerateTask {
         }
         return isTrue;
     }
-    
-    public void generateTaskCore(Object ossitem_arrayObj, JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, int duration) {
-        try {
-            int counter = 1;
-            String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");
-            String orderId = splittedJms[0];
-            
-            if (ossitem_arrayObj instanceof JSONObject){
-                oss_item.add(ossitem_arrayObj);
-            } else if (ossitem_arrayObj instanceof JSONArray) {
-                oss_item = (JSONArray) ossitem_arrayObj;
-            }
-            
-            defineTask(oss_item, duration);
-            sortedTask();
-            generateTask(workorder, AttributeWO, counter, orderId);
-        } catch (SQLException ex) {
-            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
     private void sortedTask() {
         Collections.sort(taskList, new Comparator<JSONObject>(){
@@ -132,7 +137,7 @@ public class validateGenerateTask {
         });
     }
     
-    private void defineTask(JSONArray oss_item, int duration) {
+    private void defineTask(JSONArray oss_item, JSONObject workorder, float totalDuration) {
         for(int j = 0; j < ((JSONArray) oss_item).size(); j++) {
             try {
                 JSONObject oss_itemObj = (JSONObject)((JSONArray) oss_item).get(j);
@@ -149,19 +154,20 @@ public class validateGenerateTask {
                 task.put("sequence", (int) detailAct.get("sequence"));
                 task.put("actplace", detailAct.get("actPlace"));
                 task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
-                task.put("duration", (int) detailAct.get("duration"));
-                duration = (int) task.get("duration");
-                
+                task.put("duration", (float) detailAct.get("duration"));
+//                duration = (float) task.get("duration");
+                totalDuration += (float) task.get("duration");
+                task.put("schedstart", (workorder.get("schedStart").toString() == "" ? time.getCurrentTime() : workorder.get("schedStart").toString()));
+//                LogUtil.info(getClass().getName(), "SchedStart = "+ task.get("schedstart").toString());
+            
                 JSONArray taskAttrList = new JSONArray();
                 for (Object ossItemAttr : ossitem_attr) {
                     JSONObject arrayObj2 = (JSONObject)ossItemAttr;
                     JSONObject taskAttrItem = new JSONObject();
-                    
                     taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
                     taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
                     taskAttrList.add(taskAttrItem);
                 }
-                
                 task.put("task_attr", taskAttrList);
                 taskList.add(task);
             } catch (SQLException ex) {
@@ -170,7 +176,7 @@ public class validateGenerateTask {
         }
     }
     
-    private void generateTask(JSONObject workorder, JSONArray AttributeWO, int counter, String orderId) throws SQLException {
+    private void generateTask(JSONObject workorder, int counter, String orderId) throws SQLException {
         for(JSONObject sortedTask: taskList) {
             String wonumChild = generateDao.getWonum();
             sortedTask.put("wonum", wonumChild);
@@ -181,13 +187,24 @@ public class validateGenerateTask {
                 sortedTask.put("status", "APPR"); 
             } else {
                 sortedTask.put("status", "LABASSIGN");   
+                TaskDescription = sortedTask.get("description").toString();
+                ownerGroup = sortedTask.get("ownerGroup").toString();
             }
+            
+            workorder.put("TaskDescription", TaskDescription);
+            workorder.put("ownerGroup", ownerGroup);
 
             if (sortedTask.get("ownerGroup").toString() != "") {
                 ownerGroupTask = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
             } else {
-                ownerGroupTask = dao2.getOwnerGroup(workorder.get("workZone").toString());
+                //jika ownergroup di table detailactivity null
+                ownerGroupTask = "";
+//                ownerGroupTask = dao2.getOwnerGroup(workorder.get("workZone").toString());
             }
+            
+            String schedFinish = schedFinish(sortedTask);
+//            LogUtil.info(getClass().getName(), "SchedFinish = "+ schedFinish);
+            sortedTask.put("schedfinish", schedFinish);
 
             //GENERATE OSS ITEM
             generateDao.insertToOssItem(sortedTask);
@@ -201,12 +218,12 @@ public class validateGenerateTask {
                 if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
                     if (attrValue.isEmpty()) {
                         //GENERATE VALUE FROM WORKORDERATTRIBUTE
-                        for (Object objWoAttr : AttributeWO) {
-                            JSONObject arrayObj3 = (JSONObject)objWoAttr;
-                            JSONObject resp = generateDao.getWoAttrName(workorder.get("wonum").toString(), arrayObj3.get("woAttrName").toString());
-                            String AttrNameWo = resp.get("attr_name").toString().toUpperCase();
-                            String AttrValueWo = (arrayObj3.get("woAttrValue").toString() == null ? "" : arrayObj3.get("woAttrValue").toString());
-                            if (AttrNameWo.equals(attrName)) {
+                        JSONArray arrayWoAttr = generateDao.getWoAttrName(sortedTask.get("parent").toString());
+                        for (Object obj: arrayWoAttr) {
+                            JSONObject arrayObj3 = (JSONObject)obj;
+                            String AttrNameWo = arrayObj3.get("attr_name").toString().toUpperCase();
+                            String AttrValueWo = arrayObj3.get("attr_value").toString();
+                            if (AttrNameWo.equalsIgnoreCase(attrName)) {
                                 dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, AttrValueWo);
 //                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
                             }
@@ -227,6 +244,26 @@ public class validateGenerateTask {
             dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
             counter = counter + 1;
         }
+    }
+    
+    private String schedFinish(JSONObject activity) {
+        String strSchedFinish = "";
+        String strSchedStart = activity.get("schedstart").toString();
+        if (!strSchedStart.equals("")) {
+            Timestamp schedStart = Timestamp.valueOf(strSchedStart);
+            //added with task duration
+            long addedDur = (long) (1000 * 60 * 60 * (float) activity.get("duration"));
+            LogUtil.info(getClass().getName(),"added time: " + (1000 * 60 * 60 * (float) activity.get("duration")));
+            //get scheduled finish
+            Timestamp schedFinish = new Timestamp(schedStart.getTime() + addedDur);
+            strSchedFinish = schedFinish.toString();
+        }
+        return strSchedFinish;
+    }
+    
+    public float duration() {
+        float duration = 0;
+        return duration;
     }
     
 //    private void validateCPE(JSONObject cpeValidate) {

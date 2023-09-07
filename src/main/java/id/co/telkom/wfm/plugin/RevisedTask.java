@@ -6,16 +6,12 @@ package id.co.telkom.wfm.plugin;
 
 //import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
 import id.co.telkom.wfm.plugin.controller.validateRevised;
-//import java.sql.SQLException;
 import java.util.*;
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-//import org.joget.commons.util.UuidGenerator;
 import org.joget.plugin.base.DefaultApplicationPlugin;
-//import org.json.simple.JSONObject;
-//import org.json.simple.JSONArray;
 
 /**
  *

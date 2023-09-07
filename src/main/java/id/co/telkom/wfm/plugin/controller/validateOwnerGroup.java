@@ -106,22 +106,24 @@ public class validateOwnerGroup {
         return workzone;
     }
     
-    public void ownerGroupParent(JSONObject workorder) throws SQLException {
-        String workzone = taskDao.getWorkzone(workorder.get("wonum").toString());
+    public String ownerGroupParent(JSONObject workorder) throws SQLException {
+//        String workzone = taskDao.getWorkzone(workorder.get("wonum").toString());
+        String workzone = workorder.get("workZone").toString();
         String siteId = workorder.get("siteId").toString();
-        dc_type = product.getTaskAttrValue(workorder.get("wonum").toString(), "DC_Type");
+        String ownerGroup = "";
         if (dc_type == null) {
-            
+            ownerGroup = tkMapping.getOwnerGroupParentCCAN(workzone, siteId);
         } else if (Arrays.asList(dcType1).contains(dc_type)) {
-            
+            ownerGroup = tkMapping.getOwnerGroupParentSegment(workzone, siteId, dc_type);
         } else if (Arrays.asList(dcType2).contains(dc_type)) {
-            
+            ownerGroup = tkMapping.getOwnerGroupParentSegment(workzone, siteId, dc_type);
         } else {
-            
+            ownerGroup = "";
         }
+        return ownerGroup;
     }
     
-    public void ownerGroupTask(JSONObject taskObj, JSONObject workorder) throws SQLException {
+    public String ownerGroupTask(JSONObject taskObj, JSONObject workorder) throws SQLException {
         boolean isTaskNonConn = tkMapping.getTaskNonConn(taskObj.get("activity").toString());
         String dcType = this.getDCTypeSegment(workorder);
         String supplier = this.getSupplier(workorder);
@@ -162,5 +164,7 @@ public class validateOwnerGroup {
                 }
             }
         }
+        
+        return ownerGroupSet;
     }
 }

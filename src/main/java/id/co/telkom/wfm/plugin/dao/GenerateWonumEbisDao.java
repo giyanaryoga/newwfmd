@@ -4,12 +4,7 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.model.ListAttributes;
-import id.co.telkom.wfm.plugin.model.ListOssItem;
-import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
-import id.co.telkom.wfm.plugin.util.ConnUtil;
-import id.co.telkom.wfm.plugin.util.RequestAPI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,15 +14,11 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -198,50 +189,52 @@ public class GenerateWonumEbisDao {
         return woAttrValue;
     }
     
-     public boolean insertToWoTable(String id, String wonum, String crmOrderType, String custName, String custAddress, String description, String prodName, String prodType, String scOrderNo, String workZone, String siteId, String workType, String schedStart, String reportBy,  String woClass, String woRevisionNo, String jmsCorrelationId, String status, String serviceNum, String tkWo4, String ownerGroup, String statusDate, String tkCustomHeader01, int duration){
+     public boolean insertToWoTable1(JSONObject param){
         boolean insertStatus = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         
         String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, "
-                + "c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, c_tk_custom_header_01, c_estdur, dateCreated) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, c_tk_custom_header_01, c_estdur, c_latitude, c_longitude, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         //c_schedstart1 dan c_statusdate1 TEMPORARY masih, angka 1 dihilangkan jika sudah di hapus column di table
         try {
             Connection con = ds.getConnection();
             try {
                 PreparedStatement ps = con.prepareStatement(insert);
                 try {
-                    ps.setString(1, id);
-                    ps.setString(2, wonum);
-                    ps.setString(3, crmOrderType);
-                    ps.setString(4, custName);
-                    ps.setString(5, custAddress);
-                    ps.setString(6, description);
-                    ps.setString(7, prodName);
-                    ps.setString(8, prodType);
-                    ps.setString(9, scOrderNo);
-                    ps.setString(10, workZone);
-                    ps.setString(11, siteId);
-                    ps.setString(12, workType);
-                    ps.setTimestamp(13, schedStart == null ? null : Timestamp.valueOf(schedStart));
-                    ps.setString(14, reportBy);
-                    ps.setString(15, woClass);
-                    ps.setString(16, woRevisionNo);
-                    ps.setString(17, jmsCorrelationId);
-                    ps.setString(18, status);
-                    ps.setString(19, serviceNum);
-                    ps.setString(20, tkWo4);
-                    ps.setString(21, ownerGroup);
-                    ps.setTimestamp(22, Timestamp.valueOf(statusDate));
-                    ps.setString(23, tkCustomHeader01);
-                    ps.setInt(24, duration);
-                    ps.setTimestamp(25, getTimeStamp());
+                    ps.setString(1, UuidGenerator.getInstance().getUuid());
+                    ps.setString(2, param.get("wonum").toString());
+                    ps.setString(3, param.get("crmOrderType").toString());
+                    ps.setString(4, param.get("custName").toString());
+                    ps.setString(5, param.get("custAddress").toString());
+                    ps.setString(6, param.get("TaskDescription").toString());
+                    ps.setString(7, param.get("prodName").toString());
+                    ps.setString(8, param.get("prodType").toString());
+                    ps.setString(9, param.get("scOrderNo").toString());
+                    ps.setString(10, param.get("workZone").toString());
+                    ps.setString(11, param.get("siteId").toString());
+                    ps.setString(12, param.get("workType").toString());
+                    ps.setTimestamp(13, (param.get("schedStart").toString() == "" ? getTimeStamp() : Timestamp.valueOf(param.get("schedStart").toString())));
+                    ps.setString(14, param.get("reportBy").toString());
+                    ps.setString(15, param.get("woClass").toString());
+                    ps.setString(16, param.get("woRevisionNo").toString());
+                    ps.setString(17, param.get("jmsCorrelationId").toString());
+                    ps.setString(18, param.get("status").toString());
+                    ps.setString(19, param.get("serviceNum").toString());
+                    ps.setString(20, param.get("tkWo4").toString());
+                    ps.setString(21, param.get("ownerGroup").toString());
+                    ps.setTimestamp(22, Timestamp.valueOf(param.get("statusDate").toString()));
+                    ps.setString(23, param.get("tkCustomHeader01").toString());
+                    ps.setFloat(24, (float) param.get("duration"));
+                    ps.setString(25, param.get("latitude").toString());
+                    ps.setString(26, param.get("longitude").toString());
+                    ps.setTimestamp(27, getTimeStamp());
                     
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
                         insertStatus = true;
-                        LogUtil.info(getClass().getName(), "Work Order param for '" + wonum + "' inserted to DB");
+                        LogUtil.info(getClass().getName(), "Work Order param for '" + param.get("wonum").toString() + "' inserted to DB");
                     }
                     if (ps != null)
                         ps.close();
@@ -291,7 +284,7 @@ public class GenerateWonumEbisDao {
                     ps.setString(3, param.get("crmOrderType").toString());
                     ps.setString(4, param.get("custName").toString());
                     ps.setString(5, param.get("custAddress").toString());
-                    ps.setString(6, param.get("description").toString());
+                    ps.setString(6, param.get("TaskDescription").toString());
                     ps.setString(7, param.get("prodName").toString());
                     ps.setString(8, param.get("prodType").toString());
                     ps.setString(9, param.get("scOrderNo").toString());
@@ -348,7 +341,7 @@ public class GenerateWonumEbisDao {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
         return insertStatus;
-    } 
+    }
     
     public boolean insertToOssItem(JSONObject taskObj){
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
@@ -556,27 +549,26 @@ public class GenerateWonumEbisDao {
         return insertStatus;
     }
 
-    public JSONObject getWoAttrName(String wonum, String attrName) throws SQLException {
-        JSONObject attrProp = new JSONObject();
+    public JSONArray getWoAttrName(String wonum) throws SQLException {
+        JSONArray woAttrArray = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_attr_name, c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_attr_name = ?";
+        String query = "SELECT c_attr_name, c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
-            ps.setString(2, attrName);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
+            while (rs.next()) {
+                JSONObject attrProp = new JSONObject();
                 attrProp.put("attr_name", rs.getString("c_attr_name"));
                 attrProp.put("attr_value", (rs.getString("c_attr_value") == null ? "" : rs.getString("c_attr_value")));
-            } else {
-                attrProp = null;
+                woAttrArray.add(attrProp);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close();
         }
-        return attrProp;
+        return woAttrArray;
     }
     
     private Timestamp getTimeStamp() {

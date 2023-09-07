@@ -49,13 +49,36 @@ public class TkMappingOwnerGroupDao {
         return task;
     }
     
-    public String getOwnerGroupParent(String workzone) throws SQLException {
+    public String getOwnerGroupParentCCAN(String workzone, String siteid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping WHERE c_workzone = ? AND c_classstructureid IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid = 'WFM' AND c_parent IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid='FULFILLMENT'))";
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_siteid = ? AND c_ownergroup like 'CCAN%'";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
+            ps.setString(2, siteid);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
+    
+    public String getOwnerGroupParentSegment(String workzone, String siteid, String segment) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_siteid = ? AND c_tkcustomersegment = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ps.setString(2, siteid);
+            ps.setString(3, segment);
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
