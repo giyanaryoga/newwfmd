@@ -473,7 +473,7 @@ public class UpdateTaskStatusEbisDao {
     public JSONObject getCompleteJson(String parent) throws SQLException {
         JSONArray itemArrayObj = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status, c_wonum FROM app_fd_workorder WHERE c_parent = ? AND c_wosequence IN ('10', '20', '30', '40', '50', '60') AND c_wfmdoctype = 'NEW'";
+        String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status, c_wonum FROM app_fd_workorder WHERE c_parent = ? AND c_wfmdoctype = 'NEW'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
@@ -668,7 +668,7 @@ public class UpdateTaskStatusEbisDao {
     public JSONObject getFailWorkJson(String parent) throws SQLException {
         JSONArray itemArrayObj = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status, c_wonum, FROM app_fd_workorder WHERE c_parent = ? AND c_wosequence IN ('10', '20', '30', '40', '50', '60') AND c_wfmdoctype = 'NEW' AND C_STATUS NOT LIKE 'APPR'";
+        String query = "SELECT c_detailactcode, c_wosequence, c_correlation, c_status, c_wonum, FROM app_fd_workorder WHERE c_parent = ? AND c_wfmdoctype = 'NEW' AND C_STATUS NOT LIKE 'APPR'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
