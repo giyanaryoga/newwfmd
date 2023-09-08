@@ -90,7 +90,7 @@ public class validateNonCoreProduct {
     }
 
     // Update SID Value if value != null
-    public boolean updateSID(String wonum) throws SQLException {
+    public boolean updateSID(String parent) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
@@ -99,14 +99,21 @@ public class validateNonCoreProduct {
                 + "SET c_value = CASE c_assetattrid "
                 + "WHEN 'SID' THEN ? "
                 + "ELSE 'Missing' END "
-                + "WHERE c_wonum = ? "
+                + "WHERE c_parent = ? "
                 + "AND c_assetattrid IN ('SID')";
+//        String updateQuery
+//                = "UPDATE APP_FD_WORKORDERSPEC "
+//                + "SET c_value = CASE c_assetattrid "
+//                + "WHEN 'SID' THEN ? "
+//                + "ELSE 'Missing' END "
+//                + "WHERE c_wonum = ? "
+//                + "AND c_assetattrid IN ('SID')";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(updateQuery)) {
-            String newSidValue = generate(wonum, "888");
+            String newSidValue = generate(parent, "888");
             ps.setString(1, newSidValue);
-            ps.setString(2, wonum);
+            ps.setString(2, parent);
 
             int exe = ps.executeUpdate();
 
@@ -303,7 +310,8 @@ public class validateNonCoreProduct {
             if (!productname.equalsIgnoreCase("") && Arrays.asList(listTask).contains(detailactcode)
                     && "New Install".equals(crmordertype)) {
                 String SID = generate(param.getWonum(), "888");
-                updateSID(param.getWonum());
+//                updateSID(param.getWonum());
+                updateSID(param.getParent());
                 LogUtil.info(this.getClass().getName(), "MESSAGE: Berhasil Generate SID");
                 startwa = true;
             } else {
