@@ -6,10 +6,8 @@ package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
-import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
-import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
-import id.co.telkom.wfm.plugin.dao.TestGenerateDao;
 import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
+import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -81,9 +79,10 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
 //        TaskActivityDao dao2 = new TaskActivityDao();
-        TestGenerateDao dao2 = new TestGenerateDao();
-        TaskHistoryDao taskHistory = new TaskHistoryDao();
+//        TestGenerateDao dao2 = new TestGenerateDao();
+//        TaskHistoryDao taskHistory = new TaskHistoryDao();
         validateGenerateTask validateTask = new validateGenerateTask();
+        validateOwnerGroup validateOwnerGroup = new validateOwnerGroup();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;
@@ -125,7 +124,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 LogUtil.info(getClass().getName(), "Start Process: Generate Wonum | SC Order No: " + (body.get("SCORDERNO") == null ? "" : body.get("SCORDERNO").toString()));
                 //@Store param
                 //Store JSONObject to Work Order param
-                int duration = 0;
+                float duration = 0;
                 JSONObject workorder = new JSONObject();
                 workorder.put("crmOrderType", (body.get("CRMORDERTYPE") == null ? "" : body.get("CRMORDERTYPE").toString()));
                 workorder.put("custName", (body.get("CUSTOMER_NAME") == null ? "" : body.get("CUSTOMER_NAME").toString()));
@@ -134,7 +133,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 workorder.put("prodName", (body.get("PRODUCTNAME") == null ? "" : body.get("PRODUCTNAME").toString()));
                 workorder.put("prodType", (body.get("PRODUCTTYPE") == null ? "" : body.get("PRODUCTTYPE").toString()));
                 workorder.put("reportBy", (body.get("REPORTEDBY") == null ? "" : body.get("REPORTEDBY").toString()));
-                workorder.put("schedStart", (body.get("SCHEDSTART") == null ? null : time.parseDate(body.get("SCHEDSTART").toString(), "yyyy-MM-dd HH:mm:ss")));
+                workorder.put("schedStart", (body.get("SCHEDSTART") == null ? "" : time.parseDate(body.get("SCHEDSTART").toString(), "yyyy-MM-dd HH:mm:ss")));
                 workorder.put("scOrderNo", (body.get("SCORDERNO") == null ? "" : body.get("SCORDERNO").toString()));
                 workorder.put("custAddress", (body.get("SERVICEADDRESS") == null ? "" : body.get("SERVICEADDRESS").toString()));
                 workorder.put("serviceNum", (body.get("SERVICENUM") == null ? "" : body.get("SERVICENUM").toString()));
@@ -161,13 +160,13 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 Object ossitem_arrayObj = (Object)body.get("OSSITEM");
                 
                 //Getting Owner group from tkmapping
-                String ownerGroup = dao2.getOwnerGroup(workorder.get("workZone").toString());
+//                String ownerGroup = validateOwnerGroup.ownerGroupParent(workorder);
+//                String ownerGroup = dao2.getOwnerGroup(workorder.get("workZone").toString());
                 workorder.put("wonum", wonum);
-                workorder.put("ownerGroup", ownerGroup);
+//                workorder.put("ownerGroup", ownerGroup);
                 
                 //@Work Order attribute
                 JSONArray AttributeWO = new JSONArray();
-//                ListAttributes listAttr = new ListAttributes();
                 //Loop getting each attribute
                 for (int i = 0 ; i < attr_array.size() ; i++){
                     JSONObject attr_arrayObj = (JSONObject)attr_array.get(i);
@@ -182,6 +181,10 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     dao.insertToWoAttrTable2(workorder.get("wonum").toString(), woAttribute);
                 }
                 
+                //Getting Owner group from tkmapping
+//                String ownerGroup = validateOwnerGroup.ownerGroupParent(workorder);
+//                workorder.put("ownerGroup", "");
+                
                 JSONArray oss_item = new JSONArray();
                 LogUtil.info(getClass().getName(), "OSS ITEM = " +ossitem_arrayObj);
                 
@@ -194,7 +197,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 }
                 
                 workorder.put("duration", duration);
-                final boolean insertWoStatus = dao.insertToWoTable2(workorder);
+                final boolean insertWoStatus = dao.insertToWoTable1(workorder);
                 
                 //@@End
                 //@Response
@@ -228,11 +231,11 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                         LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                     }  
                 }
-            } catch (ParseException e){
+            }catch (ParseException e){
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-            } catch (SQLException ex) {
-                Logger.getLogger(GenerateWonumEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
+            //Authorization failed
+            
         //Authorization failed    
         } else if (!methodStatus) {
             try {

@@ -101,20 +101,10 @@ public class validateTaskStatus {
         try {
             boolean isMandatoryValue = daoUpdate.checkMandatory(param.getWonum());
             LogUtil.info(getClass().getName(), "test: " + isMandatoryValue);
-            Integer isRequired = daoUpdate.isRequired(param.getWonum());
-            switch (isRequired) {
-                case 0:
-                    compwa = true;
-                    break;
-                case 1:
-                    if (isMandatoryValue == false) {
-                        compwa = false;
-                    } else {
-                        compwa = true;
-                    }
-                    break;
-                default:
-                    compwa = false;
+            if (isMandatoryValue == false) {
+                compwa = false;
+            } else {
+                compwa = true;
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
@@ -228,23 +218,23 @@ public class validateTaskStatus {
                 case "Upload_Berita_Acara":
                     // check documentname
                     try {
-                    isWoDocValue = daoUpdate.checkWoDoc(param.getParent());
-                    if (isWoDocValue.equalsIgnoreCase("Nama File sudah benar, Update status COMPWA berhasil")) {
-                        response.put("code", 200);
-                        response.put("message", isWoDocValue);
+                        isWoDocValue = daoUpdate.checkWoDoc(param.getParent());
+                        if (isWoDocValue.equalsIgnoreCase("Nama File sudah benar, Update status COMPWA berhasil")) {
+                            response.put("code", 200);
+                            response.put("message", isWoDocValue);
 
-                        daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                        daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
-                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                    } else {
-                        response.put("code", 422);
-                        response.put("message", isWoDocValue);
+                            daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                            daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        } else {
+                            response.put("code", 422);
+                            response.put("message", isWoDocValue);
+                        }
+                    } catch (SQLException e) {
+                        LogUtil.info(getClass().getName(), "ERROR : " + e);
+                    } catch (JSONException ex) {
+                        Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                } catch (SQLException e) {
-                    LogUtil.info(getClass().getName(), "ERROR : " + e);
-                } catch (JSONException ex) {
-                    Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
-                }
                 break;
                 case "WFMNonCore Review Order TSQ IP Transit":
                     if (productName.equalsIgnoreCase("MM_IP_TRANSIT")) {

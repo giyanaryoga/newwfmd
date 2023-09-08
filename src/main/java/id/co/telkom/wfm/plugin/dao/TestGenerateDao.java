@@ -4,18 +4,11 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-//import id.co.telkom.wfm.plugin.model.ListAttributes;
-//import id.co.telkom.wfm.plugin.model.ListDevice;
-//import id.co.telkom.wfm.plugin.model.ListOssItem;
-//import id.co.telkom.wfm.plugin.model.ListOssItemAttribute;
-//import id.co.telkom.wfm.plugin.model.ListCpeValidate;
 import id.co.telkom.wfm.plugin.model.ActivityTask;
-//import id.co.telkom.wfm.plugin.model.ListClassSpec;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-//import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -185,7 +178,7 @@ public class TestGenerateDao {
                 activityProp.put("actPlace", rs.getString("c_actplace"));
                 activityProp.put("ownergroup", rs.getString("c_ownergroup"));
                 activityProp.put("attributes", rs.getInt("c_attributes"));
-                activityProp.put("duration", rs.getInt("c_duration"));
+                activityProp.put("duration", rs.getFloat("c_duration"));
             } else {
                 activityProp = null;
             }
@@ -330,9 +323,13 @@ public class TestGenerateDao {
                 .append(" c_estdur, ")
                 .append(" c_scorderno, ")
                 .append(" c_jmscorrelationid, ")
-                .append(" c_ownergroup ")
+                .append(" c_ownergroup, ")
+                .append(" c_schedstart, ")
+                .append(" c_schedfinish ")
                 .append(" ) ")
                 .append(" VALUES ( ")
+                .append(" ?, ")
+                .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
@@ -373,10 +370,12 @@ public class TestGenerateDao {
             ps.setString(14, "ACTIVITY");       
             ps.setString(15, taskObj.get("taskid").toString());
             ps.setString(16, taskObj.get("correlation").toString());
-            ps.setInt(17, (int) taskObj.get("duration"));
+            ps.setFloat(17, (float) taskObj.get("duration"));
             ps.setString(18, workorder.get("scOrderNo").toString());
             ps.setString(19, workorder.get("jmsCorrelationId").toString());
             ps.setString(20, ownerGroup);
+            ps.setTimestamp(21, (taskObj.get("schedstart").toString() == "" ? getTimeStamp() : Timestamp.valueOf(taskObj.get("schedstart").toString())));
+            ps.setTimestamp(22, Timestamp.valueOf(taskObj.get("schedfinish").toString()));
             
             int exe = ps.executeUpdate();
             //Checking insert status
@@ -548,68 +547,94 @@ public class TestGenerateDao {
         String insert = "INSERT INTO app_fd_assignment "
                 + "(id, c_parent, c_wonum, c_taskid, c_status, c_description, c_wfmdoctype, c_woclass, c_scheduledate, dateCreated) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
-            DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-            String query = "SELECT c_description, c_taskid, c_wonum FROM app_fd_workorder WHERE c_detailactcode = ? AND c_parent = ? AND c_actplace = 'OUTSIDE'";
-            
-            try {
-                Connection con = ds.getConnection();
-                con.setAutoCommit(false); 
-                try {               
-                    PreparedStatement ps = con.prepareStatement(insert);
-                    PreparedStatement stmt = con.prepareStatement(query);
-                    try {       
-                        stmt.setString(1, taskObj.get("activity").toString());
-                        stmt.setString(2, taskObj.get("parent").toString());
-                        ResultSet rs = stmt.executeQuery();
-                        if (rs.next()){
-                            ps.setString(1, UuidGenerator.getInstance().getUuid());
-                            ps.setString(2, taskObj.get("parent").toString());
-                            ps.setString(3, rs.getString("c_wonum"));
-                            ps.setString(4, rs.getString("c_taskid"));
-                            ps.setString(5, "WAITASSIGN");
-                            ps.setString(6, rs.getString("c_description"));
-                            ps.setString(7, "WFM");
-                            ps.setString(8, "ACTIVITY");
-                            ps.setString(9, workorder.get("schedStart").toString());
-                            
-                            int exe = ps.executeUpdate();
-                            //Checking insert status
-                            if (exe > 0) {
-                                LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
-                            }
-                            con.commit();
-                        } else con.rollback();
-                        con.setAutoCommit(true);
-                        if (ps != null)
-                            ps.close();
-                        if (stmt != null)
-                            stmt.close();
-                    } catch (SQLException throwable) {
-                            try {
-                                if (ps != null)
-                                    ps.close();
-                                if (stmt != null)
-                                    stmt.close();
-                            } catch (SQLException throwable1) {
-                                throwable.addSuppressed(throwable1);
-                            }    
-                        throw throwable;
-                    }
-                    if (con !=null)
-                        con.close();    
-                } catch (Throwable throwable) {
-                    if (con !=null)
-                        try {
-                            con.close();
-                        }catch(SQLException throwable1){
-                            throwable.addSuppressed(throwable1);
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_description, c_taskid, c_wonum FROM app_fd_workorder WHERE c_detailactcode = ? AND c_parent = ? AND c_actplace = 'OUTSIDE'";
+
+        try {
+            Connection con = ds.getConnection();
+            con.setAutoCommit(false); 
+            try {               
+                PreparedStatement ps = con.prepareStatement(insert);
+                PreparedStatement stmt = con.prepareStatement(query);
+                try {       
+                    stmt.setString(1, taskObj.get("activity").toString());
+                    stmt.setString(2, taskObj.get("parent").toString());
+                    ResultSet rs = stmt.executeQuery();
+                    if (rs.next()){
+                        ps.setString(1, UuidGenerator.getInstance().getUuid());
+                        ps.setString(2, taskObj.get("parent").toString());
+                        ps.setString(3, rs.getString("c_wonum"));
+                        ps.setString(4, rs.getString("c_taskid"));
+                        ps.setString(5, "WAITASSIGN");
+                        ps.setString(6, rs.getString("c_description"));
+                        ps.setString(7, "WFM");
+                        ps.setString(8, "ACTIVITY");
+                        ps.setString(9, workorder.get("schedStart").toString());
+
+                        int exe = ps.executeUpdate();
+                        //Checking insert status
+                        if (exe > 0) {
+                            LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
                         }
+                        con.commit();
+                    } else con.rollback();
+                    con.setAutoCommit(true);
+                    if (ps != null)
+                        ps.close();
+                    if (stmt != null)
+                        stmt.close();
+                } catch (SQLException throwable) {
+                        try {
+                            if (ps != null)
+                                ps.close();
+                            if (stmt != null)
+                                stmt.close();
+                        } catch (SQLException throwable1) {
+                            throwable.addSuppressed(throwable1);
+                        }    
                     throw throwable;
-                } finally {
-                    ds.getConnection().close();
                 }
-            } catch (SQLException e) {
-                LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+                if (con !=null)
+                    con.close();    
+            } catch (Throwable throwable) {
+                if (con !=null)
+                    try {
+                        con.close();
+                    }catch(SQLException throwable1){
+                        throwable.addSuppressed(throwable1);
+                    }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
             }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+    
+    public void schedFinish(JSONObject activity, JSONObject workorder, Timestamp schedFinish) throws SQLException {
+        StringBuilder update = new StringBuilder();
+        update
+                .append(" UPDATE app_fd_workorder SET ")
+                .append(" c_schedfinish = ?, ")
+                .append(" c_estdur = ? ")
+                .append(" WHERE ")
+                .append(" c_wonum = ? ")
+                .append(" AND ")
+                .append(" c_siteid = ? ")
+                .append(" AND ")
+                .append(" c_woclass = 'ACTIVITY' ");
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setTimestamp(1, schedFinish);
+            ps.setFloat(2, (float) activity.get("duration"));
+            ps.setString(3, activity.get("wonum").toString());
+            ps.setString(4, workorder.get("siteId").toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName() + " | generateSchedulingInformation", e, "Trace error here: " + e.getMessage());
+            throw e;
+        }
     }
 }
