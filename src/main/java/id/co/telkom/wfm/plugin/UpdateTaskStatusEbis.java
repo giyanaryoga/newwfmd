@@ -128,14 +128,14 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 param.setMemo(memo);
                 param.setModifiedBy(modifiedBy);
                 param.setCurrentDate(currentDate);
-                boolean validate = true;
-                boolean validatenoncore = false;
+//                boolean validate = true;
+//                boolean validatenoncore = false;
                 String message = "";
 
                 switch (status) {
                     case "STARTWA":
-                        validate = validateTask.startTask(param);
-                        if (validate) {
+                        boolean validateStarwa = validateTask.startTask(param);
+                        if (validateStarwa) {
                             message = "Successfully update status";
                             res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), message);
                             res.writeJSONString(hsr1.getWriter());
@@ -145,9 +145,9 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         }
                         break;
                     case "COMPWA":
-                        validate = validateTask.compwaTask(param);
-                        LogUtil.info(getClass().getName(), "VALIDATE: " + validate);
-                        if (validate) {
+                        boolean validateCompwa = validateTask.compwaTask(param);
+                        LogUtil.info(getClass().getName(), "VALIDATE: " + validateCompwa);
+                        if (validateCompwa) {
                             JSONObject response = validateTask.validateTask(param);
                             if ((int) response.get("code") == 200) {
                                 res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());

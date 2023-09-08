@@ -96,58 +96,53 @@ public class UpdateTaskStatusEbisDao {
         return activityProp;
     }
     
-//    public Integer isRequired(String wonum) throws SQLException {
-//        int required = 0;
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?";
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(query)) {
-//            ps.setString(1, wonum);
-//            ResultSet rs = ps.executeQuery();
-//            while (rs.next()) {
-//                required = rs.getInt("c_isrequired");
-//                LogUtil.info(getClass().getName(), "Is Required " + required);
-//            }
-//        } catch (Exception e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//        return required;
-//    }
-    
-    public boolean checkMandatory(String wonum) throws SQLException {
-        boolean value = false;
+    public Integer isRequired(String wonum) throws SQLException {
+        int required = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?";
+        String query = "SELECT c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
+                required = rs.getInt("c_isrequired");
+                LogUtil.info(getClass().getName(), "Is Required " + required);
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return required;
+    }
+    
+    public boolean checkMandatory(String wonum) throws SQLException {
+//        JSONArray valueArray = new JSONArray();
+        boolean value = false;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_value, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject valueObj = new JSONObject();
                 String alnvalue = rs.getString("c_value");
                 int mandatory = rs.getInt("c_isrequired");
-                switch (mandatory) {
-                    case 0:
-                        if (alnvalue == null || alnvalue != null) {
-                            value = true;
-                            LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value"));
-                        }
-                    break;
-                    case 1:
-                        if (alnvalue == null) {
-                            value = false;
-                            LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value"));
-                        } else {
-                            value = true;
-                            LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value"));
-                        }
-                    break;
-                    default:
-                        value = true;
-                        LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value"));
+                if (alnvalue != null && mandatory == 1) {
+                    value = true;
+                } else if (alnvalue != null && mandatory == 0) {
+                    value = true;
+                } else if (alnvalue == null && mandatory == 0) {
+                    value = true;
+                } else {
+                    value = false;
                 }
+//                valueObj.put("value", value);
+//                valueArray.add(valueObj);
+                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + value);
             }
+//            LogUtil.info(getClass().getName(), "value array = " + valueArray);
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -195,8 +190,8 @@ public class UpdateTaskStatusEbisDao {
         return taskAttrValue;
     }
 
-    public boolean checkAssignment(String wonum) throws SQLException {
-        boolean assign = false;
+    public String checkAssignment(String wonum) throws SQLException {
+        String assign = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_chief_code, c_assignment_status FROM app_fd_workorder WHERE c_wonum = ? AND c_actplace = 'OUTSIDE' AND c_assignment_status = 'ASSIGNED'";
         try (Connection con = ds.getConnection();
@@ -204,11 +199,11 @@ public class UpdateTaskStatusEbisDao {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                assign = true;
+                assign = "Assign";
                 LogUtil.info(getClass().getName(), "Task sudah assign ke labor");
-                LogUtil.info(getClass().getName(), rs.getString("c_chief_code") + " = " + rs.getString("c_assignment_status"));
+//                LogUtil.info(getClass().getName(), rs.getString("c_chief_code") + " = " + rs.getString("c_assignment_status"));
             } else {
-                assign = false;
+                assign = "Not Assign";
                 LogUtil.info(getClass().getName(), "Task belum assign ke labor");
             }
         } catch (Exception e) {
@@ -217,6 +212,26 @@ public class UpdateTaskStatusEbisDao {
             ds.getConnection().close();
         }
         return assign;
+    }
+    
+    public String checkActPlace(String wonum) throws SQLException {
+        String actPlace = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_actplace FROM app_fd_workorder WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                actPlace = rs.getString("c_actplace");
+                LogUtil.info(getClass().getName(), "Act Place " + actPlace);
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return actPlace;
     }
 
     public int checkAttachedFile(String wonum, String documentName) throws SQLException {
@@ -316,26 +331,6 @@ public class UpdateTaskStatusEbisDao {
         return value;
     }
 
-    public String checkActPlace(String wonum) throws SQLException {
-        String actPlace = "";
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_actplace FROM app_fd_workorder WHERE c_wonum = ?";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                actPlace = rs.getString("c_actplace");
-                LogUtil.info(getClass().getName(), "Act Place " + actPlace);
-            }
-        } catch (Exception e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return actPlace;
-    }
-
     //===========================
     // Function Update Task
     //===========================
@@ -424,7 +419,7 @@ public class UpdateTaskStatusEbisDao {
 
     public void updateWoDesc(String parent, String nextTaskId, String modifiedBy) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_description, c_ownergroup FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_status = 'LABASSIGN' AND c_wodoctype = 'NEW'";
+        String query = "SELECT c_description, c_ownergroup FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_status = 'LABASSIGN' AND c_wfmdoctype = 'NEW'";
         String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_description = ?, c_ownergroup = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps1 = con.prepareStatement(query);

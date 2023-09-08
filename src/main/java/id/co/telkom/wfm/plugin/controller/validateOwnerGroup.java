@@ -107,7 +107,6 @@ public class validateOwnerGroup {
     }
     
     public String ownerGroupParent(JSONObject workorder) throws SQLException {
-//        String workzone = taskDao.getWorkzone(workorder.get("wonum").toString());
         String workzone = workorder.get("workZone").toString();
         String siteId = workorder.get("siteId").toString();
         String ownerGroup = "";
@@ -130,6 +129,7 @@ public class validateOwnerGroup {
         String division = this.getDivision(workorder);
         String ownerGroupSet = "";
         if (isTaskNonConn) {
+            //Non - Connectivity mapping
             if (!"ASTINET".equalsIgnoreCase(workorder.get("prodName").toString()) && !"Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString()) && "Wholesale".equalsIgnoreCase(dcType)) {
                 String ownerGroup = tkMapping.getOwnerGroup1("NAS", workorder.get("prodName").toString(), dcType, supplier);
                 ownerGroupSet = ownerGroup;
@@ -163,6 +163,12 @@ public class validateOwnerGroup {
                     ownerGroupSet = ownerGroup2;
                 }
             }
+//            if (ownerGroupSet == null) {
+//                automation scriptnya gak paham maksudnya, di skip dlu deh
+//            }
+        } else {
+            //Connectivity mapping
+            
         }
         
         return ownerGroupSet;

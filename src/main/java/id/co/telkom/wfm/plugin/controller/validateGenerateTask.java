@@ -63,7 +63,7 @@ public class validateGenerateTask {
                 
                 defineTask(oss_item, workorder, duration);
                 sortedTask();
-                generateTask(workorder, counter, orderId);
+                generateTask(workorder, AttributeWO, counter, orderId);
             } else {
                 LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
             }
@@ -86,7 +86,7 @@ public class validateGenerateTask {
             duration = 0;
             defineTask(oss_item, workorder, duration);
             sortedTask();
-            generateTask(workorder, counter, orderId);
+            generateTask(workorder, AttributeWO, counter, orderId);
             LogUtil.info(getClass().getName(), "duration = "+ duration);
         } catch (SQLException ex) {
             Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
@@ -176,7 +176,7 @@ public class validateGenerateTask {
         }
     }
     
-    private void generateTask(JSONObject workorder, int counter, String orderId) throws SQLException {
+    private void generateTask(JSONObject workorder, JSONArray AttributeWO, int counter, String orderId) throws SQLException {
         for(JSONObject sortedTask: taskList) {
             String wonumChild = generateDao.getWonum();
             sortedTask.put("wonum", wonumChild);
@@ -215,14 +215,14 @@ public class validateGenerateTask {
                 String attrValue = taskAttrObj.get("attrValue").toString();
                 //@insert Oss Item Attribute
                 generateDao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
-                if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(attrName))) {
+                if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(sortedTask.get("wonum").toString(), attrName))) {
                     if (attrValue.isEmpty()) {
                         //GENERATE VALUE FROM WORKORDERATTRIBUTE
-                        JSONArray arrayWoAttr = generateDao.getWoAttrName(sortedTask.get("parent").toString());
-                        for (Object obj: arrayWoAttr) {
+//                        JSONArray arrayWoAttr = generateDao.getWoAttrName(sortedTask.get("parent").toString());
+                        for (Object obj: AttributeWO) {
                             JSONObject arrayObj3 = (JSONObject)obj;
-                            String AttrNameWo = arrayObj3.get("attr_name").toString().toUpperCase();
-                            String AttrValueWo = arrayObj3.get("attr_value").toString();
+                            String AttrNameWo = arrayObj3.get("woAttrName").toString().toUpperCase();
+                            String AttrValueWo = arrayObj3.get("woAttrValue").toString();
                             if (AttrNameWo.equalsIgnoreCase(attrName)) {
                                 dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, AttrValueWo);
 //                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");

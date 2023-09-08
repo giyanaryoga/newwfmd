@@ -112,7 +112,7 @@ public class TaskActivityDao {
     public String getOwnerGroup(String workzone) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping WHERE c_workzone = ? AND c_classstructureid IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid = 'WFM' AND c_parent IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid='FULFILLMENT'))";
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping WHERE c_workzone = ? AND c_classstructureid IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid = 'WFM_ACTIVITY' AND c_parent IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid='FULFILLMENT'))";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
@@ -214,13 +214,14 @@ public class TaskActivityDao {
         return taskArray;
     }
     
-    public String getTaskAttrName(String attrName) throws SQLException {
+    public String getTaskAttrName(String wonum, String attrName) throws SQLException {
         String taskAttrName = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid FROM app_fd_workorderspec WHERE c_assetattrid = ?";
+        String query = "SELECT c_assetattrid FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, attrName);
+            ps.setString(1, wonum);
+            ps.setString(2, attrName);
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 taskAttrName = rs.getString("c_assetattrid");
@@ -230,6 +231,25 @@ public class TaskActivityDao {
             ds.getConnection().close();
         }
         return taskAttrName;
+    }
+    
+    public String getTaskAttrValue(String wonum, String attrName) throws SQLException {
+        String taskAttrValue = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ps.setString(2, attrName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                taskAttrValue = rs.getString("c_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return taskAttrValue;
     }
     
     public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String wonum){
@@ -414,7 +434,7 @@ public class TaskActivityDao {
                 //TASK ATTRIBUTE
                 .append(" c_wonum, c_assetattrid, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
                 //PERMISSION
-                .append(" c_readonly, c_isrequired, c_isshared ")
+                .append(" c_readonly, c_isrequired, c_isshared, c_mandatory, c_parent ")
                 .append(" ) ")
                 .append(" VALUES ")
                 .append(" ( ")
@@ -423,7 +443,7 @@ public class TaskActivityDao {
                 //VALUES TASK ATTRIBUTE
                 .append(" ?, ?, ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
-                .append(" ?, ?, ? ")
+                .append(" ?, ?, ?, ?, ? ")
                 .append(" ) ");
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -449,6 +469,8 @@ public class TaskActivityDao {
                     psInsert.setString(11, rs.getString("c_readonly"));
                     psInsert.setString(12, rs.getString("c_isrequired"));
                     psInsert.setString(13, rs.getString("c_isshared"));
+                    psInsert.setString(14, rs.getString("c_isrequired"));
+                    psInsert.setString(15, taskObj.get("parent").toString());
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();
