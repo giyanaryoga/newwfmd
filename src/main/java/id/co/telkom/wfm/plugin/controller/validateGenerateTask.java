@@ -155,6 +155,7 @@ public class validateGenerateTask {
                 task.put("actplace", detailAct.get("actPlace"));
                 task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
                 task.put("duration", (float) detailAct.get("duration"));
+                task.put("classstructureid", detailAct.get("classstructureid"));
 //                duration = (float) task.get("duration");
                 totalDuration += (float) task.get("duration");
                 task.put("schedstart", (workorder.get("schedStart").toString() == "" ? time.getCurrentTime() : workorder.get("schedStart").toString()));
