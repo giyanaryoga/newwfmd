@@ -166,7 +166,8 @@ public class TestGenerateDao {
     public JSONObject getDetailTask(String activity) throws SQLException {
         JSONObject activityProp = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_activity, c_description, c_actplace, c_attributes, c_sequence, c_ownergroup, c_duration FROM app_fd_detailactivity WHERE c_activity = ?";
+        String query = "SELECT c_activity, c_description, c_actplace, c_attributes, c_sequence, c_ownergroup, c_duration, c_classstructureid "
+                + "FROM app_fd_detailactivity WHERE c_activity = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, activity);
@@ -179,6 +180,7 @@ public class TestGenerateDao {
                 activityProp.put("ownergroup", rs.getString("c_ownergroup"));
                 activityProp.put("attributes", rs.getInt("c_attributes"));
                 activityProp.put("duration", rs.getFloat("c_duration"));
+                activityProp.put("classstructureid", rs.getFloat("c_classstructureid"));
             } else {
                 activityProp = null;
             }
@@ -325,9 +327,11 @@ public class TestGenerateDao {
                 .append(" c_jmscorrelationid, ")
                 .append(" c_ownergroup, ")
                 .append(" c_schedstart, ")
-                .append(" c_schedfinish ")
+                .append(" c_schedfinish, ")
+                .append(" c_classstructureid ")
                 .append(" ) ")
                 .append(" VALUES ( ")
+                .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
@@ -376,6 +380,7 @@ public class TestGenerateDao {
             ps.setString(20, ownerGroup);
             ps.setTimestamp(21, (taskObj.get("schedstart").toString() == "" ? getTimeStamp() : Timestamp.valueOf(taskObj.get("schedstart").toString())));
             ps.setTimestamp(22, Timestamp.valueOf(taskObj.get("schedfinish").toString()));
+            ps.setString(23, taskObj.get("classstructureid").toString());
             
             int exe = ps.executeUpdate();
             //Checking insert status

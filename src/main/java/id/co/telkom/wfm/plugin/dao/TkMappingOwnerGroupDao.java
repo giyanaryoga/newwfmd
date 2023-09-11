@@ -295,4 +295,26 @@ public class TkMappingOwnerGroupDao {
         }
         return ownerGroup;
     }
+    
+    public String getOwnerGroup10(String workzone, String segment, String productname) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_productname = ?"
+                + "c_supplier is null AND c_amdivision is null";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ps.setString(2, segment);
+            ps.setString(3, productname);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
 }
