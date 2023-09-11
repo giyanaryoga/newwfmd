@@ -14,7 +14,7 @@ public class Activator implements BundleActivator {
     public void start(BundleContext context) {
         registrationList = new ArrayList<>();
         //DEFAULT APPLICATION PLUGIN
-        registrationList.add(context.registerService(RevisedTask.class.getName(), new RevisedTask(), null));
+        registrationList.add(context.registerService(TaskAttribute.class.getName(), new TaskAttribute(), null));
         //TEST PLUGIN
         registrationList.add(context.registerService(TestGenerateEbis.class.getName(), new TestGenerateEbis(), null));
         registrationList.add(context.registerService(TestUpdateStatusEbis.class.getName(), new TestUpdateStatusEbis(), null));

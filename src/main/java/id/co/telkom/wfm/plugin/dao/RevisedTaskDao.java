@@ -4,7 +4,7 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.RevisedTask;
+import id.co.telkom.wfm.plugin.TaskAttribute;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

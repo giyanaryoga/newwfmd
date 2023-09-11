@@ -4,8 +4,13 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import java.util.Map;
+//import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
+import id.co.telkom.wfm.plugin.controller.validateRevised;
+import java.util.*;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 import org.joget.apps.app.service.AppUtil;
+import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 
 /**
@@ -13,39 +18,59 @@ import org.joget.plugin.base.DefaultApplicationPlugin;
  * @author User
  */
 public class TaskAttribute extends DefaultApplicationPlugin {
+    String pluginName = "Telkom New WFM - Task Attribute Save Button - Default Plugin";
+    
     @Override
     public Object execute(Map map) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        validateRevised logicValidate = new validateRevised();
+        
+        String parent = getPropertyString("parent");
+        String task = getPropertyString("task");
+        String taskId = getPropertyString("taskid");
+        String wonum = getPropertyString("wonum");
+        String attrName = getPropertyString("assetattrid");
+        String attrValue = getPropertyString("value");
+//        int taskid = Integer.parseInt(taskId);
+        
+        LogUtil.info(this.getClassName(), "PARENT: "+ parent);
+        LogUtil.info(this.getClassName(), "WONUM: "+ wonum);
+        LogUtil.info(this.getClassName(), "TASK ID: "+ taskId);
+        LogUtil.info(this.getClassName(), "TASK: "+ task);
+        LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: "+ attrName);
+        LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: "+ attrValue);
+
+        logicValidate.validate(parent, wonum, attrName, attrValue, task);
+        
+        return null;
     }
 
     @Override
     public String getName() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.pluginName;
     }
 
     @Override
     public String getVersion() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "7.00";
     }
 
     @Override
     public String getDescription() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.pluginName;
     }
 
     @Override
     public String getLabel() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.pluginName;
     }
 
     @Override
     public String getClassName() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return getClass().getName();
     }
 
     @Override
     public String getPropertyOptions() {
-        return AppUtil.readPluginResource(getClassName(), "properties/assignment.json", null, true, null);
+        return AppUtil.readPluginResource(getClassName(), "properties/taskAttribute.json", null, true, null);
     }
-    
 }

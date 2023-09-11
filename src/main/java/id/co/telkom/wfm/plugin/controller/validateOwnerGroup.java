@@ -127,39 +127,40 @@ public class validateOwnerGroup {
         String dcType = this.getDCTypeSegment(workorder);
         String supplier = this.getSupplier(workorder);
         String division = this.getDivision(workorder);
+        String classstructureid = taskObj.get("classstructureid").toString();
         String ownerGroupSet = "";
         if (isTaskNonConn) {
             //Non - Connectivity mapping
             if (!"ASTINET".equalsIgnoreCase(workorder.get("prodName").toString()) && !"Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString()) && "Wholesale".equalsIgnoreCase(dcType)) {
-                String ownerGroup = tkMapping.getOwnerGroup1("NAS", workorder.get("prodName").toString(), dcType, supplier);
+                String ownerGroup = tkMapping.getOwnerGroup1("NAS", workorder.get("prodName").toString(), dcType, supplier, classstructureid);
                 ownerGroupSet = ownerGroup;
-                if (ownerGroupSet.equals(null)) {
-                    String ownerGroup2 = tkMapping.getOwnerGroup2("NAS", workorder.get("prodName").toString(), dcType);
+                if (ownerGroupSet  == null) {
+                    String ownerGroup2 = tkMapping.getOwnerGroup2("NAS", workorder.get("prodName").toString(), dcType, classstructureid);
                     ownerGroupSet = ownerGroup2;
-                    if (ownerGroupSet.equals(null)) {
-                        String ownerGroup3 = tkMapping.getOwnerGroup3(workorder.get("workZone").toString(), dcType);
+                    if (ownerGroupSet == null) {
+                        String ownerGroup3 = tkMapping.getOwnerGroup3(workorder.get("workZone").toString(), dcType, classstructureid);
                         ownerGroupSet = ownerGroup3;
                     }
                 }
             } else if ("Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString()) && Arrays.asList(dcType1).contains(dcType)) {
-                String ownerGroup = tkMapping.getOwnerGroup4(workorder.get("workZone").toString(), dcType);
+                String ownerGroup = tkMapping.getOwnerGroup4(workorder.get("workZone").toString(), dcType, classstructureid);
                 ownerGroupSet = ownerGroup;
             } else if ("Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString()) && Arrays.asList(dcType2).contains(dcType)) {
                 String ownerGroup2 = "";
-                if (division.equals(null) || division.equalsIgnoreCase("")) {
-                    ownerGroup2 = tkMapping.getOwnerGroup5("NAS", dcType);
+                if (division == null || division.equalsIgnoreCase("")) {
+                    ownerGroup2 = tkMapping.getOwnerGroup5("NAS", dcType, classstructureid);
                 } else {
-                    ownerGroup2 = tkMapping.getOwnerGroup6(division, dcType);
+                    ownerGroup2 = tkMapping.getOwnerGroup6(division, dcType, classstructureid);
                 }
                 ownerGroupSet = ownerGroup2;
                 if (ownerGroupSet == null) {
-                    ownerGroup2 = tkMapping.getOwnerGroup7("NAS", dcType);
+                    ownerGroup2 = tkMapping.getOwnerGroup7("NAS", dcType, classstructureid);
                     ownerGroupSet = ownerGroup2;
                 } else if (!Arrays.asList(dcType2).contains(dcType) && "Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString())) {
-                    ownerGroup2 = tkMapping.getOwnerGroup8("NAS", dcType);
+                    ownerGroup2 = tkMapping.getOwnerGroup8("NAS", dcType, classstructureid);
                     ownerGroupSet = ownerGroup2;
                 } else {
-                    ownerGroup2 = tkMapping.getOwnerGroup9("NAS", dcType, workorder.get("prodName").toString());
+                    ownerGroup2 = tkMapping.getOwnerGroup9("NAS", dcType, workorder.get("prodName").toString(), classstructureid);
                     ownerGroupSet = ownerGroup2;
                 }
             }

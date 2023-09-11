@@ -157,6 +157,35 @@ public class UpdateAssignmentEbisDao {
         }
     }
     
+    public void updateLaborWaitAssign(String laborcode, String laborname, String wonum) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_assignment SET ")
+            .append("c_laborcode = ?, ")
+            .append("c_displayname = ?, ")
+            .append("c_status = ?, ")
+            .append("datemodified = ? ")
+            .append("WHERE ")
+            .append("c_wonum = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, laborcode);
+            ps.setString(2, laborname);
+            ps.setString(3, "WAITASSIGN");
+            ps.setTimestamp(4, getTimeStamp());
+            ps.setString(5, wonum);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Laborcode update :  " + laborcode);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
     public void updateCrew(String amcrew, String wonum) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
@@ -203,6 +232,39 @@ public class UpdateAssignmentEbisDao {
             ps.setString(2, laborname);
             ps.setString(3, "MANJA");
             ps.setString(4, "ASSIGNED");
+            ps.setTimestamp(5, getTimeStamp());
+            ps.setString(6, wonum);
+            ps.setString(7, "ACTIVITY");
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Updated Workorder Laborcode :  " + laborcode);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void deleteLaborWorkOrder(String laborcode, String laborname, String wonum) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_workorder SET ")
+            .append("c_chief_code = ?, ")
+            .append("c_chief_name = ?, ")
+            .append("c_assignment_type = ?, ")
+            .append("c_assignment_status = ?, ")
+            .append("datemodified = ? ")
+            .append("WHERE ")
+            .append("c_wonum = ?")
+            .append("AND c_woclass = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, laborcode);
+            ps.setString(2, laborname);
+            ps.setString(3, "MANJA");
+            ps.setString(4, "WAITASSIGN");
             ps.setTimestamp(5, getTimeStamp());
             ps.setString(6, wonum);
             ps.setString(7, "ACTIVITY");

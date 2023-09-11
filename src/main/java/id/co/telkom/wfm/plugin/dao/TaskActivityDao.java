@@ -81,15 +81,15 @@ public class TaskActivityDao {
         return ts;
     }
     
-     public String assignStatus(ActivityTask act){
-        String status = "";
-        if (act.getTaskId()==10){
-            status = "LABASSIGN";
-        } else {
-            status = "APPR";
-        }
-        return status;
-    }
+//     public String assignStatus(ActivityTask act){
+//        String status = "";
+//        if (act.getTaskId()==10){
+//            status = "LABASSIGN";
+//        } else {
+//            status = "APPR";
+//        }
+//        return status;
+//    }
      
     public String getWorkzone(String wonum) throws SQLException {
         String workzone = "";
@@ -527,6 +527,70 @@ public class TaskActivityDao {
                     if (exe > 0) {
                         updateValue = true;
                         LogUtil.info(getClass().getName(), " Task Attribute updated to " + wonum);
+                    }   
+                    if (ps != null)
+                        ps.close();
+                } catch (Throwable throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (Throwable throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (Throwable throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (Throwable throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+        return updateValue;
+    }
+    
+    public boolean updateValueTaskAttributeFromWorkorderAttr(String parent, String attrName, String attrValue){
+        boolean updateValue = false;    
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
+        StringBuilder update = new StringBuilder();
+        update
+                .append(" UPDATE app_fd_workorderspec SET ")
+                .append(" c_alnvalue = ?, ")
+                .append(" c_value = ?, ")
+                .append(" dateModified = ? ")
+                .append(" WHERE ")
+                .append(" c_parent = ? ")
+                .append(" AND ")
+                .append(" c_assetattrid = ? ");
+        // change 03
+        try {
+            Connection con = ds.getConnection();
+            try {
+                // change 03
+                PreparedStatement ps = con.prepareStatement(update.toString());
+                // change 03
+                try {
+                    ps.setString(1, attrValue);
+                    ps.setString(2, attrValue);
+                    ps.setTimestamp(3, getTimeStamp());
+                    // change 03 where clause
+                    ps.setString(4, parent);
+                    ps.setString(5, attrName);
+                    // change 03
+                    int exe = ps.executeUpdate();
+                    //Checking insert status
+                    if (exe > 0) {
+                        updateValue = true;
+                        LogUtil.info(getClass().getName(), " Task Attribute updated to " + parent);
                     }   
                     if (ps != null)
                         ps.close();

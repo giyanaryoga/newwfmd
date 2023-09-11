@@ -179,9 +179,9 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                         }
                         break;
                     case "COMPWA":
-                        validate = validateTask.compwaTask(param);
-                        LogUtil.info(getClass().getName(), "VALIDATE: " + validate);
-                        if (validate) {
+                        String validateCompwa = validateTask.compwaTask(param);
+                        LogUtil.info(getClass().getName(), "VALIDATE: " + validateCompwa);
+                        if (validateCompwa.equalsIgnoreCase("true")) {
                             JSONObject response = validateTask.validateTask(param);
                             if ((int) response.get("code") == 200) {
                                 res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());

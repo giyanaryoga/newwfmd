@@ -116,11 +116,12 @@ public class UpdateTaskStatusEbisDao {
         return required;
     }
     
-    public boolean checkMandatory(String wonum) throws SQLException {
-//        JSONArray valueArray = new JSONArray();
-        boolean value = false;
+    public JSONArray checkMandatory(String wonum) throws SQLException {
+        JSONArray valueArray = new JSONArray();
+        String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
+        String query = "SELECT c_assetattrid, c_value, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1"
+                + "ORDER BY c_value ASC";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -130,25 +131,20 @@ public class UpdateTaskStatusEbisDao {
                 String alnvalue = rs.getString("c_value");
                 int mandatory = rs.getInt("c_isrequired");
                 if (alnvalue != null && mandatory == 1) {
-                    value = true;
-                } else if (alnvalue != null && mandatory == 0) {
-                    value = true;
-                } else if (alnvalue == null && mandatory == 0) {
-                    value = true;
+                    value = "true";
                 } else {
-                    value = false;
+                    value = "false";
                 }
-//                valueObj.put("value", value);
-//                valueArray.add(valueObj);
+                valueObj.put("value", value);
+                valueArray.add(valueObj);
                 LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + value);
             }
-//            LogUtil.info(getClass().getName(), "value array = " + valueArray);
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
             ds.getConnection().close();
         }
-        return value;
+        return valueArray;
     }
     
     public String getProductName(String wonum) throws SQLException {
@@ -193,18 +189,20 @@ public class UpdateTaskStatusEbisDao {
     public String checkAssignment(String wonum) throws SQLException {
         String assign = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_chief_code, c_assignment_status FROM app_fd_workorder WHERE c_wonum = ? AND c_actplace = 'OUTSIDE' AND c_assignment_status = 'ASSIGNED'";
+        String query = "SELECT c_laborcode, c_status FROM app_fd_assignment WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                assign = "Assign";
-                LogUtil.info(getClass().getName(), "Task sudah assign ke labor");
-//                LogUtil.info(getClass().getName(), rs.getString("c_chief_code") + " = " + rs.getString("c_assignment_status"));
-            } else {
-                assign = "Not Assign";
-                LogUtil.info(getClass().getName(), "Task belum assign ke labor");
+                String assignment = rs.getString("c_status");
+                if (assignment.equalsIgnoreCase("ASSIGNED")) {
+                    assign = "Assign";
+                    LogUtil.info(getClass().getName(), "Task sudah assign ke labor");
+                } else {
+                    assign = "Not Assign";
+                    LogUtil.info(getClass().getName(), "Task belum assign ke labor");
+                }
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
