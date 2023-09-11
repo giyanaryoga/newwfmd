@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 import org.apache.commons.lang.ArrayUtils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.UuidGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -63,7 +64,7 @@ public class validateNonCoreProduct {
     public JSONObject getParams(String wonum) throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT wo2.c_wonum, wo1.c_crmordertype, wo1.c_productname, wo1.c_producttype, wo2.c_detailactcode, wo2.c_worktype, wo1.c_workzone\n"
+        String query = "SELECT wo2.c_wonum, wo1.c_crmordertype, wo1.c_productname, wo1.c_producttype, wo2.c_detailactcode, wo2.c_worktype, wo1.c_workzone, wo1.c_serviceaddress, wo1.c_customer_name\n"
                 + "FROM app_fd_workorder wo1\n"
                 + "JOIN app_fd_workorder wo2 ON wo1.c_wonum = wo2.c_parent\n"
                 + "WHERE wo1.c_woclass = 'WORKORDER'\n"
@@ -82,6 +83,8 @@ public class validateNonCoreProduct {
                 resultObj.put("detailactcode", rs.getString("c_detailactcode"));
                 resultObj.put("worktype", rs.getString("c_worktype"));
                 resultObj.put("workzone", rs.getString("c_workzone"));
+                resultObj.put("serviceaddress", rs.getString("c_serviceaddress"));
+                resultObj.put("customername", rs.getString("c_customer_name"));
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -101,13 +104,6 @@ public class validateNonCoreProduct {
                 + "ELSE 'Missing' END "
                 + "WHERE c_parent = ? "
                 + "AND c_assetattrid IN ('SID')";
-//        String updateQuery
-//                = "UPDATE APP_FD_WORKORDERSPEC "
-//                + "SET c_value = CASE c_assetattrid "
-//                + "WHEN 'SID' THEN ? "
-//                + "ELSE 'Missing' END "
-//                + "WHERE c_wonum = ? "
-//                + "AND c_assetattrid IN ('SID')";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(updateQuery)) {
@@ -258,34 +254,41 @@ public class validateNonCoreProduct {
     }
 
     // Function update AssetSpec Value
-    public String updateLocation(String location, String description, String modifiedBy, String addresscode) {
+    public void updateLocation(String location, String description, String modifiedBy, String addresscode) throws SQLException {
+        String uuId = UuidGenerator.getInstance().getUuid();
+
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_locations "
-                + "SET c_location = ?, "
-                + "c_description = ?, "
-                + "c_saddresscode = ?, "
-                + "modifiedby = ?, "
-                + "dateModified = sysdate "
-                + "WHERE c_location = ?";
+
+        String selectQuery
+                = "INSERT INTO app_fd_locations "
+                + "( "
+                + " id,"
+                + " c_location,"
+                + " c_description,"
+                + " c_saddresscode,"
+                + " modifiedby,"
+                + " c_type,"
+                + " c_status)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(update)) {
-            ps.setString(1, location);
-            ps.setString(2, description);
-            ps.setString(3, addresscode);
-            ps.setString(4, modifiedBy);
-            ps.setString(5, "FMS");
-            ps.setString(6, "OPERATING");
-            
-            int exe = ps.executeUpdate();
+                PreparedStatement ps = con.prepareStatement(selectQuery)) {
+            ps.setString(1, uuId);
+            ps.setString(2, location);
+            ps.setString(3, description);
+            ps.setString(4, addresscode);
+            ps.setString(5, modifiedBy);
+            ps.setString(6, "FMS");
+            ps.setString(7, "OPERATING");
 
+            int exe = ps.executeUpdate();
             if (exe > 0) {
-                return "Update value locations berhasil";
+                LogUtil.info(getClass().getName(), "Insert Locations successfully " + location);
             } else {
-                return "Update value locations gagal";
+                LogUtil.info(getClass().getName(), "Insert Locations Failed " + location);
             }
-        } catch (Exception e) {
-            return "Error: " + e.getMessage();
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
     }
 
@@ -326,7 +329,7 @@ public class validateNonCoreProduct {
 
     public void validateComplete(UpdateStatusParam param) throws SQLException, JSONException {
         int isNoncore = 0;
-        String taskattribute = daoNoncore.getTaskattributeValue(param.getParent(), "SID");
+        String taskattribute = daoNoncore.getTaskattributeValue(param.getWonum(), "SID");
         // Get Params
         JSONObject params = getParams(param.getWonum());
         String productname = params.optString("productname", null);
@@ -335,33 +338,36 @@ public class validateNonCoreProduct {
 
         isNoncore = daoNoncore.isNonCoreProduct(productname);
 
-        if ("WFM".equals(worktype) && Arrays.asList(listProduct).contains(productname) && !(daoNoncore.getTaskattributeValue(param.getWonum(), "APPROVAL")).equals("REJECTED")) {
+        if ("WFM".equals(worktype) && !Arrays.asList(listProduct).contains(productname) && !(daoNoncore.getTaskattributeValue(param.getWonum(), "APPROVAL")).equals("REJECTED")) {
             if (isNoncore == 1) {
                 if (Arrays.asList(listMoDoRoSo).contains(crmordertype)) {
-                    validateProduct(productname, crmordertype, param.getModifiedBy(), param.getWonum(), param.getParent());
+                    validateProduct(productname, crmordertype, param.getModifiedBy(), param.getWonum());
                 } else if (crmordertype.equals("New Install")) {
-                    org.json.simple.JSONObject customerAccountidTemp = daoNoncore.getWorkorderattributeValue(param.getWonum(), "CUSTOMERPARTY_ACCOUNTID");
-                    String customerAccountIdTemp = customerAccountidTemp.toJSONString();
+                    org.json.simple.JSONObject customerAccountidTemp = daoNoncore.getWorkorderattributeValue(param.getParent(), "CUSTOMERPARTY_ACCOUNTID");
+                    String customerAccountIdTemp = customerAccountidTemp.toString();
                     String customerAccountid = "C" + customerAccountIdTemp.substring(3);
+//                    String customerAccountid = "C" + customerAccountIdTemp.substring(3);
 
                     if (customerAccountid != null) {
                         String sID = taskattribute;
                         String addresscode = generate(param.getWonum(), "AD888");
                         String siteId = param.getSiteId();
-                        String description = params.optString("serviceaddress").substring(50);
+                        String description = params.optString("serviceaddress").substring(0, Math.min(params.optString("serviceaddress").length(), 50));
                         String locationid = generate(param.getWonum(), "C888");
-                        String customerName = params.optString("customerName");
+                        String customerName = params.optString("customername");
                         String assettype = "";
                         String productName = "";
-
-                        if (getLocations(customerAccountid) == null) {
+                        
+                        JSONObject location = getLocations(customerAccountid);
+                        
+                        if (location != null) {
                             try {
                                 daoNoncore.generateServiceAddress(addresscode, siteId, description);
                                 updateLocation(locationid, customerName, param.getModifiedBy(), addresscode);
                             } catch (SQLException e) {
                                 LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
                             }
-                            if (productname == "NeuCentrIX Interconnect Layer 1") {
+                            if (productname.equals("NeuCentrIX Interconnect Layer 1")) {
                                 assettype = "NEUCENTRIX LAYER 1";
                                 productName = productname.toUpperCase();
                             } else {
@@ -376,7 +382,7 @@ public class validateNonCoreProduct {
                         } else {
                             daoNoncore.generateServiceAddress(addresscode, siteId, description);
 
-                            if (productname == "NeuCentrIX Interconnect Layer 1") {
+                            if (productname.equals("NeuCentrIX Interconnect Layer 1")) {
                                 assettype = "NEUCENTRIX LAYER 1";
                                 productName = productname.toUpperCase();
                             } else {
@@ -396,9 +402,9 @@ public class validateNonCoreProduct {
         }
     }
 
-    public String validateProduct(String productname, String crmordertype, String modifiedBy, String wonum, String parent) throws SQLException, JSONException {
+    public String validateProduct(String productname, String crmordertype, String modifiedBy, String wonum) throws SQLException, JSONException {
         org.json.simple.JSONObject serviceid = daoNoncore.getWorkorderattributeValue(wonum, "SID");
-        String taskattribute = daoNoncore.getTaskattributeValue(parent, "SID");
+        String taskattribute = daoNoncore.getTaskattributeValue(wonum, "SID");
         String serviceId = serviceid.toJSONString();
 
         JSONObject assetspec = getAssetspec(serviceId, wonum);

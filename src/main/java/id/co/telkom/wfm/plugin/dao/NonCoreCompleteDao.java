@@ -66,20 +66,17 @@ public class NonCoreCompleteDao {
 
         String selectQuery = "SELECT c_attr_name, c_attr_value \n"
                 + "FROM app_fd_workorderattribute \n"
-                + "WHERE c_attr_name IN ('?')\n"
+                + "WHERE c_attr_name = ?\n"
                 + "AND c_wonum = ?";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
-            ps.setString(1, wonum);
-            ps.setString(2, attrname);
+            ps.setString(1, attrname);
+            ps.setString(2, wonum);
 
             ResultSet rs = ps.executeQuery();
-
             while (rs.next()) {
-                if (rs.getString("c_attr_name") != null) {
-                    result.put(rs.getString("c_attr_name"), rs.getString("c_attr_value"));
-                }
+                result.put(rs.getString("c_attr_name"), rs.getString("c_attr_value"));
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -88,26 +85,19 @@ public class NonCoreCompleteDao {
     }
 
     // Get Task Attribute
-    public String getTaskattributeValue(String parent, String assetattrid) throws SQLException {
+    public String getTaskattributeValue(String wonum, String assetattrid) throws SQLException {
         String result = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String selectQuery = "SELECT c_value "
                 + "FROM app_fd_workorderspec "
-                + "WHERE c_wonum IN ( "
-                + "    SELECT c_wonum "
-                + "    FROM app_fd_workorder "
-                + "    WHERE c_parent = ? "
-                + "    AND c_wfmdoctype = 'NEW' "
-                + "    AND c_woclass = 'ACTIVITY' "
-                + ") "
-                + "AND c_assetattrid = ? "
-                + "ORDER BY c_wonum DESC";
+                + "WHERE c_wonum = ?"
+                + "AND c_assetattrid = ? ";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
-            ps.setString(1, parent);
+            ps.setString(1, wonum);
             ps.setString(2, assetattrid);
-            
+
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 result = rs.getString("c_value");
@@ -131,8 +121,8 @@ public class NonCoreCompleteDao {
                 + "WHERE c_classificationid = ? \n"
                 + "AND c_parent IN (\n"
                 + "    SELECT c_classstructureid \n"
-                + "    FROM app_fD_classstructure \n"
-                + "    WHERE c_classsificationid = 'WFM_PRODUCT'\n"
+                + "    FROM app_fd_classstructure \n"
+                + "    WHERE c_classificationid = 'WFM_PRODUCT'\n"
                 + "    )";
 
         try (Connection con = ds.getConnection();
@@ -140,11 +130,8 @@ public class NonCoreCompleteDao {
             ps.setString(1, assetType);
 
             ResultSet rs = ps.executeQuery();
-
             while (rs.next()) {
-                if (rs.getString("c_classstructureid") != null) {
-                    result = rs.getString("c_classstructureid");
-                }
+                result = rs.getString("c_classstructureid");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -158,16 +145,17 @@ public class NonCoreCompleteDao {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
         String selectQuery
-                = "INSERT INTO app_fd_serviceaddress\n"
-                + "    (\n"
-                + "        id,\n"
-                + "        c_serviceaddressid,\n"
-                + "        c_addresscode,\n"
-                + "        c_country,\n"
-                + "        c_siteid,\n"
-                + "        c_description,\n"
-                + "        c_orgid\n"
-                + "    ) VALUES (?, WFMDBDEV01.SERVICEADDRESSIDSEQ.NEXTVAL, ?, ?, ?, ?)";
+                = "INSERT INTO app_fd_serviceaddress"
+                + " ("
+                + " id,"
+                + " c_serviceaddressid,"
+                + " c_addresscode,"
+                + " c_country,"
+                + " c_siteid,"
+                + " c_description,"
+                + " c_orgid"
+                + " ) VALUES ("
+                + "?, WFMDBDEV01.SERVICEADDRESSIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -175,18 +163,14 @@ public class NonCoreCompleteDao {
             ps.setString(2, addresscode);
             ps.setString(3, "ID");
             ps.setString(4, siteid);
-            ps.setString(4, description);
-            ps.setString(5, "TELKOM");
+            ps.setString(5, description);
+            ps.setString(6, "TELKOM");
 
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                int exe = ps.executeUpdate();
-                if (exe > 0) {
-                    LogUtil.info(getClass().getName(), addresscode + "Generate Service Address Successfully");
-                } else {
-                    LogUtil.info(getClass().getName(), "Data insertion failed.");
-                }
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), addresscode + "Generate Service Address Successfully");
+            } else {
+                LogUtil.info(getClass().getName(), "Data insertion failed.");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -212,7 +196,7 @@ public class NonCoreCompleteDao {
                 + " c_status\n"
                 + " )\n"
                 + " VALUES\n"
-                + " (?, WFMDBDEV01.ASSETIDSEQ.NEXTVAL, ?, ?, ?, ?, ?, ?)";
+                + " (?, WFMDBDEV01.ASSETIDSEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -225,15 +209,11 @@ public class NonCoreCompleteDao {
             ps.setString(7, classstructureid);
             ps.setString(8, "OPERATING");
 
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                int exe = ps.executeUpdate();
-                if (exe > 0) {
-                    LogUtil.info(getClass().getName(), assetnum + "Generate Service Asset Successfully");
-                } else {
-                    LogUtil.info(getClass().getName(), "Data insertion failed.");
-                }
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), assetnum + "Generate Service Asset Successfully");
+            } else {
+                LogUtil.info(getClass().getName(), "Data insertion failed.");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -244,8 +224,8 @@ public class NonCoreCompleteDao {
         String assetattrid = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
-        String selectAssetSpec = "SELECT c_assetattrid, c_value FROM app_fd_assetspec WHERE c_assetnum = ?";
-        String insertAssetSpecValue = "INSERT INTO app_fd_assetspec (c_value) VALUES (?) WHERE c_assetnum = ?";
+        String selectAssetSpec = "SELECT c_assetattrid, c_alnvalue FROM app_fd_assetspec WHERE c_assetnum = ?";
+        String insertAssetSpecValue = "INSERT INTO app_fd_assetspec (c_alnvalue) VALUES (?) WHERE c_assetnum = ?";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectAssetSpec);
@@ -359,7 +339,7 @@ public class NonCoreCompleteDao {
 
                     while (rs.next()) {
                         String attrId = rs.getString("c_assetattrid");
-                        String alnValue = rs.getString("c_value");
+                        String alnValue = rs.getString("c_alnvalue");
                         attributeInfo.put(attrId, alnValue.isEmpty() ? "-" : alnValue);
                     }
                 } catch (SQLException e) {
@@ -373,6 +353,8 @@ public class NonCoreCompleteDao {
                 String substringReq = requestString.substring(0, Math.min(requestString.length(), 500));
                 String responseString = getStringSoapMessage(soapResponse);
                 String substringRes = responseString.substring(0, Math.min(responseString.length(), 500));
+                LogUtil.info(getClass().getName(), "Response Reserve Resource : " + responseString);
+                LogUtil.info(getClass().getName(), "SubString Response Reserve Resource : " + substringRes);
 
                 insertIntegration.insertIntegrationHistory(wonum, "COMPLETENONCORE", substringReq, substringRes, "COMPLETENONCORE");
 
