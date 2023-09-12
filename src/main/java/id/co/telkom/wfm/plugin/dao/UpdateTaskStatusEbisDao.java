@@ -120,8 +120,8 @@ public class UpdateTaskStatusEbisDao {
         JSONArray valueArray = new JSONArray();
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1"
-                + "ORDER BY c_value ASC";
+        String query = "SELECT c_assetattrid, c_value, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?"
+                + "ORDER BY c_value, c_isrequired ASC";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -132,8 +132,12 @@ public class UpdateTaskStatusEbisDao {
                 int mandatory = rs.getInt("c_isrequired");
                 if (alnvalue != null && mandatory == 1) {
                     value = "true";
-                } else {
+                } else if (alnvalue == null && mandatory == 1) {
                     value = "false";
+                } else if (alnvalue == null && mandatory == 0) {
+                    value = "true";
+                } else {
+                    value = "true";
                 }
                 valueObj.put("value", value);
                 valueArray.add(valueObj);

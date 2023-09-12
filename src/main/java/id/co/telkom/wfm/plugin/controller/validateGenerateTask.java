@@ -245,21 +245,22 @@ public class validateGenerateTask {
             String attrValue = (taskAttrObj.get("attrValue") == null ? "" : taskAttrObj.get("attrValue").toString());
             //@insert Oss Item Attribute
             generateDao.insertToOssAttribute(taskAttrObj, sortedTask.get("wonum").toString());
-            if (attrValue.equalsIgnoreCase("")) {
-                //GENERATE VALUE FROM WORKORDERATTRIBUTE
-                for (Object obj: AttributeWO) {
-                    JSONObject arrayObj3 = (JSONObject)obj;
-                    String AttrNameWo = arrayObj3.get("woAttrName").toString().toUpperCase();
-                    String AttrValueWo = arrayObj3.get("woAttrValue").toString();
-                    if (AttrNameWo.equalsIgnoreCase(attrName)) {
-                        dao2.updateValueTaskAttributeFromWorkorderAttr(workorder.get("wonum").toString(), attrName, AttrValueWo);
-                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
-                    }
-                }
-            } else {
-                dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
-                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME"); 
-            }
+            dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
+//            if (attrValue.equalsIgnoreCase("")) {
+//                //GENERATE VALUE FROM WORKORDERATTRIBUTE
+//                for (Object obj: AttributeWO) {
+//                    JSONObject arrayObj3 = (JSONObject)obj;
+//                    String AttrNameWo = arrayObj3.get("woAttrName").toString().toUpperCase();
+//                    String AttrValueWo = arrayObj3.get("woAttrValue").toString();
+//                    if (AttrNameWo.equalsIgnoreCase(attrName)) {
+//                        dao2.updateValueTaskAttributeFromWorkorderAttr(workorder.get("wonum").toString(), attrName, AttrValueWo);
+////                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
+//                    }
+//                }
+//            } else {
+            
+//                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME"); 
+//            }
         }
     }
     

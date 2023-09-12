@@ -154,7 +154,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                             JSONObject response = validateTask.validateTask(param);
                             if ((int) response.get("code") == 200) {
                                 res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());
-                                res.writeJSONString(hsr1.getWriter());   
+                                res.writeJSONString(hsr1.getWriter());
                             } else {
                                 hsr1.sendError((int) response.get("code"), response.get("message").toString());
                             }

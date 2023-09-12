@@ -30,50 +30,79 @@ public class TaskAttributeUpdateDao {
         return ts;
     }
     
-//    public boolean getApiAttribute(String apiId, String apiKey) {
-//        boolean  isAuthSuccess = false;
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_api_id, c_api_key FROM app_fd_api_wfm WHERE c_use_of_api = 'mystaff_integration'";
-//        try(Connection con = ds.getConnection();
-//            PreparedStatement ps = con.prepareStatement(query)) {
-//            ResultSet rs = ps.executeQuery();
-//            if (rs.next()) {
-//                if (apiId.equals(rs.getString("c_api_id")) && apiKey.equals(rs.getString("c_api_key"))) {
-//                    isAuthSuccess = true;
-//                } else {
-//                    isAuthSuccess = false;
-//                }
-//            }
-//        } catch(SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-//        }
-//        return isAuthSuccess;
-//    }
+    public JSONArray getAttrWoAttribute(String wonum) throws SQLException {
+        JSONArray woAttr = new JSONArray();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_attr_name, c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject obj = new JSONObject();
+                String woAttrName = rs.getString("c_attr_name");
+                String woAttrValue = rs.getString("c_attr_value");
+                obj.put("attr_name", woAttrName.toUpperCase());
+                obj.put("attr_value", woAttrValue);
+                woAttr.add(obj);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return woAttr;
+    }
     
-//    public JSONObject getTask(String wonum) throws SQLException {
-//        JSONObject activityProp = new JSONObject();
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_taskid, c_wosequence, c_detailactcode, c_description, c_parent  FROM app_fd_workorder WHERE c_wonum = ?";
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(query)) {
-//            ps.setString(1, wonum);
-//            ResultSet rs = ps.executeQuery();
-//            if (rs.next()) {
-//                activityProp.put("taskid", rs.getInt("c_taskid"));
-//                activityProp.put("wosequence", rs.getString("c_wosequence"));
-//                activityProp.put("detailactcode", rs.getString("c_detailactcode"));
-//                activityProp.put("description", rs.getString("c_description"));
-//                activityProp.put("parent", rs.getString("c_parent"));
-//            } else {
-//                activityProp = null;
-//            }
-//        } catch (Exception e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        } finally {
-//            ds.getConnection().close();
-//        }
-//        return activityProp;
-//    }
+    public JSONArray getTaskAttributeParent(String parent) throws SQLException {
+        JSONArray woAttr = new JSONArray();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_parent = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, parent);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject obj = new JSONObject();
+                String taskAttrName = rs.getString("c_assetattrid");
+                String taskAttrValue = rs.getString("c_value");
+                obj.put("task_attr_name", taskAttrName);
+                obj.put("task_attr_value", taskAttrValue);
+                woAttr.add(obj);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return woAttr;
+    }
+    
+    public JSONArray getTaskAttrWonum(String wonum) throws SQLException {
+        JSONArray activityProp = new JSONArray();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_parent, c_wonum, c_assetattrid, c_value, c_mandatory, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject attr = new JSONObject();
+                attr.put("mandatory", rs.getInt("c_mandatory"));
+                attr.put("isrequired", rs.getInt("c_isrequired"));
+                attr.put("assetattrid", rs.getString("c_assetattrid"));
+                attr.put("value", rs.getString("c_value"));
+                attr.put("parent", rs.getString("c_parent"));
+                attr.put("wonum", rs.getString("c_wonum"));
+                activityProp.add(attr);
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return activityProp;
+    }
     
     public boolean updateAttributeMyStaff(String wonum, String siteId, String assetAttrId, String value, String changeBy, String modifiedBy, String changeDate) throws SQLException {
         boolean taskUpdated = false;
@@ -116,54 +145,6 @@ public class TaskAttributeUpdateDao {
           ds.getConnection().close();
         }
         return taskUpdated;
-    }
-    
-    public JSONArray getAttrWoAttribute(String wonum) throws SQLException {
-        JSONArray woAttr = new JSONArray();
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_attr_name, c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                JSONObject obj = new JSONObject();
-                String woAttrName = rs.getString("c_attr_name");
-                String woAttrValue = rs.getString("c_attr_value");
-                obj.put("attr_name", woAttrName.toUpperCase());
-                obj.put("attr_value", woAttrValue);
-                woAttr.add(obj);
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return woAttr;
-    }
-    
-    public JSONArray getTaskAttribute(String parent) throws SQLException {
-        JSONArray woAttr = new JSONArray();
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_parent = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, parent);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                JSONObject obj = new JSONObject();
-                String taskAttrName = rs.getString("c_assetattrid");
-                String taskAttrValue = rs.getString("c_value");
-                obj.put("task_attr_name", taskAttrName);
-                obj.put("task_attr_value", taskAttrValue);
-                woAttr.add(obj);
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return woAttr;
     }
     
     public boolean updateValueTaskAttributeFromWorkorderAttr(String parent, String attrName, String attrValue){
@@ -228,5 +209,70 @@ public class TaskAttributeUpdateDao {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
         return updateValue;
+    }
+    
+    public String getTaskAttrValue(String wonum, String assetattrid) throws SQLException {
+        String value = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                value = rs.getString("c_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return value;
+    }
+    
+    public String getTaskAttrName(String wonum) throws SQLException {
+        String assetattrid = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid FROM app_fd_workorderspec WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                assetattrid = rs.getString("c_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return assetattrid;
+    }
+    
+    public void updateMandatory(String wonum, String assetattrid, int mandatory ) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_workorderspec SET ")
+            .append("c_mandatory = ?, ")
+            .append("c_isrequired = ?, ")
+            .append("datemodified = ? ")
+            .append("WHERE ")
+            .append("c_wonum = ?")
+            .append("c_assetattrid = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setInt(1, mandatory);
+            ps.setInt(2, mandatory);
+            ps.setTimestamp(3, getTimeStamp());
+            ps.setString(4, wonum);
+            ps.setString(5, assetattrid);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
     }
 }

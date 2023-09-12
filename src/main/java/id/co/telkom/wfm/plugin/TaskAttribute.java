@@ -6,6 +6,7 @@ package id.co.telkom.wfm.plugin;
 
 //import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
 import id.co.telkom.wfm.plugin.controller.validateRevised;
+import id.co.telkom.wfm.plugin.controller.validateTaskAttribute;
 import java.util.*;
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
@@ -23,6 +24,7 @@ public class TaskAttribute extends DefaultApplicationPlugin {
     @Override
     public Object execute(Map map) {
         validateRevised logicValidate = new validateRevised();
+        validateTaskAttribute logicTaskAttr = new validateTaskAttribute();
         
         String parent = getPropertyString("parent");
         String task = getPropertyString("task");
@@ -30,7 +32,6 @@ public class TaskAttribute extends DefaultApplicationPlugin {
         String wonum = getPropertyString("wonum");
         String attrName = getPropertyString("assetattrid");
         String attrValue = getPropertyString("value");
-//        int taskid = Integer.parseInt(taskId);
         
         LogUtil.info(this.getClassName(), "PARENT: "+ parent);
         LogUtil.info(this.getClassName(), "WONUM: "+ wonum);
@@ -38,7 +39,8 @@ public class TaskAttribute extends DefaultApplicationPlugin {
         LogUtil.info(this.getClassName(), "TASK: "+ task);
         LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: "+ attrName);
         LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: "+ attrValue);
-
+        
+        logicTaskAttr.validate(parent, wonum, attrName, attrValue, task);
         logicValidate.validate(parent, wonum, attrName, attrValue, task);
         
         return null;

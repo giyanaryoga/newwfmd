@@ -145,7 +145,6 @@ public class validateTaskStatus {
     private void completeTask(UpdateStatusParam param) throws JSONException {
         String updateTask = "";
         try {
-
             org.json.JSONObject params = validateNonCoreProduct.getParams(param.getWonum());
             String productname = (params.optString("productname", null));
             int isNoncore = daoNonCore.isNonCoreProduct(productname);
@@ -210,7 +209,7 @@ public class validateTaskStatus {
     
     private void taskValueFromWoAttr(UpdateStatusParam param) {
         try {
-            JSONArray taskAttribute = taskAttrDao.getTaskAttribute(param.getParent());
+            JSONArray taskAttribute = taskAttrDao.getTaskAttributeParent(param.getParent());
             JSONArray workorderAttribute = taskAttrDao.getAttrWoAttribute(param.getParent());
             String taskAttrName;
             String taskAttrValue;
