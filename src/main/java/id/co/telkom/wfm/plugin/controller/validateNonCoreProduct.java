@@ -376,7 +376,7 @@ public class validateNonCoreProduct {
 
                             String classstructureid = daoNoncore.getAssetClassstructureid(productName);
 
-                            daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
+                            daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid, param.getSiteId(),params.optString("detailactcode"));
                             daoNoncore.generateServiceSpecFromWorkorder(sID, param.getParent());
                             daoNoncore.reserveResourceUIM(param.getWonum(), sID);
                         } else {
@@ -391,7 +391,7 @@ public class validateNonCoreProduct {
 
                             String classstructureid = daoNoncore.getAssetClassstructureid(productName);
 
-                            daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
+                            daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid, param.getSiteId(),params.optString("detailactcode"));
                             daoNoncore.generateServiceSpecFromWorkorder(sID, param.getParent());
                             daoNoncore.reserveResourceUIM(param.getWonum(), sID);
                         }

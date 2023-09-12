@@ -177,7 +177,7 @@ public class NonCoreCompleteDao {
         }
     }
 
-    public void generateServiceAsset(String assetnum, String location, String saddresscode, String assettype, String serviceno, String classstructureid) {
+    public void generateServiceAsset(String assetnum, String location, String saddresscode, String assettype, String serviceno, String classstructureid, String siteid, String detailactcode) throws SQLException {
         String uuId = UuidGenerator.getInstance().getUuid();
 
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -218,6 +218,59 @@ public class NonCoreCompleteDao {
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
+        insertAttributeAssetspec(assetnum, siteid, detailactcode);
+    }
+
+    private void insertAttributeAssetspec(String assetnum, String siteid, String detailactcode) throws SQLException {
+        String uuid = UuidGenerator.getInstance().getUuid();
+        java.util.Date date = new java.util.Date();
+        Timestamp timestamp = new Timestamp(date.getTime());
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String selectQuery = "SELECT c_isrequired, c_classstructureid, c_assetattrid, c_sequence, c_defaultalnvalue FROM app_fd_classspec where c_activity = ?";
+        String insertQuery
+                = "INSERT INTO app_fd_assetspec"
+                + "(id"
+                + "c_assetnum,"
+                + "c_assetattrid,"
+                + "c_classstructureid,"
+                + "c_displaysequence,"
+                + "c_alnvalue,"
+                + "c_changedate,"
+                + "c_siteid,"
+                + "c_orgid,"
+                + "c_assetspecid,"
+                + "c_mandatory)"
+                + "VALUES"
+                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, WFMDBDEV01.ASSETSPECIDSEQ.NEXTVAL, ?)";
+
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps1 = con.prepareStatement(selectQuery);
+                PreparedStatement ps2 = con.prepareStatement(insertQuery)) {
+            ps1.setString(1, detailactcode);
+            ResultSet rs = ps1.executeQuery();
+
+            if (rs.next()) {
+                ps2.setString(1, uuid);
+                ps2.setString(2, assetnum);
+                ps2.setString(3, rs.getString("c_assetattrid"));
+                ps2.setString(4, rs.getString("c_classstructureid"));
+                ps2.setString(5, rs.getString("c_sequence"));
+                ps2.setString(6, rs.getString("c_defaultalnvalue"));
+                ps2.setTimestamp(7, timestamp);
+                ps2.setString(8, siteid);
+                ps2.setString(9, "TELKOM");
+                ps2.setString(10, rs.getString("c_isrequired"));
+
+                int exe = ps2.executeUpdate();
+                if (exe > 0) {
+                    LogUtil.info(getClass().getName(), "Insert attribute Assetspec successfully -> ASSETNUM : " + assetnum);
+                } else {
+                    LogUtil.info(getClass().getName(), "Insert attribute Assetspec failed -> ASSETNUM : " + assetnum);
+                }
+            }
+        } finally {
+            ds.getConnection().close();
+        }
     }
 
     public void generateServiceSpecFromWorkorder(String assetnum, String parent) throws SQLException {
@@ -225,7 +278,7 @@ public class NonCoreCompleteDao {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
         String selectAssetSpec = "SELECT c_assetattrid, c_alnvalue FROM app_fd_assetspec WHERE c_assetnum = ?";
-        String insertAssetSpecValue = "INSERT INTO app_fd_assetspec (c_alnvalue) VALUES (?) WHERE c_assetnum = ?";
+        String insertAssetSpecValue = "UPDATE app_fd_assetspec SET c_alnvalue = ? WHERE c_assetnum = ?";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectAssetSpec);
@@ -243,49 +296,6 @@ public class NonCoreCompleteDao {
                     psInsert.setString(2, assetnum);
                     psInsert.executeQuery();
 
-                }
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        }
-    }
-
-    public void generateAssetWorkzone(String assetnum, String workzone, String siteid) {
-        String uuId = UuidGenerator.getInstance().getUuid();
-
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-
-        String selectQuery
-                = "INSERT INTO app_fd_assetworkzone \n"
-                + "(\n"
-                + " id,\n"
-                + " c_assetworkzoneid,\n"
-                + " c_assetnum,\n"
-                + " c_workzone,\n"
-                + " c_siteid,\n"
-                + " c_type,\n"
-                + " c_orgid\n"
-                + " )\n"
-                + " VALUES\n"
-                + " (?, WFMDBDEV01.ASSETWORKZONEIDSEQ.NEXTVAL, ?, ?, ?, ?)";
-
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(selectQuery)) {
-            ps.setString(1, uuId);
-            ps.setString(2, assetnum);
-            ps.setString(3, workzone);
-            ps.setString(4, siteid);
-            ps.setString(5, "ZONE");
-            ps.setString(6, "TELKOM");
-
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                int exe = ps.executeUpdate();
-                if (exe > 0) {
-                    LogUtil.info(getClass().getName(), assetnum + "Generate Asset Workzone Successfully");
-                } else {
-                    LogUtil.info(getClass().getName(), "Data insertion failed.");
                 }
             }
         } catch (SQLException e) {
