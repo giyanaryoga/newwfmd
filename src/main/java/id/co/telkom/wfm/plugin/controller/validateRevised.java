@@ -4,7 +4,7 @@
  */
 package id.co.telkom.wfm.plugin.controller;
 
-import id.co.telkom.wfm.plugin.RevisedTask;
+import id.co.telkom.wfm.plugin.TaskAttribute;
 import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -208,7 +208,7 @@ public class validateRevised {
                 break;
             }
         } catch (SQLException ex) {
-            Logger.getLogger(RevisedTask.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

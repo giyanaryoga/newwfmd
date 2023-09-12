@@ -109,17 +109,18 @@ public class TkMappingOwnerGroupDao {
         return taskAttrValue;
     }
     
-    public String getOwnerGroup1(String workzone, String prodName, String segment, String supplier) throws SQLException {
+    public String getOwnerGroup1(String workzone, String prodName, String segment, String supplier, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_productname = ? AND c_tkcustomersegment = ? AND c_supplier = ?";
+                + "WHERE c_workzone = ? AND c_productname = ? AND c_tkcustomersegment = ? AND c_supplier = ? AND c_classstructureid = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, prodName);
             ps.setString(3, segment);
             ps.setString(4, supplier);
+            ps.setString(5, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
@@ -131,16 +132,17 @@ public class TkMappingOwnerGroupDao {
         return ownerGroup;
     }
     
-    public String getOwnerGroup2(String workzone, String prodName, String segment) throws SQLException {
+    public String getOwnerGroup2(String workzone, String prodName, String segment, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_productname = ? AND c_tkcustomersegment = ?";
+                + "WHERE c_workzone = ? AND c_productname = ? AND c_tkcustomersegment = ? AND c_classstructureid = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, prodName);
             ps.setString(3, segment);
+            ps.setString(4, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
@@ -152,15 +154,16 @@ public class TkMappingOwnerGroupDao {
         return ownerGroup;
     }
     
-    public String getOwnerGroup3(String workzone, String segment) throws SQLException {
+    public String getOwnerGroup3(String workzone, String segment, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_tkcustomersegment = ?";
+                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_classstructureid = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, segment);
+            ps.setString(3, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
@@ -172,15 +175,16 @@ public class TkMappingOwnerGroupDao {
         return ownerGroup;
     }
     
-    public String getOwnerGroup4(String workzone, String segment) throws SQLException {
+    public String getOwnerGroup4(String workzone, String segment, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_supplier is null";
+                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_classstructureid = ? AND c_supplier is null";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, segment);
+            ps.setString(3, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
@@ -192,15 +196,16 @@ public class TkMappingOwnerGroupDao {
         return ownerGroup;
     }
     
-    public String getOwnerGroup5(String workzone, String segment) throws SQLException {
+    public String getOwnerGroup5(String workzone, String segment, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_productname is null AND c_amdivision is null AND c_supplier is null";
+                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_classstructureid = ? AND c_productname is null AND c_amdivision is null AND c_supplier is null";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, segment);
+            ps.setString(3, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
@@ -212,15 +217,16 @@ public class TkMappingOwnerGroupDao {
         return ownerGroup;
     }
     
-    public String getOwnerGroup6(String amdivision, String segment) throws SQLException {
+    public String getOwnerGroup6(String amdivision, String segment, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_amdivision = ? AND c_tkcustomersegment = ?";
+                + "WHERE c_amdivision = ? AND c_tkcustomersegment = ? AND c_classstructureid = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, amdivision);
             ps.setString(2, segment);
+            ps.setString(3, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
@@ -232,16 +238,17 @@ public class TkMappingOwnerGroupDao {
         return ownerGroup;
     }
     
-    public String getOwnerGroup7(String workzone, String segment) throws SQLException {
+    public String getOwnerGroup7(String workzone, String segment, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_tkcustomersegment = ?"
+                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_classstructureid = ?"
                 + "AND c_productname is null AND c_supplier is null AND c_amdivision is null";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, segment);
+            ps.setString(3, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
@@ -253,16 +260,17 @@ public class TkMappingOwnerGroupDao {
         return ownerGroup;
     }
     
-    public String getOwnerGroup8(String workzone, String segment) throws SQLException {
+    public String getOwnerGroup8(String workzone, String segment, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_tkcustomersegment = ?"
+                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_classstructureid = ?"
                 + "c_supplier is null AND c_amdivision is null";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, segment);
+            ps.setString(3, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");
@@ -274,39 +282,41 @@ public class TkMappingOwnerGroupDao {
         return ownerGroup;
     }
     
-    public String getOwnerGroup9(String workzone, String segment, String productname) throws SQLException {
+    public String getOwnerGroup9(String workzone, String segment, String productname, String classstructureid) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_productname = ?"
-                + "c_supplier is null AND c_amdivision is null";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, workzone);
-            ps.setString(2, segment);
-            ps.setString(3, productname);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                ownerGroup = rs.getString("c_ownergroup");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return ownerGroup;
-    }
-    
-    public String getOwnerGroup10(String workzone, String segment, String productname) throws SQLException {
-        String ownerGroup = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_productname = ?"
+                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_productname = ? AND c_classstructureid = ?"
                 + "c_supplier is null AND c_amdivision is null";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, segment);
             ps.setString(3, productname);
+            ps.setString(4, classstructureid); //classstructureid
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
+    
+    public String getOwnerGroup10(String workzone, String segment, String productname, String classstructureid) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_productname = ? AND c_classstructureid = ?"
+                + "c_supplier is null AND c_amdivision is null";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ps.setString(2, segment);
+            ps.setString(3, productname);
+            ps.setString(4, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");

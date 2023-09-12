@@ -35,6 +35,7 @@ public class validateTaskStatus {
 //    TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     validateNonCoreProduct validateNonCoreProduct = new validateNonCoreProduct();
     NonCoreCompleteDao daoNonCore = new NonCoreCompleteDao();
+    TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
 
     TimeUtil time = new TimeUtil();
     final JSONObject res = new JSONObject();
@@ -47,23 +48,70 @@ public class validateTaskStatus {
 
             String isAssigned = daoUpdate.checkAssignment(param.getWonum());
             String checkActPlace = daoUpdate.checkActPlace(param.getWonum());
+            taskValueFromWoAttr(param);
+            
+            if (!checkActPlace.equalsIgnoreCase("OUTSIDE")) {
+                startwa = true;
+                validateStartwaProduct(param);
+            } else if (isAssigned.equalsIgnoreCase("No Assign") && !checkActPlace.equalsIgnoreCase("OUTSIDE")) {
+                startwa = true;
+                validateStartwaProduct(param);
+            } else if (isAssigned.equalsIgnoreCase("No Assign") && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
+                startwa = false;
+            } else  if (isAssigned.equalsIgnoreCase("Assign") && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
+                startwa = true;
+                validateStartwaProduct(param);
+            } else {
+                startwa = false;
+            }
+            LogUtil.info(getClass().getName(), "result startwa : " + startwa);
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return startwa;
+    }
 
+    public String compwaTask(UpdateStatusParam param) {
+        String compwa = "";
+        try {
+            JSONArray isMandatoryValue = daoUpdate.checkMandatory(param.getWonum());
+            for (Object obj : isMandatoryValue) {
+                JSONObject valueObj = (JSONObject)obj;
+                if (valueObj.get("value").toString() == "true") {
+                    compwa = "true";
+                    LogUtil.info(getClass().getName(), "test: " + compwa);
+                } else {
+                    compwa = "false";
+                    LogUtil.info(getClass().getName(), "test: " + compwa);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return compwa;
+    }
+    
+    private boolean validateStartwaProduct(UpdateStatusParam param) {
+        boolean startwa = false;
+        String updateTask = "";
+        String response = "";
+        try {
             org.json.JSONObject params = validateNonCoreProduct.getParams(param.getWonum());
             String productname = (params.optString("productname", null));
-
             int isNoncore = daoNonCore.isNonCoreProduct(productname);
             if (isNoncore == 1) {
                 boolean validatenoncore = validateNonCoreProduct.validateStartwa(param);
                 boolean autofillnoncore = validateNonCoreProduct.nonCoreAutoFill(param.getParent());
                 if (validatenoncore) {
+                    //GENERATE SID
                     updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                     if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                         response = "Success";
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         startwa = true;
                     }
-                    response = "Generate SID Berhasil";
-                } else if (autofillnoncore) {
+                }
+                if (autofillnoncore) {
                     response = "success";
                     if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
                         response = "Success";
@@ -71,95 +119,32 @@ public class validateTaskStatus {
                         startwa = true;
                     }
                 } else {
-                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                        response = "Success";
-                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                        startwa = true;
-                    }
+                    LogUtil.info(getClass().getName(), "startwa4 : " + startwa);
+                    startwa = false;
                 }
+                LogUtil.info(getClass().getName(), "autofillnoncore : " + autofillnoncore);
             } else {
-                if (checkActPlace.equalsIgnoreCase("OUTSIDE") && isAssigned.equalsIgnoreCase("Assign")) {
-                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                        response = "Success";
-                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                        startwa = true;
-                    } else {
-                        startwa = false;
-                    }
+                updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                    response = "Success";
+                    daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                    startwa = true;
                 } else {
-                    if (!checkActPlace.equalsIgnoreCase("OUTSIDE") && isAssigned.equalsIgnoreCase("No Assign")) {
-                        startwa = true;
-                        updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                        if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                            response = "Success";
-                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                            startwa = true;
-                        } else {
-                            startwa = false;
-                        }
-                    } else {
-                        response = "Failed";
-                        startwa = false;
-                    }
+                    startwa = false;
                 }
-                
-//                if (!startwa) {
-//                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-//                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-//                        response = "Success";
-//                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-//                        startwa = true;
-//                    } else {
-//                        startwa = false;
-//                    }
-//                } else {
-//                    startwa = false;
-//                    response = "Task is not Assign to Labor yet";
-//                }
-                   
-//                if (!isAssigned && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
-//                    response = "Task is not Assign to Labor yet";
-//                    startwa = false;
-//                } else {
-//                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-//                    if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-//                        response = "Success";
-//                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-//                        startwa = true;
-//                    }
-//                }
             }
+            LogUtil.info(getClass().getName(), "result startwa product : " + startwa);
         } catch (SQLException ex) {
+            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (JSONException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
         return startwa;
     }
 
-    public boolean compwaTask(UpdateStatusParam param) {
-        boolean compwa = false;
-        try {
-            boolean isMandatoryValue = daoUpdate.checkMandatory(param.getWonum());
-            int required = daoUpdate.isRequired(param.getWonum());
-            LogUtil.info(getClass().getName(), "test: " + isMandatoryValue);
-            if (isMandatoryValue && required == 1) {
-                compwa = true;
-            } else if (!isMandatoryValue && required == 0) {
-                compwa = true;
-            } else {
-                compwa = false;
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return compwa;
-    }
-
     private void completeTask(UpdateStatusParam param) throws JSONException {
         String updateTask = "";
         try {
-
             org.json.JSONObject params = validateNonCoreProduct.getParams(param.getWonum());
             String productname = (params.optString("productname", null));
             int isNoncore = daoNonCore.isNonCoreProduct(productname);
@@ -216,6 +201,33 @@ public class validateTaskStatus {
                 String kafkaRes = data.toJSONString();
                 KafkaProducerTool kaf = new KafkaProducerTool();
                 kaf.generateMessage(kafkaRes, topic, "");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void taskValueFromWoAttr(UpdateStatusParam param) {
+        try {
+            JSONArray taskAttribute = taskAttrDao.getTaskAttributeParent(param.getParent());
+            JSONArray workorderAttribute = taskAttrDao.getAttrWoAttribute(param.getParent());
+            String taskAttrName;
+            String taskAttrValue;
+            String woAttrName;
+            String woAttrValue;
+            for (Object obj : taskAttribute) {
+                JSONObject taskAttrObj = (JSONObject)obj;
+                taskAttrName = taskAttrObj.get("task_attr_name").toString();
+                taskAttrValue = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
+                for (Object obj2 : workorderAttribute) {
+                    JSONObject woAttrObj = (JSONObject)obj2;
+                    woAttrName = woAttrObj.get("attr_name").toString();
+                    woAttrValue = (woAttrObj.get("attr_value") == null ? "" : woAttrObj.get("attr_value").toString());
+                    if (taskAttrName.equalsIgnoreCase(woAttrName)) {
+                        taskAttrDao.updateValueTaskAttributeFromWorkorderAttr(param.getParent(), taskAttrName, woAttrValue);
+//                        LogUtil.info(getClass().getName(), "TASK ATTRIBUTE VALUE FROM WORKORDER ATTRIBUTE");
+                    }
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);

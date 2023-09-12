@@ -37,6 +37,21 @@ public class validateGenerateTask {
     String ownerGroupTask = "";
     String ownerGroup = "";
     
+    private String schedFinish(JSONObject activity) {
+        String strSchedFinish = "";
+        String strSchedStart = activity.get("schedstart").toString();
+        if (!strSchedStart.equals("")) {
+            Timestamp schedStart = Timestamp.valueOf(strSchedStart);
+            //added with task duration
+            long addedDur = (long) (1000 * 60 * 60 * (float) activity.get("duration"));
+            LogUtil.info(getClass().getName(),"added time: " + (1000 * 60 * 60 * (float) activity.get("duration")));
+            //get scheduled finish
+            Timestamp schedFinish = new Timestamp(schedStart.getTime() + addedDur);
+            strSchedFinish = schedFinish.toString();
+        }
+        return strSchedFinish;
+    }
+    
     public void generateTaskNonCore(JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
         try {
             JSONArray arrayNull = new JSONArray();
@@ -194,6 +209,8 @@ public class validateGenerateTask {
             
             workorder.put("TaskDescription", TaskDescription);
             workorder.put("ownerGroup", ownerGroup);
+            String schedFinish = schedFinish(sortedTask);
+            sortedTask.put("schedfinish", schedFinish);
 
             if (sortedTask.get("ownerGroup").toString() != "") {
                 ownerGroupTask = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
@@ -202,69 +219,49 @@ public class validateGenerateTask {
                 ownerGroupTask = "";
 //                ownerGroupTask = dao2.getOwnerGroup(workorder.get("workZone").toString());
             }
-            
-            String schedFinish = schedFinish(sortedTask);
-//            LogUtil.info(getClass().getName(), "SchedFinish = "+ schedFinish);
-            sortedTask.put("schedfinish", schedFinish);
 
             //GENERATE OSS ITEM
             generateDao.insertToOssItem(sortedTask);
             JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
-            for (Object taskAttrArrayObj: taskAttrArray) {
-                JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
-                String attrName = taskAttrObj.get("attrName").toString();
-                String attrValue = taskAttrObj.get("attrValue").toString();
-                //@insert Oss Item Attribute
-                generateDao.insertToOssAttribute(taskAttrObj, (String) sortedTask.get("wonum"));
-                if (attrName.equalsIgnoreCase(dao2.getTaskAttrName(sortedTask.get("wonum").toString(), attrName))) {
-                    if (attrValue.isEmpty()) {
-                        //GENERATE VALUE FROM WORKORDERATTRIBUTE
-//                        JSONArray arrayWoAttr = generateDao.getWoAttrName(sortedTask.get("parent").toString());
-                        for (Object obj: AttributeWO) {
-                            JSONObject arrayObj3 = (JSONObject)obj;
-                            String AttrNameWo = arrayObj3.get("woAttrName").toString().toUpperCase();
-                            String AttrValueWo = arrayObj3.get("woAttrValue").toString();
-                            if (AttrNameWo.equalsIgnoreCase(attrName)) {
-                                dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, AttrValueWo);
-//                                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
-                            }
-                        }
-                    } else {
-                        dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
-//                                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME");  
-                    }
-                }
-            }
+            //TASK ATTRIBUTE GENERATE
+            dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
             //GENERATE TASK
             dao2.generateActivityTask(sortedTask, workorder, ownerGroupTask);
             //GENERATE ASSIGNMENT
             dao2.generateAssignment(sortedTask, workorder);
             //GENERATE TASK HISTORY
             historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum OSM", "OSM", "OSM");
-            //TASK ATTRIBUTE GENERATE
-            dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
+            //GENERATE TASK ATTRIBUTE
+            taskAttribute(taskAttrArray, AttributeWO, workorder, sortedTask);
+            
             counter = counter + 1;
         }
     }
     
-    private String schedFinish(JSONObject activity) {
-        String strSchedFinish = "";
-        String strSchedStart = activity.get("schedstart").toString();
-        if (!strSchedStart.equals("")) {
-            Timestamp schedStart = Timestamp.valueOf(strSchedStart);
-            //added with task duration
-            long addedDur = (long) (1000 * 60 * 60 * (float) activity.get("duration"));
-            LogUtil.info(getClass().getName(),"added time: " + (1000 * 60 * 60 * (float) activity.get("duration")));
-            //get scheduled finish
-            Timestamp schedFinish = new Timestamp(schedStart.getTime() + addedDur);
-            strSchedFinish = schedFinish.toString();
+    private void taskAttribute(JSONArray taskAttrArray, JSONArray AttributeWO, JSONObject workorder, JSONObject sortedTask) throws SQLException {
+        for (Object taskAttrArrayObj: taskAttrArray) {
+            JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
+            String attrName = taskAttrObj.get("attrName").toString();
+            String attrValue = (taskAttrObj.get("attrValue") == null ? "" : taskAttrObj.get("attrValue").toString());
+            //@insert Oss Item Attribute
+            generateDao.insertToOssAttribute(taskAttrObj, sortedTask.get("wonum").toString());
+            dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
+//            if (attrValue.equalsIgnoreCase("")) {
+//                //GENERATE VALUE FROM WORKORDERATTRIBUTE
+//                for (Object obj: AttributeWO) {
+//                    JSONObject arrayObj3 = (JSONObject)obj;
+//                    String AttrNameWo = arrayObj3.get("woAttrName").toString().toUpperCase();
+//                    String AttrValueWo = arrayObj3.get("woAttrValue").toString();
+//                    if (AttrNameWo.equalsIgnoreCase(attrName)) {
+//                        dao2.updateValueTaskAttributeFromWorkorderAttr(workorder.get("wonum").toString(), attrName, AttrValueWo);
+////                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
+//                    }
+//                }
+//            } else {
+            
+//                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME"); 
+//            }
         }
-        return strSchedFinish;
-    }
-    
-    public float duration() {
-        float duration = 0;
-        return duration;
     }
     
 //    private void validateCPE(JSONObject cpeValidate) {

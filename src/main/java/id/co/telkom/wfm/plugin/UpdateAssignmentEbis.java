@@ -4,16 +4,17 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
-import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
-import id.co.telkom.wfm.plugin.model.ListLabor;
+//import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
+//import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
+//import id.co.telkom.wfm.plugin.model.ListLabor;
 import id.co.telkom.wfm.plugin.dao.UpdateAssignmentEbisDao;
+import id.co.telkom.wfm.plugin.util.ResponseAPI;
 //import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+//import java.time.LocalDateTime;
+//import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -95,18 +96,24 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
-
+                
+                JSONObject res = new JSONObject();
+                
                 //Store param
                 String wonum = (data_obj.get("wonum") == null ? "" : data_obj.get("wonum").toString());
+                String status = (data_obj.get("status") == null ? "" : data_obj.get("status").toString());
                 String taskId = (data_obj.get("taskId") == null ? "" : data_obj.get("taskId").toString());
-//                String craft = (data_obj.get("craft") == null ? "" : data_obj.get("craft").toString());
-//                String crewType = (data_obj.get("amcrewtype") == null ? "" : data_obj.get("amcrewtype").toString());
+                String craft = (data_obj.get("craft") == null ? "" : data_obj.get("craft").toString());
+                String crewType = (data_obj.get("amcrewtype") == null ? "" : data_obj.get("amcrewtype").toString());
                 String amcrew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
+                String laborhrs = (data_obj.get("laborhrs") == null ? "" : data_obj.get("laborhrs").toString());
                 String laborcode = (data_obj.get("laborcode") == null ? "" : data_obj.get("laborcode").toString());
 //                String chiefcode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
                 
                 UpdateAssignmentEbisDao dao = new UpdateAssignmentEbisDao();
-//                ListLabor listLabor = new ListLabor();
+                ResponseAPI responseTemplete = new ResponseAPI();
+                String message = "";
+                
                 try {
                     boolean getStatus = dao.getStatusTask(wonum);
                     if (getStatus) {
@@ -125,33 +132,12 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                                  * update c_laborcode dan c_laborname di table app_fd_workorder
                                  */
                                 dao.updateLaborWorkOrder(laborcode, laborname, wonum);
-
-                                hsr1.setStatus(200);
-                                String statusHeaders = "200";
-                                String statusRequest = "Success";
-                                JSONObject response = new JSONObject();
-                                JSONObject data = new JSONObject();
-                                response.put("status", statusHeaders);
-                                response.put("message", statusRequest);
-                                response.put("response", data);
-                                data.put("WONUM", wonum);
-                                data.put("LABORCODE", laborcode);
-                                data.put("LABORNAME", laborname);
-                                response.writeJSONString(hsr1.getWriter());             
+                                
+                                message = "Success update Labor";
+                                res = responseTemplete.getUpdateStatusSuccessResp(wonum, status, message);
+                                res.writeJSONString(hsr1.getWriter());
                             } else {
-                                LogUtil.info(getClass().getName(), "Laborcode and laborname is not found!");
-                                /**
-                                 * laborcode tidak ada di table labor
-                                 */
-                                hsr1.setStatus(422);
-                                String statusHeaders = "422";
-                                String statusRequest = "Failed";
-                                JSONObject response = new JSONObject();
-                                JSONObject data = new JSONObject();
-                                response.put("status", statusHeaders);
-                                response.put("message", "Laborcode and laborname is not found!");
-                                response.put("response", data);
-                                response.writeJSONString(hsr1.getWriter());
+                                hsr1.sendError(422, "Laborcode and laborname is not found!");
                             }
                         } else if (!amcrew.isEmpty()) {
                             boolean validCrew = dao.validateCrew(amcrew);
@@ -166,56 +152,25 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                                  * update c_laborcode dan c_laborname di table app_fd_workorder
                                  */
                                 dao.updateCrewWorkOrder(amcrew, wonum);
-
-                                hsr1.setStatus(201);
-                                String statusHeaders = "200";
-                                String statusRequest = "Success";
-                                JSONObject response = new JSONObject();
-                                JSONObject data = new JSONObject();
-                                response.put("status", statusHeaders);
-                                response.put("message", statusRequest);
-                                response.put("response", data);
-                                data.put("WONUM", wonum);
-                                data.put("AMCREW", amcrew);
-                                response.writeJSONString(hsr1.getWriter());
+                                
+                                message = "Success update Amcrew";
+                                res = responseTemplete.getUpdateStatusSuccessResp(wonum, status, message);
+                                res.writeJSONString(hsr1.getWriter());
                             } else {
-                                LogUtil.info(getClass().getName(), "AmCrew is not found!");
-                                /**
-                                 * amcrew tidak ada di table labor
-                                 */
-                                hsr1.setStatus(423);
-                                String statusHeaders = "422";
-                                String statusRequest = "Failed";
-                                JSONObject response = new JSONObject();
-                                JSONObject data = new JSONObject();
-                                response.put("status", statusHeaders);
-                                response.put("message", "AmCrew is not found!");
-                                response.put("response", data);
-                                response.writeJSONString(hsr1.getWriter());
+                                hsr1.sendError(422, "AmCrew is not found!");
                             }
+                        } else if (laborcode.equalsIgnoreCase("")) {
+                            dao.updateLaborWaitAssign(laborcode, "", wonum);
+                            dao.deleteLaborWorkOrder(laborcode, "", wonum);
+                            
+                            message = "Success delete assignment";
+                            res = responseTemplete.getUpdateStatusSuccessResp(wonum, status, message);
+                            res.writeJSONString(hsr1.getWriter());
                         } else {
-                            LogUtil.info(getClass().getName(), "Laborcode and amcrew is null");
-                            hsr1.setStatus(421);
-                            String statusHeaders = "421";
-                            String statusRequest = "Failed";
-                            JSONObject response = new JSONObject();
-                            JSONObject data = new JSONObject();
-                            response.put("status", statusHeaders);
-                            response.put("message", "Laborcode and amcrew is null");
-                            response.put("response", data);
-                            response.writeJSONString(hsr1.getWriter());
+                            hsr1.sendError(422, "Laborcode and amcrew is null");
                         }
                     } else {
-                        LogUtil.info(getClass().getName(), "Status parent task is COMPWA");
-                        hsr1.setStatus(420);
-                        String statusHeaders = "420";
-                        String statusRequest = "Failed";
-                        JSONObject response = new JSONObject();
-                        JSONObject data = new JSONObject();
-                        response.put("status", statusHeaders);
-                        response.put("message", "Status parent task is COMPWA");
-                        response.put("response", data);
-                        response.writeJSONString(hsr1.getWriter());
+                        hsr1.sendError(422, "Status parent task is COMPWA");
                     }
                 } catch (SQLException ex) {
                     Logger.getLogger(UpdateAssignmentEbis.class.getName()).log(Level.SEVERE, null, ex);

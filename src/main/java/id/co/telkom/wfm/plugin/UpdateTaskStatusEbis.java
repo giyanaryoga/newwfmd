@@ -7,6 +7,7 @@ package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
+import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.controller.validateTaskStatus;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
@@ -21,6 +22,7 @@ import org.joget.apps.form.model.*;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
 import org.json.JSONException;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
 
@@ -97,6 +99,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 JSONObject body = (JSONObject) envelope2.get("WORKORDER");
 
                 validateTaskStatus validateTask = new validateTaskStatus();
+                UpdateTaskStatusEbisDao daoUpdate = new UpdateTaskStatusEbisDao();
                 UpdateStatusParam param = new UpdateStatusParam();
                 ResponseAPI responseTemplete = new ResponseAPI();
                 JSONObject res = new JSONObject();
@@ -145,13 +148,13 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                         }
                         break;
                     case "COMPWA":
-                        boolean validateCompwa = validateTask.compwaTask(param);
+                        String validateCompwa = validateTask.compwaTask(param);
                         LogUtil.info(getClass().getName(), "VALIDATE: " + validateCompwa);
-                        if (validateCompwa) {
+                        if (validateCompwa.equalsIgnoreCase("true")) {
                             JSONObject response = validateTask.validateTask(param);
                             if ((int) response.get("code") == 200) {
                                 res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());
-                                res.writeJSONString(hsr1.getWriter());   
+                                res.writeJSONString(hsr1.getWriter());
                             } else {
                                 hsr1.sendError((int) response.get("code"), response.get("message").toString());
                             }

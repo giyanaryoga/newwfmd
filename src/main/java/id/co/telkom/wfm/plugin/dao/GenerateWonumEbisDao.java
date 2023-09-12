@@ -170,24 +170,24 @@ public class GenerateWonumEbisDao {
         return wonum;
     }
     
-    public String getAttrWoAttribute(String wonum, String woAttrName) throws SQLException {
-        String woAttrValue = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_attr_name = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ps.setString(2, woAttrName);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                woAttrValue = rs.getString("c_attr_value");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return woAttrValue;
-    }
+//    public String getAttrWoAttribute12(String wonum, String woAttrName) throws SQLException {
+//        String woAttrValue = "";
+//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String query = "SELECT c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_attr_name = ?";
+//        try (Connection con = ds.getConnection();
+//            PreparedStatement ps = con.prepareStatement(query)) {
+//            ps.setString(1, wonum);
+//            ps.setString(2, woAttrName);
+//            ResultSet rs = ps.executeQuery();
+//            if (rs.next())
+//                woAttrValue = rs.getString("c_attr_value");
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//        return woAttrValue;
+//    }
     
     public String getValueWorkorderAttribute(String wonum, String woAttrName) throws SQLException {
         String woAttrValue = "";
