@@ -1,0 +1,18 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "META-INF/services/javax.xml.soap.MessageFactory"
+      },
+      {
+        "pattern": "META-INF/services/javax.xml.soap.SAAJMetaFactory"
+      },
+      {
+        "pattern": "META-INF/services/javax.xml.soap.SOAPConnectionFactory"
+      },
+      {
+        "pattern": "META-INF/services/javax.xml.soap.SOAPFactory"
+      }
+    ]
+  }
+}

@@ -357,9 +357,9 @@ public class validateNonCoreProduct {
                         String customerName = params.optString("customername");
                         String assettype = "";
                         String productName = "";
-                        
+
                         JSONObject location = getLocations(customerAccountid);
-                        
+
                         if (location != null) {
                             try {
                                 daoNoncore.generateServiceAddress(addresscode, siteId, description);
@@ -376,8 +376,9 @@ public class validateNonCoreProduct {
 
                             String classstructureid = daoNoncore.getAssetClassstructureid(productName);
 
-                            daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid, param.getSiteId(),params.optString("detailactcode"));
-                            daoNoncore.generateServiceSpecFromWorkorder(sID, param.getParent());
+                            daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
+                            daoNoncore.generateAssetSpecAttribute(sID, param.getSiteId(), params.optString("detailactcode"), param.getWonum());
+//                            daoNoncore.generateServiceSpecFromWO(sID, );
                             daoNoncore.reserveResourceUIM(param.getWonum(), sID);
                         } else {
                             daoNoncore.generateServiceAddress(addresscode, siteId, description);
@@ -391,8 +392,8 @@ public class validateNonCoreProduct {
 
                             String classstructureid = daoNoncore.getAssetClassstructureid(productName);
 
-                            daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid, param.getSiteId(),params.optString("detailactcode"));
-                            daoNoncore.generateServiceSpecFromWorkorder(sID, param.getParent());
+                            daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
+                            daoNoncore.generateAssetSpecAttribute(sID, param.getSiteId(), params.optString("detailactcode"), param.getWonum());
                             daoNoncore.reserveResourceUIM(param.getWonum(), sID);
                         }
 

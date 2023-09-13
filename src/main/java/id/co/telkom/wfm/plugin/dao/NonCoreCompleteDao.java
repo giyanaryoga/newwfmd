@@ -10,11 +10,23 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPConnection;
+import javax.xml.soap.SOAPConnectionFactory;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.SOAPPart;
+//import org.apache.xmlbeans.impl.soap.*;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
 import org.json.simple.JSONObject;
-import javax.xml.soap.*;
+//import javax.xml.soap.*;
+
 
 /**
  *
@@ -22,6 +34,7 @@ import javax.xml.soap.*;
  */
 public class NonCoreCompleteDao {
 
+    // Get String SOAP Message
     public String getStringSoapMessage(SOAPMessage soapMessage) {
         try {
             SOAPPart soapPart = soapMessage.getSOAPPart();
@@ -139,6 +152,7 @@ public class NonCoreCompleteDao {
         return result;
     }
 
+    // Generate ServiceAddress
     public void generateServiceAddress(String addresscode, String siteid, String description) throws SQLException {
         String uuId = UuidGenerator.getInstance().getUuid();
 
@@ -168,7 +182,7 @@ public class NonCoreCompleteDao {
 
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), addresscode + "Generate Service Address Successfully");
+                LogUtil.info(getClass().getName(), "Generate Service Address Successfully for " + addresscode);
             } else {
                 LogUtil.info(getClass().getName(), "Data insertion failed.");
             }
@@ -177,11 +191,10 @@ public class NonCoreCompleteDao {
         }
     }
 
-    public void generateServiceAsset(String assetnum, String location, String saddresscode, String assettype, String serviceno, String classstructureid, String siteid, String detailactcode) throws SQLException {
+    // Generate Asset
+    public void generateServiceAsset(String assetnum, String location, String saddresscode, String assettype, String serviceno, String classstructureid) throws SQLException {
         String uuId = UuidGenerator.getInstance().getUuid();
-
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-
         String selectQuery
                 = "INSERT INTO app_fd_asset\n"
                 + "(\n"
@@ -211,99 +224,86 @@ public class NonCoreCompleteDao {
 
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), assetnum + "Generate Service Asset Successfully");
+                LogUtil.info(getClass().getName(), "Generate Service Asset Successfully for " + assetnum);
             } else {
                 LogUtil.info(getClass().getName(), "Data insertion failed.");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
-        insertAttributeAssetspec(assetnum, siteid, detailactcode);
     }
 
-    private void insertAttributeAssetspec(String assetnum, String siteid, String detailactcode) throws SQLException {
-        String uuid = UuidGenerator.getInstance().getUuid();
+    // Generate attribute AssetSpec
+    public void generateAssetSpecAttribute(String assetnum, String siteid, String detailactcode, String wonum) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         java.util.Date date = new java.util.Date();
         Timestamp timestamp = new Timestamp(date.getTime());
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String selectQuery = "SELECT c_isrequired, c_classstructureid, c_assetattrid, c_sequence, c_defaultalnvalue FROM app_fd_classspec where c_activity = ?";
+
+        String selectQuery
+                = "SELECT c_isrequired, c_classstructureid, c_assetattrid, c_sequence, c_defaultalnvalue "
+                + "FROM app_fd_classspec WHERE c_activity = ?";
         String insertQuery
                 = "INSERT INTO app_fd_assetspec"
-                + "(id"
-                + "c_assetnum,"
-                + "c_assetattrid,"
-                + "c_classstructureid,"
-                + "c_displaysequence,"
-                + "c_alnvalue,"
-                + "c_changedate,"
-                + "c_siteid,"
-                + "c_orgid,"
-                + "c_assetspecid,"
-                + "c_mandatory)"
-                + "VALUES"
-                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, WFMDBDEV01.ASSETSPECIDSEQ.NEXTVAL, ?)";
+                + "(id, "
+                + "c_assetnum, "
+                + "c_assetattrid, "
+                + "c_classstructureid, "
+                + "c_displaysequence, "
+                + "c_alnvalue, "
+                + "c_changedate, "
+                + "c_siteid, "
+                + "c_orgid, "
+                + "c_mandatory, "
+                + "c_assetspecid) "
+                + "VALUES "
+                + "(?, ?, ?, ?, ?, "
+                + "(SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?), "
+                + "?, ?, ?, ?, WFMDBDEV01.ASSETSPECIDSEQ.NEXTVAL)";
 
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps1 = con.prepareStatement(selectQuery);
-                PreparedStatement ps2 = con.prepareStatement(insertQuery)) {
-            ps1.setString(1, detailactcode);
-            ResultSet rs = ps1.executeQuery();
+        try (Connection con = ds.getConnection()) {
+            boolean oldAutoCommit = con.getAutoCommit();
+            LogUtil.info(getClass().getName(), "start' auto commit state: " + oldAutoCommit);
+            con.setAutoCommit(false);
+            try (PreparedStatement psSelect = con.prepareStatement(selectQuery);
+                    PreparedStatement psInsert = con.prepareStatement(insertQuery)) {
+                con.setAutoCommit(false);
+                psSelect.setString(1, detailactcode);
 
-            if (rs.next()) {
-                ps2.setString(1, uuid);
-                ps2.setString(2, assetnum);
-                ps2.setString(3, rs.getString("c_assetattrid"));
-                ps2.setString(4, rs.getString("c_classstructureid"));
-                ps2.setString(5, rs.getString("c_sequence"));
-                ps2.setString(6, rs.getString("c_defaultalnvalue"));
-                ps2.setTimestamp(7, timestamp);
-                ps2.setString(8, siteid);
-                ps2.setString(9, "TELKOM");
-                ps2.setString(10, rs.getString("c_isrequired"));
-
-                int exe = ps2.executeUpdate();
-                if (exe > 0) {
-                    LogUtil.info(getClass().getName(), "Insert attribute Assetspec successfully -> ASSETNUM : " + assetnum);
-                } else {
-                    LogUtil.info(getClass().getName(), "Insert attribute Assetspec failed -> ASSETNUM : " + assetnum);
-                }
-            }
-        } finally {
-            ds.getConnection().close();
-        }
-    }
-
-    public void generateServiceSpecFromWorkorder(String assetnum, String parent) throws SQLException {
-        String assetattrid = "";
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-
-        String selectAssetSpec = "SELECT c_assetattrid, c_alnvalue FROM app_fd_assetspec WHERE c_assetnum = ?";
-        String insertAssetSpecValue = "UPDATE app_fd_assetspec SET c_alnvalue = ? WHERE c_assetnum = ?";
-
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(selectAssetSpec);
-                PreparedStatement psInsert = con.prepareStatement(insertAssetSpecValue)) {
-            ps.setString(1, assetnum);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                assetattrid = rs.getString("c_assetattrid");
-            }
-            if (assetattrid == null) {
-                String assetSpecValue = getTaskattributeValue(parent, rs.getString("c_assetattrid"));
-                if (assetSpecValue != "") {
-                    psInsert.setString(1, assetSpecValue);
+                ResultSet rs = psSelect.executeQuery();
+                while (rs.next()) {
+                    psInsert.setString(1, UuidGenerator.getInstance().getUuid());
                     psInsert.setString(2, assetnum);
-                    psInsert.executeQuery();
-
+                    psInsert.setString(3, (rs.getString("c_assetattrid") == null ? "" : rs.getString("c_assetattrid")));
+                    psInsert.setString(4, (rs.getString("c_classstructureid") == null ? "" : rs.getString("c_classstructureid")));
+                    psInsert.setString(5, (rs.getString("c_sequence") == null ? "" : rs.getString("c_sequence")));
+                    psInsert.setString(6, wonum);
+                    psInsert.setString(7, (rs.getString("c_assetattrid") == null ? "" : rs.getString("c_assetattrid")));
+                    psInsert.setTimestamp(8, timestamp);
+                    psInsert.setString(9, siteid);
+                    psInsert.setString(10, "TELKOM");
+                    psInsert.setString(11, (rs.getString("c_isrequired") == null ? "" : rs.getString("c_isrequired")));
+                    psInsert.addBatch();
                 }
+                int[] exe = psInsert.executeBatch();
+                if (exe.length > 0) {
+                    LogUtil.info(getClass().getName(), "Success generated " + exe.length + " task attributes, for " + assetnum);
+                }
+                con.commit();
+            } catch (SQLException e) {
+                LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(oldAutoCommit);
             }
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+            LogUtil.error(getClass().getName() + " | generateTaskAttribute", e, "Trace Error Here: " + e.getMessage());
+            throw e;
         }
     }
 
-    public static SOAPMessage createSoapRequestReserveResourceUIM(String reservationId, Map<String, String> attributeInfo) throws Exception {
+    // Create Request Reserve Resource UIM
+    private SOAPMessage createSoapRequestReserveResourceUIM(String reservationId, Map<String, String> attributeInfo) throws SOAPException {
         MessageFactory messageFactory = MessageFactory.newInstance();
         SOAPMessage soapMessage = messageFactory.createMessage();
         SOAPPart soapPart = soapMessage.getSOAPPart();
@@ -330,51 +330,51 @@ public class NonCoreCompleteDao {
         return soapMessage;
     }
 
-    public void reserveResourceUIM(String wonum, String SID) {
+    // Reserve Resource UIM
+    public void reserveResourceUIM(String wonum, String assetnum) {
         InsertIntegrationHistory insertIntegration = new InsertIntegrationHistory();
-
-        if (true) {
+        try {
             Map<String, String> attributeInfo = new HashMap<>();
-            try {
-                SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-                SOAPConnection soapConnection = soapConnectionFactory.createConnection();
+            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
+            SOAPConnection soapConnection = soapConnectionFactory.createConnection();
 
-                DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-                String selectQuery = "SELECT * FROM app_fd_assetspec WHERE assetnum = ?";
+            DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+            String selectQuery = "SELECT * FROM app_fd_assetspec WHERE assetnum = ?";
 
-                try (Connection con = ds.getConnection();
-                        PreparedStatement ps = con.prepareStatement(selectQuery)) {
-                    ps.setString(1, SID);
-                    ResultSet rs = ps.executeQuery();
+            try (Connection con = ds.getConnection();
+                    PreparedStatement ps = con.prepareStatement(selectQuery)) {
+                ps.setString(1, assetnum);
+                ResultSet rs = ps.executeQuery();
 
-                    while (rs.next()) {
-                        String attrId = rs.getString("c_assetattrid");
-                        String alnValue = rs.getString("c_alnvalue");
-                        attributeInfo.put(attrId, alnValue.isEmpty() ? "-" : alnValue);
-                    }
-                } catch (SQLException e) {
-                    LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+                while (rs.next()) {
+                    String attrId = rs.getString("c_assetattrid");
+                    String alnValue = rs.getString("c_alnvalue");
+                    attributeInfo.put(attrId, alnValue.isEmpty() ? "-" : alnValue);
                 }
-
-                SOAPMessage soapRequest = createSoapRequestReserveResourceUIM(SID, attributeInfo);
-                SOAPMessage soapResponse = soapConnection.call(soapRequest, "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP");
-
-                String requestString = getStringSoapMessage(soapRequest);
-                String substringReq = requestString.substring(0, Math.min(requestString.length(), 500));
-                String responseString = getStringSoapMessage(soapResponse);
-                String substringRes = responseString.substring(0, Math.min(responseString.length(), 500));
-                LogUtil.info(getClass().getName(), "Response Reserve Resource : " + responseString);
-                LogUtil.info(getClass().getName(), "SubString Response Reserve Resource : " + substringRes);
-
-                insertIntegration.insertIntegrationHistory(wonum, "COMPLETENONCORE", substringReq, substringRes, "COMPLETENONCORE");
-
-                SOAPBody soapBody = soapResponse.getSOAPBody();
-                LogUtil.info(this.getClass().getName(), "SOAP BODY :" + soapBody);
-                soapConnection.close();
-
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (SQLException e) {
+                LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
             }
+
+            SOAPMessage soapRequest = createSoapRequestReserveResourceUIM(assetnum, attributeInfo);
+            SOAPMessage soapResponse = soapConnection.call(soapRequest, "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP");
+
+            String requestString = getStringSoapMessage(soapRequest);
+            String substringReq = requestString.substring(0, Math.min(requestString.length(), 500));
+            String responseString = getStringSoapMessage(soapResponse);
+            String substringRes = responseString.substring(0, Math.min(responseString.length(), 500));
+            LogUtil.info(getClass().getName(), "Response Reserve Resource : " + responseString);
+            LogUtil.info(getClass().getName(), "SubString Response Reserve Resource : " + substringRes);
+
+            insertIntegration.insertIntegrationHistory(wonum, "COMPLETENONCORE", substringReq, substringRes, "COMPLETENONCORE");
+            LogUtil.info(getClass().getName(), "Reserve Request : " + requestString);
+            LogUtil.info(getClass().getName(), "Reserve Response : " + getStringSoapMessage(soapResponse));
+
+            SOAPBody soapBody = soapResponse.getSOAPBody();
+            LogUtil.info(this.getClass().getName(), "SOAP BODY :" + soapBody);
+            soapConnection.close();
+
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName() + " | reserveResourceUIM ", e, "Trace Error Here: " + e.getMessage());
         }
     }
 }

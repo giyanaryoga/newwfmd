@@ -1,0 +1,31 @@
+[
+  {
+    "name" : "com.sun.xml.messaging.saaj.soap.SAAJMetaFactoryImpl",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.sun.xml.messaging.saaj.soap.ver1_1.SOAPFactory1_1Impl",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.sun.xml.messaging.saaj.soap.ver1_1.SOAPMessageFactory1_1Impl",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.sun.xml.messaging.saaj.soap.ver1_2.SOAPFactory1_2Impl",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.sun.xml.messaging.saaj.soap.ver1_2.SOAPMessageFactory1_2Impl",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name":"com.sun.xml.messaging.saaj.soap.impl.ElementImpl",
+    "methods":[{"name":"<init>","parameterTypes":["com.sun.xml.messaging.saaj.soap.SOAPDocumentImpl","org.w3c.dom.Element"] }]
+  }
+]
