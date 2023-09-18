@@ -6,7 +6,9 @@
 package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.dao.*;
+import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
+import id.co.telkom.wfm.plugin.util.JsonUtil;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,6 +31,7 @@ public class validateNonCoreProduct {
     TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     TaskHistoryDao daoHistory = new TaskHistoryDao();
     NonCoreCompleteDao daoNoncore = new NonCoreCompleteDao();
+    JsonUtil requestJson = new JsonUtil();
 
     // List Task
     String[] listTask = {
@@ -341,7 +344,7 @@ public class validateNonCoreProduct {
         if ("WFM".equals(worktype) && !Arrays.asList(listProduct).contains(productname) && !(daoNoncore.getTaskattributeValue(param.getWonum(), "APPROVAL")).equals("REJECTED")) {
             if (isNoncore == 1) {
                 if (Arrays.asList(listMoDoRoSo).contains(crmordertype)) {
-                    validateProduct(productname, crmordertype, param.getModifiedBy(), param.getWonum());
+                    validateProduct(productname, crmordertype, param.getModifiedBy(), param.getWonum(), param.getSiteId());
                 } else if (crmordertype.equals("New Install")) {
                     org.json.simple.JSONObject customerAccountidTemp = daoNoncore.getWorkorderattributeValue(param.getParent(), "CUSTOMERPARTY_ACCOUNTID");
                     String customerAccountIdTemp = customerAccountidTemp.toString();
@@ -378,8 +381,12 @@ public class validateNonCoreProduct {
 
                             daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
                             daoNoncore.generateAssetSpecAttribute(sID, param.getSiteId(), params.optString("detailactcode"), param.getWonum());
-//                            daoNoncore.generateServiceSpecFromWO(sID, );
-                            daoNoncore.reserveResourceUIM(param.getWonum(), sID);
+                            // Response to Kafka
+                            org.json.simple.JSONObject data = requestJson.reserveResourceUIM(sID);
+                            String topic = "WFM_RESERVE_RESOURCE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
+                            String kafkaRes = data.toJSONString();
+                            KafkaProducerTool kaf = new KafkaProducerTool();
+                            kaf.generateMessage(kafkaRes, topic, "");
                         } else {
                             daoNoncore.generateServiceAddress(addresscode, siteId, description);
 
@@ -394,7 +401,12 @@ public class validateNonCoreProduct {
 
                             daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
                             daoNoncore.generateAssetSpecAttribute(sID, param.getSiteId(), params.optString("detailactcode"), param.getWonum());
-                            daoNoncore.reserveResourceUIM(param.getWonum(), sID);
+                            // Response to Kafka
+                            org.json.simple.JSONObject data = requestJson.reserveResourceUIM(sID);
+                            String topic = "WFM_RESERVE_RESOURCE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
+                            String kafkaRes = data.toJSONString();
+                            KafkaProducerTool kaf = new KafkaProducerTool();
+                            kaf.generateMessage(kafkaRes, topic, "");
                         }
 
                     }
@@ -403,7 +415,7 @@ public class validateNonCoreProduct {
         }
     }
 
-    public String validateProduct(String productname, String crmordertype, String modifiedBy, String wonum) throws SQLException, JSONException {
+    public String validateProduct(String productname, String crmordertype, String modifiedBy, String wonum, String siteId) throws SQLException, JSONException {
         org.json.simple.JSONObject serviceid = daoNoncore.getWorkorderattributeValue(wonum, "SID");
         String taskattribute = daoNoncore.getTaskattributeValue(wonum, "SID");
         String serviceId = serviceid.toJSONString();
@@ -431,7 +443,12 @@ public class validateNonCoreProduct {
                             }
                         }
                         String sID = taskattribute;
-                        daoNoncore.reserveResourceUIM(wonum, sID);
+                        // Response to Kafka
+                        org.json.simple.JSONObject data = requestJson.reserveResourceUIM(sID);
+                        String topic = "WFM_RESERVE_RESOURCE_ENTERPRISE_" + siteId.replaceAll("\\s+", "");
+                        String kafkaRes = data.toJSONString();
+                        KafkaProducerTool kaf = new KafkaProducerTool();
+                        kaf.generateMessage(kafkaRes, topic, "");
                         break;
                 }
             }

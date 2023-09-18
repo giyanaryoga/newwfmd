@@ -20,13 +20,11 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
-//import org.apache.xmlbeans.impl.soap.*;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
 import org.json.simple.JSONObject;
 //import javax.xml.soap.*;
-
 
 /**
  *
@@ -264,6 +262,7 @@ public class NonCoreCompleteDao {
             boolean oldAutoCommit = con.getAutoCommit();
             LogUtil.info(getClass().getName(), "start' auto commit state: " + oldAutoCommit);
             con.setAutoCommit(false);
+
             try (PreparedStatement psSelect = con.prepareStatement(selectQuery);
                     PreparedStatement psInsert = con.prepareStatement(insertQuery)) {
                 con.setAutoCommit(false);
@@ -284,6 +283,7 @@ public class NonCoreCompleteDao {
                     psInsert.setString(11, (rs.getString("c_isrequired") == null ? "" : rs.getString("c_isrequired")));
                     psInsert.addBatch();
                 }
+                clearAttributeNoncore(assetnum, con);
                 int[] exe = psInsert.executeBatch();
                 if (exe.length > 0) {
                     LogUtil.info(getClass().getName(), "Success generated " + exe.length + " task attributes, for " + assetnum);
@@ -302,79 +302,90 @@ public class NonCoreCompleteDao {
         }
     }
 
-    // Create Request Reserve Resource UIM
-    private SOAPMessage createSoapRequestReserveResourceUIM(String reservationId, Map<String, String> attributeInfo) throws SOAPException {
-        MessageFactory messageFactory = MessageFactory.newInstance();
-        SOAPMessage soapMessage = messageFactory.createMessage();
-        SOAPPart soapPart = soapMessage.getSOAPPart();
-        SOAPEnvelope envelope = soapPart.getEnvelope();
-        MimeHeaders headers = soapMessage.getMimeHeaders();
-        headers.addHeader("SOAPAction", "http://xmlns.oracle.com/communications/inventory/webservice/FindDeviceByCriteria");
-        envelope.addNamespaceDeclaration("ent", "http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility");
-        SOAPBody soapBody = envelope.getBody();
-        SOAPElement soapBodyElem = soapBody.addChildElement("reserveResourcesRequest", "ent");
-
-        SOAPElement soapBodyElemServiceType = soapBodyElem.addChildElement("ServiceType");
-        soapBodyElemServiceType.addTextNode("NONCORE");
-        SOAPElement soapBodyElemReservationId = soapBodyElem.addChildElement("reservationID");
-        soapBodyElemReservationId.addTextNode(reservationId);
-
-        for (Map.Entry<String, String> entry : attributeInfo.entrySet()) {
-            SOAPElement soapBodyElemAttributeInfo = soapBodyElem.addChildElement("AttributeInformation");
-            SOAPElement soapBodyElemAttributeInfoName = soapBodyElemAttributeInfo.addChildElement("attributeName");
-            soapBodyElemAttributeInfoName.addTextNode(entry.getKey());
-            SOAPElement soapBodyElemAttributeInfoValue = soapBodyElemAttributeInfo.addChildElement("attributeValue");
-            soapBodyElemAttributeInfoValue.addTextNode(entry.getValue());
+    private boolean clearAttributeNoncore(String assetnum, Connection con) throws SQLException {
+        boolean status = false;
+        String queryDelete = "DELETE FROM app_fd_assetspec WHERE c_assetnum = ?";
+        PreparedStatement ps = con.prepareStatement(queryDelete);
+        ps.setString(1, assetnum);
+        int count = ps.executeUpdate();
+        if (count > 0) {
+            status = true;
         }
-        soapMessage.saveChanges();
-        return soapMessage;
+        LogUtil.info(getClass().getName(), "Status Delete : " + status);
+        return status;
     }
+    // Create Request Reserve Resource UIM
+//    private SOAPMessage createSoapRequestReserveResourceUIM(String reservationId, Map<String, String> attributeInfo) throws SOAPException {
+//        MessageFactory messageFactory = MessageFactory.newInstance();
+//        SOAPMessage soapMessage = messageFactory.createMessage();
+//        SOAPPart soapPart = soapMessage.getSOAPPart();
+//        SOAPEnvelope envelope = soapPart.getEnvelope();
+//        MimeHeaders headers = soapMessage.getMimeHeaders();
+//        headers.addHeader("SOAPAction", "http://xmlns.oracle.com/communications/inventory/webservice/FindDeviceByCriteria");
+//        envelope.addNamespaceDeclaration("ent", "http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility");
+//        SOAPBody soapBody = envelope.getBody();
+//        SOAPElement soapBodyElem = soapBody.addChildElement("reserveResourcesRequest", "ent");
+//
+//        SOAPElement soapBodyElemServiceType = soapBodyElem.addChildElement("ServiceType");
+//        soapBodyElemServiceType.addTextNode("NONCORE");
+//        SOAPElement soapBodyElemReservationId = soapBodyElem.addChildElement("reservationID");
+//        soapBodyElemReservationId.addTextNode(reservationId);
+//
+//        for (Map.Entry<String, String> entry : attributeInfo.entrySet()) {
+//            SOAPElement soapBodyElemAttributeInfo = soapBodyElem.addChildElement("AttributeInformation");
+//            SOAPElement soapBodyElemAttributeInfoName = soapBodyElemAttributeInfo.addChildElement("attributeName");
+//            soapBodyElemAttributeInfoName.addTextNode(entry.getKey());
+//            SOAPElement soapBodyElemAttributeInfoValue = soapBodyElemAttributeInfo.addChildElement("attributeValue");
+//            soapBodyElemAttributeInfoValue.addTextNode(entry.getValue());
+//        }
+//        soapMessage.saveChanges();
+//        return soapMessage;
+//    }
 
     // Reserve Resource UIM
-    public void reserveResourceUIM(String wonum, String assetnum) {
-        InsertIntegrationHistory insertIntegration = new InsertIntegrationHistory();
-        try {
-            Map<String, String> attributeInfo = new HashMap<>();
-            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-            SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-
-            DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-            String selectQuery = "SELECT * FROM app_fd_assetspec WHERE assetnum = ?";
-
-            try (Connection con = ds.getConnection();
-                    PreparedStatement ps = con.prepareStatement(selectQuery)) {
-                ps.setString(1, assetnum);
-                ResultSet rs = ps.executeQuery();
-
-                while (rs.next()) {
-                    String attrId = rs.getString("c_assetattrid");
-                    String alnValue = rs.getString("c_alnvalue");
-                    attributeInfo.put(attrId, alnValue.isEmpty() ? "-" : alnValue);
-                }
-            } catch (SQLException e) {
-                LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-            }
-
-            SOAPMessage soapRequest = createSoapRequestReserveResourceUIM(assetnum, attributeInfo);
-            SOAPMessage soapResponse = soapConnection.call(soapRequest, "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP");
-
-            String requestString = getStringSoapMessage(soapRequest);
-            String substringReq = requestString.substring(0, Math.min(requestString.length(), 500));
-            String responseString = getStringSoapMessage(soapResponse);
-            String substringRes = responseString.substring(0, Math.min(responseString.length(), 500));
-            LogUtil.info(getClass().getName(), "Response Reserve Resource : " + responseString);
-            LogUtil.info(getClass().getName(), "SubString Response Reserve Resource : " + substringRes);
-
-            insertIntegration.insertIntegrationHistory(wonum, "COMPLETENONCORE", substringReq, substringRes, "COMPLETENONCORE");
-            LogUtil.info(getClass().getName(), "Reserve Request : " + requestString);
-            LogUtil.info(getClass().getName(), "Reserve Response : " + getStringSoapMessage(soapResponse));
-
-            SOAPBody soapBody = soapResponse.getSOAPBody();
-            LogUtil.info(this.getClass().getName(), "SOAP BODY :" + soapBody);
-            soapConnection.close();
-
-        } catch (Exception e) {
-            LogUtil.error(getClass().getName() + " | reserveResourceUIM ", e, "Trace Error Here: " + e.getMessage());
-        }
-    }
+//    public void reserveResourceUIM(String wonum, String assetnum) {
+//        InsertIntegrationHistory insertIntegration = new InsertIntegrationHistory();
+//        try {
+//            Map<String, String> attributeInfo = new HashMap<>();
+//            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
+//            SOAPConnection soapConnection = soapConnectionFactory.createConnection();
+//            DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//            String selectQuery = "SELECT * FROM app_fd_assetspec WHERE assetnum = ?";
+//
+//            try (Connection con = ds.getConnection();
+//                    PreparedStatement ps = con.prepareStatement(selectQuery)) {
+//                ps.setString(1, assetnum);
+//                ResultSet rs = ps.executeQuery();
+//
+//                while (rs.next()) {
+//                    String attrId = rs.getString("c_assetattrid");
+//                    String alnValue = rs.getString("c_alnvalue");
+//                    attributeInfo.put(attrId, alnValue.isEmpty() ? "-" : alnValue);
+//                }
+//            } catch (SQLException e) {
+//                LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//            }
+//
+//            SOAPMessage soapRequest = createSoapRequestReserveResourceUIM(assetnum, attributeInfo);
+//            SOAPMessage soapResponse = soapConnection.call(soapRequest, "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP");
+//
+//            String requestString = getStringSoapMessage(soapRequest);
+//            String substringReq = requestString.substring(0, Math.min(requestString.length(), 500));
+//            String responseString = getStringSoapMessage(soapResponse);
+//            String substringRes = responseString.substring(0, Math.min(responseString.length(), 500));
+//            LogUtil.info(getClass().getName(), "Response Reserve Resource : " + responseString);
+//            LogUtil.info(getClass().getName(), "SubString Response Reserve Resource : " + substringRes);
+//
+//            insertIntegration.insertIntegrationHistory(wonum, "COMPLETENONCORE", substringReq, substringRes, "COMPLETENONCORE");
+//            LogUtil.info(getClass().getName(), "Reserve Request : " + requestString);
+//            LogUtil.info(getClass().getName(), "Reserve Response : " + getStringSoapMessage(soapResponse));
+//
+//            SOAPBody soapBody = soapResponse.getSOAPBody();
+//            LogUtil.info(this.getClass().getName(), "SOAP BODY :" + soapBody);
+//            soapConnection.close();
+//
+//        } catch (Exception e) {
+//            LogUtil.error(getClass().getName() + " | reserveResourceUIM ", e, "Trace Error Here: " + e.getMessage());
+//        }
+//    }
 }
