@@ -310,13 +310,118 @@ public class TkMappingOwnerGroupDao {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
                 + "WHERE c_workzone = ? AND c_tkcustomersegment = ? AND c_productname = ? AND c_classstructureid = ?"
-                + "c_supplier is null AND c_amdivision is null";
+                + "c_supplier is null";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, segment);
             ps.setString(3, productname);
             ps.setString(4, classstructureid); //classstructureid
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
+    
+    public String getOwnerGroup11(String workzone, String productname, String classstructureid) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_productname = ? AND c_classstructureid = ?"
+                + "c_supplier is null";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ps.setString(2, productname);
+            ps.setString(3, classstructureid); //classstructureid
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
+    
+    public String getOwnerGroup12(String workzone, String classstructureid) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_classstructureid = ?"
+                + "c_supplier is null";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ps.setString(2, classstructureid); //classstructureid
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
+    
+    public String getOwnerGroupConn1(String workzone, String classstructureid, String segment) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_classstructureid = ? AND c_tkcustomersegment = ? ";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ps.setString(2, classstructureid); //classstructureid
+            ps.setString(3, segment);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
+    
+    public String getOwnerGroupConn2(String workzone, String classstructureid) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_classstructureid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ps.setString(2, classstructureid); //classstructureid
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                ownerGroup = rs.getString("c_ownergroup");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return ownerGroup;
+    }
+    
+    public String getOwnerGroupConn3(String workzone, String supplier, String classstructureid) throws SQLException {
+        String ownerGroup = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
+                + "WHERE c_workzone = ? AND c_supplier = ? AND c_classstructureid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ps.setString(2, supplier);
+            ps.setString(2, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");

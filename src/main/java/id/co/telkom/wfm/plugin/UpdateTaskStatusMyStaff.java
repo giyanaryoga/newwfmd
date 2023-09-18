@@ -175,7 +175,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                             res.writeJSONString(hsr1.getWriter());
                         } else {
                             message = "Please assign task to Laborcode / Amcrew first";
-                            hsr1.sendError(555, message);
+                            hsr1.sendError(422, message);
                         }
                         break;
                     case "COMPWA":
@@ -191,24 +191,12 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                             }
                         } else {
                             message = "Please insert Task Attribute in Mandatory";
-//                            JSONObject data = new JSONObject();
-//                            data.put("wonum", wonum);
-//                            data.put("status", status);
-//                            res.put("code", 201);
-//                            res.put("message", message);
-//                            res.put("data", data);
-                            hsr1.setHeader("error", message);
-//                            res.writeJSONString(hsr1.getWriter());
-//                            message("Please insert Task Attribute in Mandatory")
-//                            hsr1.sendError((int) response.get("code"), message);
-//                            hsr1.sendError(555, "Please insert Task Attribute in Mandatory");
-//                            hsr1.setStatus(nextTaskId);
-//                            hsr1.setHeader(parent, parent);
+                            hsr1.sendError(422, message);
                         }
                         break;
                     default:
                         message = "Status Task is not found";
-                        hsr1.sendError(555, message);
+                        hsr1.sendError(422, message);
                         break;
                 }
             } catch (ParseException | SQLException e) {

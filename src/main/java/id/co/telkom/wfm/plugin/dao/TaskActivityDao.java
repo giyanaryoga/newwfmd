@@ -479,10 +479,8 @@ public class TaskActivityDao {
                     psInsert.setString(13, rs.getString("c_isshared"));
                     psInsert.setString(14, rs.getString("c_isrequired"));
                     psInsert.setString(15, taskObj.get("parent").toString());
-                    if (rs.getString("c_defaultalnvalue") != "None") {
+                    if (rs.getString("c_defaultalnvalue") != null) {
                         psInsert.setString(16, rs.getString("c_defaultalnvalue"));
-                    } else if (rs.getString("c_defaulttablevalue") != null) {
-                        psInsert.setString(16, rs.getString("c_defaulttablevalue"));
                     } else {
                         psInsert.setString(16, "");
                     }

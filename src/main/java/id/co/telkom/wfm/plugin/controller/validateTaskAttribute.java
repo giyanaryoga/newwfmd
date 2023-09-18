@@ -64,23 +64,24 @@ public class validateTaskAttribute {
             JSONArray taskAttrParent = taskAttrDao.getTaskAttributeParent(parent);
             for (Object obj : taskAttrParent) {
                 JSONObject taskAttrObj = (JSONObject)obj;
+//                LogUtil.info(getClass().getName(), "Task attribute = " +taskAttrObj);
                 String attr_name = taskAttrObj.get("task_attr_name").toString();
-                String attr_value = taskAttrObj.get("task_attr_value").toString();
+                String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
                 if (attr_name.equalsIgnoreCase(attrName)) {
-                    if (attr_value == null || attr_value == "") {
+                    if (attr_value == null || attr_value == "" || attr_value == "None") {
                         taskAttrDao.updateTaskValue(parent, attr_name, attrValue);
                         LogUtil.info(getClass().getName(), "Task attribute value insert from assetattrid same");
                     }
                     LogUtil.info(getClass().getName(), "Task attribute value is not null");
                 }
-                LogUtil.info(getClass().getName(), "Task attribute name is not same");
+//                LogUtil.info(getClass().getName(), "Task attribute name is not same");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public void validate (String parent, String wonum, String attrName, String attrValue, String task) {
+    public void validate (String parent, String wonum, String attrName, String attrValue) {
         if (attrName.equalsIgnoreCase("ROLE")) {
             validateRole(wonum);
         } else if (!attrName.equalsIgnoreCase("APPROVAL")) {
