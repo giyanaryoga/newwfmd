@@ -247,6 +247,24 @@ public class TaskAttributeUpdateDao {
         return assetattrid;
     }
     
+    public String getActivity(String wonum) throws SQLException {
+        String activity = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_detailactcode FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'ACTIVITY'";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                activity = rs.getString("c_detailactcode");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return activity;
+    }
+    
     public void updateMandatory(String wonum, String assetattrid, int mandatory ) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
@@ -268,6 +286,35 @@ public class TaskAttributeUpdateDao {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+            } else {
+                LogUtil.info(getClass().getName(), "Mandatory is not updated");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateTaskValue(String parent, String assetattrid, String value ) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_workorderspec SET ")
+            .append("c_value = ?, ")
+            .append("datemodified = ? ")
+            .append("WHERE ")
+            .append("c_parent = ?")
+            .append("c_assetattrid = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, value);
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, parent);
+            ps.setString(4, assetattrid);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), parent + " | Assetattrid mandatory update to:  " + assetattrid);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

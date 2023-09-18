@@ -190,7 +190,8 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                                 hsr1.sendError((int) response.get("code"), response.get("message").toString());
                             }
                         } else {
-                            hsr1.sendError(422, "Please insert Task Attribute in Mandatory");
+                            message = "Please insert Task Attribute in Mandatory";
+                            hsr1.sendError(422, message);
                         }
                         break;
                     default:

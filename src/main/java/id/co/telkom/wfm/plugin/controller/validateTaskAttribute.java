@@ -26,37 +26,32 @@ public class validateTaskAttribute {
     
     private void validateRole (String wonum) {
         try {
-            JSONArray taskAttr = taskAttrDao.getTaskAttrWonum(wonum);
-            for (Object obj : taskAttr) {
-                JSONObject taskAttrObj = (JSONObject)obj;
-                String attr_name = taskAttrObj.get("assetattrid").toString();
-                String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
-                String valueNteType = taskAttrDao.getTaskAttrValue(wonum, "NTE_TYPE");
-//                String[] splitAttrName = attr_name.split("_");
-//                String roleSplit = splitAttrName[0]; // NTE atau STP
-                if (value.equalsIgnoreCase("STP")) {
-                    taskAttrDao.updateMandatory(wonum, "NTE_TYPE", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
+            String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
+            String valueNteType = taskAttrDao.getTaskAttrValue(wonum, "NTE_TYPE");
+//            String[] splitAttrName = attr_name.split("_");
+//            String roleSplit = splitAttrName[0]; // NTE atau STP
+            if (value.equalsIgnoreCase("STP")) {
+                taskAttrDao.updateMandatory(wonum, "NTE_TYPE", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_NAME", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
+            } else {
+                //IF ROLE = NTE
+                if (valueNteType.equalsIgnoreCase("ONT")) {
+                    taskAttrDao.updateMandatory(wonum, "NTE_NAME", 1);
+                    taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 1);
+                    taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 1);
+                    taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 1);
+                    taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 1);
+                } 
+                if (Arrays.asList(nteType1).contains(valueNteType)) {
                     taskAttrDao.updateMandatory(wonum, "NTE_NAME", 0);
+                    taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
                     taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
                     taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
                     taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
-                } else {
-                    //IF ROLE = NTE
-                    if (valueNteType.equalsIgnoreCase("ONT")) {
-                        taskAttrDao.updateMandatory(wonum, "NTE_NAME", 1);
-                        taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 1);
-                        taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 1);
-                        taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 1);
-                        taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 1);
-                    } 
-                    if (Arrays.asList(nteType1).contains(valueNteType)) {
-                        taskAttrDao.updateMandatory(wonum, "NTE_NAME", 0);
-                        taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
-                        taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
-                        taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
-                        taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
-                    }
                 }
             }
         } catch (SQLException ex) {
@@ -64,17 +59,33 @@ public class validateTaskAttribute {
         }
     }
     
-    private void validateValueNextTask (String parent, String attrName) {
+    private void validateValueNextTask (String parent, String attrName, String attrValue) {
         try {
             JSONArray taskAttrParent = taskAttrDao.getTaskAttributeParent(parent);
+            for (Object obj : taskAttrParent) {
+                JSONObject taskAttrObj = (JSONObject)obj;
+//                LogUtil.info(getClass().getName(), "Task attribute = " +taskAttrObj);
+                String attr_name = taskAttrObj.get("task_attr_name").toString();
+                String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
+                if (attr_name.equalsIgnoreCase(attrName)) {
+                    if (attr_value == null || attr_value == "" || attr_value == "None") {
+                        taskAttrDao.updateTaskValue(parent, attr_name, attrValue);
+                        LogUtil.info(getClass().getName(), "Task attribute value insert from assetattrid same");
+                    }
+                    LogUtil.info(getClass().getName(), "Task attribute value is not null");
+                }
+//                LogUtil.info(getClass().getName(), "Task attribute name is not same");
+            }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public void validate (String parent, String wonum, String attrName, String attrValue, String task) {
+    public void validate (String parent, String wonum, String attrName, String attrValue) {
         if (attrName.equalsIgnoreCase("ROLE")) {
             validateRole(wonum);
+        } else if (!attrName.equalsIgnoreCase("APPROVAL")) {
+            validateValueNextTask(parent, attrName, attrValue);
         }
     }
 }

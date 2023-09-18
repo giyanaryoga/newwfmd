@@ -156,20 +156,41 @@ public class validateOwnerGroup {
                 if (ownerGroupSet == null) {
                     ownerGroup2 = tkMapping.getOwnerGroup7("NAS", dcType, classstructureid);
                     ownerGroupSet = ownerGroup2;
-                } else if (!Arrays.asList(dcType2).contains(dcType) && "Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString())) {
-                    ownerGroup2 = tkMapping.getOwnerGroup8("NAS", dcType, classstructureid);
-                    ownerGroupSet = ownerGroup2;
-                } else {
-                    ownerGroup2 = tkMapping.getOwnerGroup9("NAS", dcType, workorder.get("prodName").toString(), classstructureid);
-                    ownerGroupSet = ownerGroup2;
+                }
+            } else if (!Arrays.asList(dcType2).contains(dcType) && "Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString())) {
+                ownerGroupSet = tkMapping.getOwnerGroup8("NAS", dcType, classstructureid);
+//                ownerGroupSet = ownerGroup2;
+            } else {
+                ownerGroupSet = tkMapping.getOwnerGroup9("NAS", dcType, workorder.get("prodName").toString(), classstructureid);
+//                ownerGroupSet = ownerGroup2;
+            }
+            if (ownerGroupSet == null) {
+                ownerGroupSet = tkMapping.getOwnerGroup10("NAS", dcType, workorder.get("prodName").toString(), classstructureid);
+                if (ownerGroupSet == null) {
+                    ownerGroupSet = tkMapping.getOwnerGroup11("NAS", workorder.get("prodName").toString(), classstructureid);
+                    if (ownerGroupSet == null) {
+                        ownerGroupSet = tkMapping.getOwnerGroup11(workorder.get("workZone").toString(), workorder.get("prodName").toString(), classstructureid);
+                        if (ownerGroupSet == null) {
+                            ownerGroupSet = tkMapping.getOwnerGroup12(workorder.get("workZone").toString(), classstructureid);
+                            if (ownerGroupSet == null) {
+                                ownerGroupSet = tkMapping.getOwnerGroup11("NAS", workorder.get("prodName").toString(), classstructureid);
+                            }
+                        }
+                    }
                 }
             }
-//            if (ownerGroupSet == null) {
-//                automation scriptnya gak paham maksudnya, di skip dlu deh
-//            }
         } else {
             //Connectivity mapping
-            
+            ownerGroupSet = tkMapping.getOwnerGroupConn1(workorder.get("workZone").toString(), classstructureid, dcType);
+            if (ownerGroupSet == null) {
+                if (supplier != null) {
+                    String ownerGroupSupplier = tkMapping.getOwnerGroupConn3(workorder.get("workZone").toString(), supplier, classstructureid);
+                    if (ownerGroupSupplier != null) {
+                        ownerGroupSet = ownerGroupSupplier;
+                    }
+                }
+                ownerGroupSet = tkMapping.getOwnerGroupConn2(workorder.get("workZone").toString(), classstructureid);
+            }
         }
         
         return ownerGroupSet;

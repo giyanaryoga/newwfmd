@@ -232,13 +232,13 @@ public class validateGenerateTask {
             //GENERATE TASK HISTORY
             historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum OSM", "OSM", "OSM");
             //GENERATE TASK ATTRIBUTE
-            taskAttribute(taskAttrArray, AttributeWO, workorder, sortedTask);
+            taskAttribute(taskAttrArray, sortedTask);
             
             counter = counter + 1;
         }
     }
     
-    private void taskAttribute(JSONArray taskAttrArray, JSONArray AttributeWO, JSONObject workorder, JSONObject sortedTask) throws SQLException {
+    private void taskAttribute(JSONArray taskAttrArray, JSONObject sortedTask) throws SQLException {
         for (Object taskAttrArrayObj: taskAttrArray) {
             JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
             String attrName = taskAttrObj.get("attrName").toString();
