@@ -6,23 +6,33 @@
 package id.co.telkom.wfm.plugin.dao;
 
 import id.co.telkom.wfm.plugin.controller.InsertIntegrationHistory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.MimeHeaders;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPConnection;
-import javax.xml.soap.SOAPConnectionFactory;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
+//import javax.xml.soap.MessageFactory;
+//import javax.xml.soap.MimeHeaders;
+//import javax.xml.soap.SOAPBody;
+//import javax.xml.soap.SOAPConnection;
+//import javax.xml.soap.SOAPConnectionFactory;
+//import javax.xml.soap.SOAPElement;
+//import javax.xml.soap.SOAPEnvelope;
+//import javax.xml.soap.SOAPException;
+//import javax.xml.soap.SOAPMessage;
+//import javax.xml.soap.SOAPPart;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.XML;
+//import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 //import javax.xml.soap.*;
 
@@ -33,16 +43,15 @@ import org.json.simple.JSONObject;
 public class NonCoreCompleteDao {
 
     // Get String SOAP Message
-    public String getStringSoapMessage(SOAPMessage soapMessage) {
-        try {
-            SOAPPart soapPart = soapMessage.getSOAPPart();
-            SOAPEnvelope envelope = soapPart.getEnvelope();
-            return envelope.toString();
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
+//    public String getStringSoapMessage(SOAPMessage soapMessage) {
+//        try {
+//            SOAPPart soapPart = soapMessage.getSOAPPart();
+//            SOAPEnvelope envelope = soapPart.getEnvelope();
+//            return envelope.toString();
+//        } catch (Exception e) {
+//            return "";
+//        }
+//    }
     // Check Product Non-Core
     public int isNonCoreProduct(String productname) {
         int value = 0;
@@ -314,78 +323,96 @@ public class NonCoreCompleteDao {
         LogUtil.info(getClass().getName(), "Status Delete : " + status);
         return status;
     }
-    // Create Request Reserve Resource UIM
-//    private SOAPMessage createSoapRequestReserveResourceUIM(String reservationId, Map<String, String> attributeInfo) throws SOAPException {
-//        MessageFactory messageFactory = MessageFactory.newInstance();
-//        SOAPMessage soapMessage = messageFactory.createMessage();
-//        SOAPPart soapPart = soapMessage.getSOAPPart();
-//        SOAPEnvelope envelope = soapPart.getEnvelope();
-//        MimeHeaders headers = soapMessage.getMimeHeaders();
-//        headers.addHeader("SOAPAction", "http://xmlns.oracle.com/communications/inventory/webservice/FindDeviceByCriteria");
-//        envelope.addNamespaceDeclaration("ent", "http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility");
-//        SOAPBody soapBody = envelope.getBody();
-//        SOAPElement soapBodyElem = soapBody.addChildElement("reserveResourcesRequest", "ent");
-//
-//        SOAPElement soapBodyElemServiceType = soapBodyElem.addChildElement("ServiceType");
-//        soapBodyElemServiceType.addTextNode("NONCORE");
-//        SOAPElement soapBodyElemReservationId = soapBodyElem.addChildElement("reservationID");
-//        soapBodyElemReservationId.addTextNode(reservationId);
-//
-//        for (Map.Entry<String, String> entry : attributeInfo.entrySet()) {
-//            SOAPElement soapBodyElemAttributeInfo = soapBodyElem.addChildElement("AttributeInformation");
-//            SOAPElement soapBodyElemAttributeInfoName = soapBodyElemAttributeInfo.addChildElement("attributeName");
-//            soapBodyElemAttributeInfoName.addTextNode(entry.getKey());
-//            SOAPElement soapBodyElemAttributeInfoValue = soapBodyElemAttributeInfo.addChildElement("attributeValue");
-//            soapBodyElemAttributeInfoValue.addTextNode(entry.getValue());
-//        }
-//        soapMessage.saveChanges();
-//        return soapMessage;
-//    }
 
-    // Reserve Resource UIM
-//    public void reserveResourceUIM(String wonum, String assetnum) {
-//        InsertIntegrationHistory insertIntegration = new InsertIntegrationHistory();
-//        try {
-//            Map<String, String> attributeInfo = new HashMap<>();
-//            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-//            SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-//            DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//            String selectQuery = "SELECT * FROM app_fd_assetspec WHERE assetnum = ?";
-//
-//            try (Connection con = ds.getConnection();
-//                    PreparedStatement ps = con.prepareStatement(selectQuery)) {
-//                ps.setString(1, assetnum);
-//                ResultSet rs = ps.executeQuery();
-//
-//                while (rs.next()) {
-//                    String attrId = rs.getString("c_assetattrid");
-//                    String alnValue = rs.getString("c_alnvalue");
-//                    attributeInfo.put(attrId, alnValue.isEmpty() ? "-" : alnValue);
-//                }
-//            } catch (SQLException e) {
-//                LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//            }
-//
-//            SOAPMessage soapRequest = createSoapRequestReserveResourceUIM(assetnum, attributeInfo);
-//            SOAPMessage soapResponse = soapConnection.call(soapRequest, "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP");
-//
-//            String requestString = getStringSoapMessage(soapRequest);
-//            String substringReq = requestString.substring(0, Math.min(requestString.length(), 500));
-//            String responseString = getStringSoapMessage(soapResponse);
-//            String substringRes = responseString.substring(0, Math.min(responseString.length(), 500));
-//            LogUtil.info(getClass().getName(), "Response Reserve Resource : " + responseString);
-//            LogUtil.info(getClass().getName(), "SubString Response Reserve Resource : " + substringRes);
-//
-//            insertIntegration.insertIntegrationHistory(wonum, "COMPLETENONCORE", substringReq, substringRes, "COMPLETENONCORE");
-//            LogUtil.info(getClass().getName(), "Reserve Request : " + requestString);
-//            LogUtil.info(getClass().getName(), "Reserve Response : " + getStringSoapMessage(soapResponse));
-//
-//            SOAPBody soapBody = soapResponse.getSOAPBody();
-//            LogUtil.info(this.getClass().getName(), "SOAP BODY :" + soapBody);
-//            soapConnection.close();
-//
-//        } catch (Exception e) {
-//            LogUtil.error(getClass().getName() + " | reserveResourceUIM ", e, "Trace Error Here: " + e.getMessage());
-//        }
-//    }
+    public JSONObject reserveResource(String serviceId) throws MalformedURLException, IOException, JSONException {
+        try {
+            JSONArray attributes = getAttributeNoncore(serviceId);
+            String attrName = "";
+            String attrValue = "";
+
+            String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
+                    + "   <soapenv:Header/>\n"
+                    + "   <soapenv:Body>\n"
+                    + "      <ent:reserveResourcesRequest>\n"
+                    + "         <!--Optional:-->\n"
+                    + "         <ServiceType>NONCORE</ServiceType>\n"
+                    + "         <reservationID>" + serviceId + "</reservationID>\n"
+                    + "         <!--1 to 20 repetitions:-->\n";
+
+            String request3 = "      </ent:reserveResourcesRequest>\n"
+                    + "   </soapenv:Body>\n"
+                    + "</soapenv:Envelope>";
+
+            StringBuilder repeatedRequest = new StringBuilder();
+            for (int i = 0; i < attributes.length(); i++) {
+                org.json.JSONObject result = attributes.getJSONObject(i);
+                attrName = result.getString("attributeName");
+                attrValue = result.getString("attributeValue");
+                
+                String request2 = " <AttributeInformation>\n"
+                        + "            <attributeName>" + attrName + "</attributeName>\n"
+                        + "            <attributeValue>" + attrValue + "</attributeValue>\n"
+                        + "         </AttributeInformation>\n";
+                repeatedRequest.append(request2);
+            }
+
+            String finalRequest = request + repeatedRequest.toString() + request3;
+
+            LogUtil.info(getClass().getName(), "Reserve Request : " + finalRequest);
+            String urlres = "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
+            URL url = new URL(urlres);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            // Set Headers
+            connection.setRequestProperty("Accept", "application/xml");
+            connection.setRequestProperty("Content-Type", "text/xml; charset=UTF-8");
+            try ( // Write XML
+                    OutputStream outputStream = connection.getOutputStream()) {
+                byte[] b = finalRequest.getBytes("UTF-8");
+                outputStream.write(b);
+                outputStream.flush();
+            }
+
+            StringBuilder response;
+            try ( // Read XML
+                    InputStream inputStream = connection.getInputStream()) {
+                byte[] res = new byte[2048];
+                int i = 0;
+                response = new StringBuilder();
+                while ((i = inputStream.read(res)) != -1) {
+                    response.append(new String(res, 0, i));
+                }
+            }
+            StringBuilder result = response;
+            org.json.JSONObject temp = XML.toJSONObject(result.toString());
+            System.out.println("temp " + temp.toString());
+            LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Call Failed." + e);
+        }
+        return null;
+    }
+
+    public JSONArray getAttributeNoncore(String assetnum) throws SQLException {
+        JSONArray listAttr = new JSONArray();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_alnvalue FROM app_fd_assetspec WHERE c_assetnum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, assetnum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject attributeObject = new JSONObject();
+                attributeObject.put("attributeName", rs.getString("c_assetattrid"));
+                attributeObject.put("attributeValue", rs.getString("c_alnvalue"));
+                listAttr.put(attributeObject);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return listAttr;
+    }
 }

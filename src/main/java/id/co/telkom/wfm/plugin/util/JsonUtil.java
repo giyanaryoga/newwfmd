@@ -95,8 +95,8 @@ public class JsonUtil {
         return reserveJson;
     }
 
-    public JSONArray getAttributeNoncore(String assetnum) throws SQLException {
-        JSONArray listAttr = new JSONArray();
+    public JSONObject getAttributeNoncore(String assetnum) throws SQLException {
+        JSONObject attributeObject = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_assetattrid, c_alnvalue FROM app_fd_assetspec WHERE c_assetnum = ?";
         try (Connection con = ds.getConnection();
@@ -104,16 +104,15 @@ public class JsonUtil {
             ps.setString(1, assetnum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                JSONObject attributeObject = new JSONObject();
                 attributeObject.put("attributeName", rs.getString("c_assetattrid"));
                 attributeObject.put("attributeValue", rs.getString("c_alnvalue"));
-                listAttr.add(attributeObject);
+//                listAttr.p(attributeObject);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         } finally {
             ds.getConnection().close();
         }
-        return listAttr;
+        return attributeObject;
     }
 }

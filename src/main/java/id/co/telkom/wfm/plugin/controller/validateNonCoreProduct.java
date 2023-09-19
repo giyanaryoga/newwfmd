@@ -9,6 +9,7 @@ import id.co.telkom.wfm.plugin.dao.*;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.util.JsonUtil;
+import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -126,8 +127,8 @@ public class validateNonCoreProduct {
         return result;
     }
 
-    public JSONObject getAssetstatus(String serviceid) throws SQLException, JSONException {
-        JSONObject resultObj = new JSONObject();
+    public String getAssetstatus(String serviceid) throws SQLException, JSONException {
+        String status = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_status \n"
                 + "FROM app_fd_asset \n"
@@ -136,13 +137,14 @@ public class validateNonCoreProduct {
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, serviceid);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                resultObj.put("status", rs.getString("c_status"));
+            if (rs.next()) {
+                status = rs.getString("c_status");
+                LogUtil.info(getClass().getName(), "Status asset : " + status);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
-        return resultObj;
+        return status;
     }
 
     public JSONObject getAssetspec(String serviceid, String wonum) throws SQLException, JSONException {
@@ -226,6 +228,7 @@ public class validateNonCoreProduct {
             int exe = ps.executeUpdate();
 
             if (exe > 0) {
+                LogUtil.info(getClass().getName(), "Updated Status Successfully for " + serviceid + " : " + status);
                 return "Update asset status berhasil";
             } else {
                 return "Update asset status gagal";
@@ -330,7 +333,7 @@ public class validateNonCoreProduct {
         return startwa;
     }
 
-    public void validateComplete(UpdateStatusParam param) throws SQLException, JSONException {
+    public void validateComplete(UpdateStatusParam param) throws SQLException, JSONException, IOException {
         int isNoncore = 0;
         String taskattribute = daoNoncore.getTaskattributeValue(param.getWonum(), "SID");
         // Get Params
@@ -349,7 +352,6 @@ public class validateNonCoreProduct {
                     org.json.simple.JSONObject customerAccountidTemp = daoNoncore.getWorkorderattributeValue(param.getParent(), "CUSTOMERPARTY_ACCOUNTID");
                     String customerAccountIdTemp = customerAccountidTemp.toString();
                     String customerAccountid = "C" + customerAccountIdTemp.substring(3);
-//                    String customerAccountid = "C" + customerAccountIdTemp.substring(3);
 
                     if (customerAccountid != null) {
                         String sID = taskattribute;
@@ -381,12 +383,7 @@ public class validateNonCoreProduct {
 
                             daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
                             daoNoncore.generateAssetSpecAttribute(sID, param.getSiteId(), params.optString("detailactcode"), param.getWonum());
-                            // Response to Kafka
-                            org.json.simple.JSONObject data = requestJson.reserveResourceUIM(sID);
-                            String topic = "WFM_RESERVE_RESOURCE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
-                            String kafkaRes = data.toJSONString();
-                            KafkaProducerTool kaf = new KafkaProducerTool();
-                            kaf.generateMessage(kafkaRes, topic, "");
+                            daoNoncore.reserveResource(sID);
                         } else {
                             daoNoncore.generateServiceAddress(addresscode, siteId, description);
 
@@ -401,12 +398,7 @@ public class validateNonCoreProduct {
 
                             daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
                             daoNoncore.generateAssetSpecAttribute(sID, param.getSiteId(), params.optString("detailactcode"), param.getWonum());
-                            // Response to Kafka
-                            org.json.simple.JSONObject data = requestJson.reserveResourceUIM(sID);
-                            String topic = "WFM_RESERVE_RESOURCE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
-                            String kafkaRes = data.toJSONString();
-                            KafkaProducerTool kaf = new KafkaProducerTool();
-                            kaf.generateMessage(kafkaRes, topic, "");
+                            daoNoncore.reserveResource(sID);
                         }
 
                     }
@@ -415,7 +407,7 @@ public class validateNonCoreProduct {
         }
     }
 
-    public String validateProduct(String productname, String crmordertype, String modifiedBy, String wonum, String siteId) throws SQLException, JSONException {
+    public String validateProduct(String productname, String crmordertype, String modifiedBy, String wonum, String siteId) throws SQLException, JSONException, IOException {
         org.json.simple.JSONObject serviceid = daoNoncore.getWorkorderattributeValue(wonum, "SID");
         String taskattribute = daoNoncore.getTaskattributeValue(wonum, "SID");
         String serviceId = serviceid.toJSONString();
@@ -424,7 +416,7 @@ public class validateNonCoreProduct {
         JSONObject workorderspec = getAssetattrid(wonum);
 
         if (!serviceid.isEmpty()) {
-            JSONObject assetstatus = getAssetstatus(serviceId);
+            String assetstatus = getAssetstatus(serviceId);
             if (assetstatus != null) {
                 switch (crmordertype) {
                     case "Disconect":
@@ -443,12 +435,7 @@ public class validateNonCoreProduct {
                             }
                         }
                         String sID = taskattribute;
-                        // Response to Kafka
-                        org.json.simple.JSONObject data = requestJson.reserveResourceUIM(sID);
-                        String topic = "WFM_RESERVE_RESOURCE_ENTERPRISE_" + siteId.replaceAll("\\s+", "");
-                        String kafkaRes = data.toJSONString();
-                        KafkaProducerTool kaf = new KafkaProducerTool();
-                        kaf.generateMessage(kafkaRes, topic, "");
+                        daoNoncore.reserveResource(sID);
                         break;
                 }
             }

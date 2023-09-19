@@ -9,6 +9,7 @@ import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
 import id.co.telkom.wfm.plugin.dao.*;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
+import java.io.IOException;
 import java.sql.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -142,7 +143,7 @@ public class validateTaskStatus {
         return startwa;
     }
 
-    private void completeTask(UpdateStatusParam param) throws JSONException {
+    private void completeTask(UpdateStatusParam param) throws JSONException, IOException {
         String updateTask = "";
         try {
             org.json.JSONObject params = validateNonCoreProduct.getParams(param.getWonum());
@@ -225,7 +226,6 @@ public class validateTaskStatus {
                     woAttrValue = (woAttrObj.get("attr_value") == null ? "" : woAttrObj.get("attr_value").toString());
                     if (taskAttrName.equalsIgnoreCase(woAttrName)) {
                         taskAttrDao.updateValueTaskAttributeFromWorkorderAttr(param.getParent(), taskAttrName, woAttrValue);
-//                        LogUtil.info(getClass().getName(), "TASK ATTRIBUTE VALUE FROM WORKORDER ATTRIBUTE");
                     }
                 }
             }
@@ -234,7 +234,7 @@ public class validateTaskStatus {
         }
     }
 
-    public JSONObject validateTask(UpdateStatusParam param) throws JSONException {
+    public JSONObject validateTask(UpdateStatusParam param) throws JSONException, IOException {
         JSONObject response = new JSONObject();
         try {
             String updateTask = "";
