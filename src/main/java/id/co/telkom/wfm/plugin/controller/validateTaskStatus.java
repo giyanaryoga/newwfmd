@@ -174,10 +174,10 @@ public class validateTaskStatus {
                 //Build Response
                 JSONObject data = daoUpdate.getCompleteJson(param.getParent());
                 // Response to Kafka
-//                String topic = "WFM_MILESTONE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
-//                String kafkaRes = data.toJSONString();
-//                KafkaProducerTool kaf = new KafkaProducerTool();
-//                kaf.generateMessage(kafkaRes, topic, "");
+                String topic = "WFM_MILESTONE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
+                String kafkaRes = data.toJSONString();
+                KafkaProducerTool kaf = new KafkaProducerTool();
+                kaf.generateMessage(kafkaRes, topic, "");
             } else {
                 // Update parent status
                 daoUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());

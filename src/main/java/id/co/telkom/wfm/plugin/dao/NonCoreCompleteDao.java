@@ -6,52 +6,21 @@
 package id.co.telkom.wfm.plugin.dao;
 
 import id.co.telkom.wfm.plugin.controller.InsertIntegrationHistory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.io.*;
+import java.net.*;
 import java.net.URL;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
 import javax.sql.DataSource;
-//import javax.xml.soap.MessageFactory;
-//import javax.xml.soap.MimeHeaders;
-//import javax.xml.soap.SOAPBody;
-//import javax.xml.soap.SOAPConnection;
-//import javax.xml.soap.SOAPConnectionFactory;
-//import javax.xml.soap.SOAPElement;
-//import javax.xml.soap.SOAPEnvelope;
-//import javax.xml.soap.SOAPException;
-//import javax.xml.soap.SOAPMessage;
-//import javax.xml.soap.SOAPPart;
 import org.joget.apps.app.service.AppUtil;
-import org.joget.commons.util.LogUtil;
-import org.joget.commons.util.UuidGenerator;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.XML;
-//import org.json.simple.JSONArray;
+import org.joget.commons.util.*;
+import org.json.*;
 import org.json.simple.JSONObject;
-//import javax.xml.soap.*;
 
 /**
  *
  * @author ASUS
  */
 public class NonCoreCompleteDao {
-
-    // Get String SOAP Message
-//    public String getStringSoapMessage(SOAPMessage soapMessage) {
-//        try {
-//            SOAPPart soapPart = soapMessage.getSOAPPart();
-//            SOAPEnvelope envelope = soapPart.getEnvelope();
-//            return envelope.toString();
-//        } catch (Exception e) {
-//            return "";
-//        }
-//    }
     // Check Product Non-Core
     public int isNonCoreProduct(String productname) {
         int value = 0;
@@ -197,7 +166,20 @@ public class NonCoreCompleteDao {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
     }
-
+    
+    // Clear Asset 
+    private boolean clearAssetNoncore(String assetnum, Connection con) throws SQLException {
+        boolean status = false;
+        String queryDelete = "DELETE FROM app_fd_asset WHERE c_assetnum = ?";
+        PreparedStatement ps = con.prepareStatement(queryDelete);
+        ps.setString(1, assetnum);
+        int count = ps.executeUpdate();
+        if (count > 0) {
+            status = true;
+        }
+        LogUtil.info(getClass().getName(), "Status Delete : " + status);
+        return status;
+    }
     // Generate Asset
     public void generateServiceAsset(String assetnum, String location, String saddresscode, String assettype, String serviceno, String classstructureid) throws SQLException {
         String uuId = UuidGenerator.getInstance().getUuid();
@@ -228,7 +210,8 @@ public class NonCoreCompleteDao {
             ps.setString(6, serviceno);
             ps.setString(7, classstructureid);
             ps.setString(8, "OPERATING");
-
+            
+            clearAssetNoncore(assetnum, con);            
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "Generate Service Asset Successfully for " + assetnum);
@@ -310,7 +293,8 @@ public class NonCoreCompleteDao {
             throw e;
         }
     }
-
+    
+    // Clear Attribute
     private boolean clearAttributeNoncore(String assetnum, Connection con) throws SQLException {
         boolean status = false;
         String queryDelete = "DELETE FROM app_fd_assetspec WHERE c_assetnum = ?";
@@ -323,8 +307,10 @@ public class NonCoreCompleteDao {
         LogUtil.info(getClass().getName(), "Status Delete : " + status);
         return status;
     }
-
+    
+    // Reserve Resource UIM
     public JSONObject reserveResource(String serviceId) throws MalformedURLException, IOException, JSONException {
+        InsertIntegrationHistory dao = new InsertIntegrationHistory();
         try {
             JSONArray attributes = getAttributeNoncore(serviceId);
             String attrName = "";
@@ -388,12 +374,15 @@ public class NonCoreCompleteDao {
             org.json.JSONObject temp = XML.toJSONObject(result.toString());
             System.out.println("temp " + temp.toString());
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
+            
+            dao.insertIntegrationHistory(serviceId, "COMPLETENONCORE", "COMPLETENONCORE", finalRequest, temp.toString());
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Call Failed." + e);
         }
         return null;
     }
-
+    
+    // Get Attribute from table assetspec
     public JSONArray getAttributeNoncore(String assetnum) throws SQLException {
         JSONArray listAttr = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
