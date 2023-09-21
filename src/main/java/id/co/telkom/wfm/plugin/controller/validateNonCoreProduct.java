@@ -447,7 +447,7 @@ public class validateNonCoreProduct {
         boolean status = false;
         java.util.Date date = new Date();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String queryUpdate = "UPDATE app_fd_tk_workorderspec SET set c_value=? WHERE c_wonum=? AND c_assetattrid=?";
+        String queryUpdate = "UPDATE app_fd_workorderspec SET set c_value=? WHERE c_wonum=? AND c_assetattrid=?";
         try {
             Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(queryUpdate);

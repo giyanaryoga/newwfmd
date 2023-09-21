@@ -491,7 +491,6 @@ public class RevisedTaskDao {
         return activity;
     }
 
-    
     public String getTaskName(String wonum) throws SQLException {
         String taskName = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");

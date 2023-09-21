@@ -10,25 +10,6 @@ package id.co.telkom.wfm.plugin.model;
  * @author ASUS
  */
 public class UpdateStatusParam {
-
-//    public UpdateStatusParam() {
-//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-//    }
-
-    /**
-     * @return the currentDate
-     */
-    public String getCurrentDate() {
-        return currentDate;
-    }
-
-    /**
-     * @param currentDate the currentDate to set
-     */
-    public void setCurrentDate(String currentDate) {
-        this.currentDate = currentDate;
-    }
-
     private String parent;
     private String wonum;
     private String taskId;
@@ -40,32 +21,9 @@ public class UpdateStatusParam {
     private String memo;
     private String currentDate;
     private String activity;
+    private String errorCode;
+    private String engineerMemo;
     
-//    private UpdateStatusParam(Builder builder) {
-//        this.parent = builder.parent;
-//        this.wonum = builder.wonum;
-//        this.taskId = builder.taskId;
-//        this.siteId = builder.siteId;
-//        this.woStatus = builder.woStatus;
-//        this.description = builder.description;
-//        this.status = builder.status;
-//        this.modifiedBy = builder.modifiedBy;
-//        this.memo = builder.memo;
-//    }
-//    
-//    public static class Builder {
-//        private String parent;
-//        private String wonum;
-//        private String taskId;
-//        private String siteId;
-//        private String woStatus;
-//        private String description;
-//        private String status;
-//        private String modifiedBy;
-//        private String memo;
-//        private String currentDate;
-//    }
-
     /**
      * @return the parent
      */
@@ -204,5 +162,47 @@ public class UpdateStatusParam {
      */
     public void setActivity(String activity) {
         this.activity = activity;
+    }
+    
+    /**
+     * @return the currentDate
+     */
+    public String getCurrentDate() {
+        return currentDate;
+    }
+
+    /**
+     * @param currentDate the currentDate to set
+     */
+    public void setCurrentDate(String currentDate) {
+        this.currentDate = currentDate;
+    }
+
+    /**
+     * @return the errorCode
+     */
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    /**
+     * @param errorCode the errorCode to set
+     */
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    /**
+     * @return the engineerMemo
+     */
+    public String getEngineerMemo() {
+        return engineerMemo;
+    }
+
+    /**
+     * @param engineerMemo the engineerMemo to set
+     */
+    public void setEngineerMemo(String engineerMemo) {
+        this.engineerMemo = engineerMemo;
     }
 }

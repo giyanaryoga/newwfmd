@@ -8,6 +8,7 @@ import id.co.telkom.wfm.plugin.dao.TestGenerateDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
+import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -31,10 +32,11 @@ public class validateGenerateTask {
     TestGenerateDao dao = new TestGenerateDao();
     TaskActivityDao dao2 = new TaskActivityDao();
     TaskHistoryDao historyDao = new TaskHistoryDao();
+    validateOwnerGroup validateOwner = new validateOwnerGroup();
     List<JSONObject> taskList = new ArrayList<>();
     TimeUtil time = new TimeUtil();
     String TaskDescription = "";
-    String ownerGroupTask = "";
+//    String ownerGroupTask = "";
     String ownerGroup = "";
     
     private String schedFinish(JSONObject activity) {
@@ -52,7 +54,7 @@ public class validateGenerateTask {
         return strSchedFinish;
     }
     
-    public void generateTaskNonCore(JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
+    public void generateTaskNonCore(JSONArray oss_item, JSONObject workorder, float duration) {
         try {
             JSONArray arrayNull = new JSONArray();
             boolean isGenerateTask = true;
@@ -78,7 +80,7 @@ public class validateGenerateTask {
                 
                 defineTask(oss_item, workorder, duration);
                 sortedTask();
-                generateTask(workorder, AttributeWO, counter, orderId);
+                generateTask(workorder, counter, orderId);
             } else {
                 LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
             }
@@ -87,7 +89,64 @@ public class validateGenerateTask {
         }
     }
     
-    public void generateTaskCore(Object ossitem_arrayObj, JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
+    public void generateTaskCore(Object ossitem_arrayObj, JSONArray oss_item, JSONObject workorder, float duration) {
+        try {
+            int counter = 1;
+            String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");
+            String orderId = splittedJms[0];
+            
+            if (ossitem_arrayObj instanceof JSONObject){
+                oss_item.add(ossitem_arrayObj);
+            } else if (ossitem_arrayObj instanceof JSONArray) {
+                oss_item = (JSONArray) ossitem_arrayObj;
+            }
+            
+            duration = 0;
+            defineTask(oss_item, workorder, duration);
+            sortedTask();
+            generateTask(workorder, counter, orderId);
+            LogUtil.info(getClass().getName(), "duration = "+ duration);
+        } catch (SQLException ex) {
+            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void generateTaskNonCoreTest(JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
+        try {
+            JSONArray arrayNull = new JSONArray();
+            boolean isGenerateTask = true;
+            String prodName = workorder.get("prodName").toString();
+            String crmOrderType = workorder.get("crmOrderType").toString();
+            JSONArray detailTaskNonCore = dao2.getDetailTaskNonCore(prodName, crmOrderType);
+            for (Object obj : detailTaskNonCore) {
+                JSONObject taskNonCoreObj = (JSONObject)obj;
+                isGenerateTask = isGenerateTask(workorder, prodName, taskNonCoreObj.get("activity").toString());
+                JSONObject taskNoncore = new JSONObject();
+                taskNoncore.put("ACTION", "ADD");
+                taskNoncore.put("CORRELATIONID", "35363732383333303936333333323130");
+                taskNoncore.put("ITEMNAME", taskNonCoreObj.get("activity").toString());
+                taskNoncore.put("OSSITEMATTRIBUTE", arrayNull);
+                oss_item.add(taskNoncore);
+                LogUtil.info(getClass().getName(), "GENERATE TASK : " +isGenerateTask);
+            }
+            
+            if (isGenerateTask) {
+                int counter = 1;
+                String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");
+                String orderId = splittedJms[0];
+                
+                defineTask(oss_item, workorder, duration);
+                sortedTask();
+                generateTaskTest(workorder, counter, orderId);
+            } else {
+                LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void generateTaskCoreTest(Object ossitem_arrayObj, JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
         try {
             int counter = 1;
             String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");
@@ -101,7 +160,7 @@ public class validateGenerateTask {
             duration = 0;
             defineTask(oss_item, workorder, duration);
             sortedTask();
-            generateTask(workorder, AttributeWO, counter, orderId);
+            generateTaskTest(workorder, counter, orderId);
             LogUtil.info(getClass().getName(), "duration = "+ duration);
         } catch (SQLException ex) {
             Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
@@ -111,7 +170,7 @@ public class validateGenerateTask {
     private boolean isGenerateTask(JSONObject workorder, String prodName, String activity) {
         boolean isTrue = true;
         try {
-            String dcType = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "DC_Type");
+            String dcType = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "DC_TYPE");
             String inNumb = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "IN_NUMBER");
             String[] actTask = {"WFMNonCore Activate SS","WFMNonCore Activate IMS","WFMNonCore Activate TDM"};
             
@@ -192,7 +251,7 @@ public class validateGenerateTask {
         }
     }
     
-    private void generateTask(JSONObject workorder, JSONArray AttributeWO, int counter, String orderId) throws SQLException {
+    private void generateTask(JSONObject workorder, int counter, String orderId) throws SQLException {
         for(JSONObject sortedTask: taskList) {
             String wonumChild = generateDao.getWonum();
             sortedTask.put("wonum", wonumChild);
@@ -207,18 +266,20 @@ public class validateGenerateTask {
                 ownerGroup = sortedTask.get("ownerGroup").toString();
             }
             
-            workorder.put("TaskDescription", TaskDescription);
-            workorder.put("ownerGroup", ownerGroup);
             String schedFinish = schedFinish(sortedTask);
             sortedTask.put("schedfinish", schedFinish);
 
-            if (sortedTask.get("ownerGroup").toString() != "") {
-                ownerGroupTask = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
-            } else {
+            if (ownerGroup.equalsIgnoreCase("")) {
                 //jika ownergroup di table detailactivity null
-                ownerGroupTask = "";
-//                ownerGroupTask = dao2.getOwnerGroup(workorder.get("workZone").toString());
+                String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
+                String ownerGroup1 = owner_group;
+                ownerGroup = ownerGroup1;
+            } else {
+                String ownerGroup1 = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+                ownerGroup = ownerGroup1;
             }
+            workorder.put("TaskDescription", TaskDescription);
+            workorder.put("ownerGroup", ownerGroup);
 
             //GENERATE OSS ITEM
             generateDao.insertToOssItem(sortedTask);
@@ -226,7 +287,55 @@ public class validateGenerateTask {
             //TASK ATTRIBUTE GENERATE
             dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
             //GENERATE TASK
-            dao2.generateActivityTask(sortedTask, workorder, ownerGroupTask);
+            dao2.generateActivityTask(sortedTask, workorder, ownerGroup);
+            //GENERATE ASSIGNMENT
+//            dao2.generateAssignment(sortedTask, workorder);
+            //GENERATE TASK HISTORY
+            historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum OSM", "OSM", "OSM");
+            //GENERATE TASK ATTRIBUTE
+            taskAttribute(taskAttrArray, sortedTask);
+            
+            counter = counter + 1;
+        }
+    }
+
+    private void generateTaskTest(JSONObject workorder, int counter, String orderId) throws SQLException {
+        for(JSONObject sortedTask: taskList) {
+            String wonumChild = generateDao.getWonum();
+            sortedTask.put("wonum", wonumChild);
+            sortedTask.put("parent", workorder.get("wonum").toString());
+            sortedTask.put("taskid", counter*10);
+
+            if ((int) sortedTask.get("taskid") != 10) {
+                sortedTask.put("status", "APPR"); 
+            } else {
+                sortedTask.put("status", "LABASSIGN");   
+                TaskDescription = sortedTask.get("description").toString();
+                ownerGroup = sortedTask.get("ownerGroup").toString();
+            }
+            
+            String schedFinish = schedFinish(sortedTask);
+            sortedTask.put("schedfinish", schedFinish);
+
+            if (ownerGroup.equalsIgnoreCase("")) {
+                //jika ownergroup di table detailactivity null
+                String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
+                String ownerGroup1 = owner_group;
+                ownerGroup = ownerGroup1;
+            } else {
+                String ownerGroup1 = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+                ownerGroup = ownerGroup1;
+            }
+            workorder.put("TaskDescription", TaskDescription);
+            workorder.put("ownerGroup", ownerGroup);
+
+            //GENERATE OSS ITEM
+            generateDao.insertToOssItem(sortedTask);
+            JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
+            //TASK ATTRIBUTE GENERATE
+            dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
+            //GENERATE TASK
+            dao2.generateActivityTask(sortedTask, workorder, ownerGroup);
             //GENERATE ASSIGNMENT
             dao2.generateAssignment(sortedTask, workorder);
             //GENERATE TASK HISTORY
@@ -237,7 +346,7 @@ public class validateGenerateTask {
             counter = counter + 1;
         }
     }
-    
+
     private void taskAttribute(JSONArray taskAttrArray, JSONObject sortedTask) throws SQLException {
         for (Object taskAttrArrayObj: taskAttrArray) {
             JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
@@ -246,21 +355,106 @@ public class validateGenerateTask {
             //@insert Oss Item Attribute
             generateDao.insertToOssAttribute(taskAttrObj, sortedTask.get("wonum").toString());
             dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
-//            if (attrValue.equalsIgnoreCase("")) {
-//                //GENERATE VALUE FROM WORKORDERATTRIBUTE
-//                for (Object obj: AttributeWO) {
-//                    JSONObject arrayObj3 = (JSONObject)obj;
-//                    String AttrNameWo = arrayObj3.get("woAttrName").toString().toUpperCase();
-//                    String AttrValueWo = arrayObj3.get("woAttrValue").toString();
-//                    if (AttrNameWo.equalsIgnoreCase(attrName)) {
-//                        dao2.updateValueTaskAttributeFromWorkorderAttr(workorder.get("wonum").toString(), attrName, AttrValueWo);
-////                        LogUtil.info(getClass().getName(), "ATTRIBUTE NAME WO == TASK ATTRIBUTE NAME");
-//                    }
-//                }
-//            } else {
+        }
+    }
+    
+    public boolean generateNonCoreButton(String parent) {
+        boolean generate = false;
+        try {
+            JSONObject product = dao2.getProduct(parent);
+            JSONArray taskNonCore = dao2.getDetailTaskNonCore(product.get("productName").toString(), product.get("crmordertype").toString());
+            JSONArray taskWO = dao2.getTaskWo(parent);
             
-//                LogUtil.info(getClass().getName(), "ATTRIBUTE NAME != TASK ATTRIBUTE NAME"); 
-//            }
+            int taskProductNonCore = taskNonCore.size();
+            int taskWoNonCore = taskWO.size();
+            
+            if (taskWoNonCore == 0) {
+                generate = true;
+                generateTaskNonCoreTestButton(parent);
+            } else if (taskWoNonCore < taskProductNonCore) {
+                generate = true;
+                generateTaskNonCoreTestButton(parent);
+            } else if (taskWoNonCore == taskProductNonCore) {
+                generate = false;
+            } else {
+                generate = false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return generate;
+    }
+    
+    public void generateTaskNonCoreTestButton(String parent) {
+        try {
+            JSONArray arrayNull = new JSONArray();
+            JSONArray taskItem = new JSONArray();
+//            boolean isGenerateTask = true;
+            dao2.deleteTask(parent);
+            JSONObject product = dao2.getProduct(parent);
+            String prodName = product.get("productName").toString();
+            String crmOrderType = product.get("crmordertype").toString();
+            JSONArray detailTaskNonCore = dao2.getDetailTaskNonCore(prodName, crmOrderType);
+            
+            for (Object obj : detailTaskNonCore) {
+                JSONObject taskNonCoreObj = (JSONObject)obj;
+//                isGenerateTask = isGenerateTask(workorder, prodName, taskNonCoreObj.get("activity").toString());
+                JSONObject taskNoncore = new JSONObject();
+                taskNoncore.put("ACTION", "ADD");
+                taskNoncore.put("CORRELATIONID", "35363732383333303936333333323130");
+                taskNoncore.put("ITEMNAME", taskNonCoreObj.get("activity").toString());
+                taskNoncore.put("OSSITEMATTRIBUTE", arrayNull);
+                taskItem.add(taskNoncore);
+            }
+            
+            int counter = 1;
+            String[] splittedJms = product.get("jmsCorrelationId").toString().split("_");
+            String orderId = splittedJms[0];
+            defineTaskButton(taskItem, product);
+            sortedTask();
+            generateTaskTest(product, counter, orderId);
+        } catch (SQLException ex) {
+            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void defineTaskButton(JSONArray oss_item, JSONObject product) {
+        for(int j = 0; j < ((JSONArray) oss_item).size(); j++) {
+            try {
+                JSONObject oss_itemObj = (JSONObject)((JSONArray) oss_item).get(j);
+                JSONArray ossitem_attr = (JSONArray)((JSONObject)oss_itemObj).get("OSSITEMATTRIBUTE");
+                JSONObject task = new JSONObject();
+                
+                String itemName = ((JSONObject) oss_itemObj).get("ITEMNAME").toString();
+                String correlationId = ((JSONObject) oss_itemObj).get("CORRELATIONID").toString();
+                //TASK GENERATE
+                JSONObject detailAct = dao2.getDetailTask(itemName);
+                task.put("activity", detailAct.get("activity"));
+                task.put("description", detailAct.get("description"));
+                task.put("correlation", correlationId);
+                task.put("sequence", (int) detailAct.get("sequence"));
+                task.put("actplace", detailAct.get("actPlace"));
+                task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
+                task.put("duration", (float) detailAct.get("duration"));
+                task.put("classstructureid", detailAct.get("classstructureid"));
+//                duration = (float) task.get("duration");
+//                totalDuration += (float) task.get("duration");
+                task.put("schedstart", (product.get("schedStart").toString() == "" ? time.getCurrentTime() : product.get("schedStart").toString()));
+//                LogUtil.info(getClass().getName(), "SchedStart = "+ task.get("schedstart").toString());
+            
+                JSONArray taskAttrList = new JSONArray();
+                for (Object ossItemAttr : ossitem_attr) {
+                    JSONObject arrayObj2 = (JSONObject)ossItemAttr;
+                    JSONObject taskAttrItem = new JSONObject();
+                    taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
+                    taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
+                    taskAttrList.add(taskAttrItem);
+                }
+                task.put("task_attr", taskAttrList);
+                taskList.add(task);
+            } catch (SQLException ex) {
+                Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
     

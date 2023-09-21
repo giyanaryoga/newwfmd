@@ -79,7 +79,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
         validateGenerateTask validateTask = new validateGenerateTask();
-        validateOwnerGroup validateOwnerGroup = new validateOwnerGroup();
+//        validateOwnerGroup validateOwnerGroup = new validateOwnerGroup();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;
@@ -182,10 +182,10 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 
                 if (ossitem_arrayObj == null) {
                     LogUtil.info(getClass().getName(), "OSS ITEM IS NULL");
-                    validateTask.generateTaskNonCore(oss_item, workorder, AttributeWO, duration);
+                    validateTask.generateTaskNonCore(oss_item, workorder, duration);
                 } else {
                     LogUtil.info(getClass().getName(), "OSS ITEM IS NOT NULL");
-                    validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, AttributeWO, duration);
+                    validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, duration);
                 }
                 
                 workorder.put("duration", duration);

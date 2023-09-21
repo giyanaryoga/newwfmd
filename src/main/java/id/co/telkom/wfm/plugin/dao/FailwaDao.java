@@ -20,11 +20,11 @@ import org.json.simple.JSONObject;
  * @author ASUS
  */
 public class FailwaDao {
-        //===================================
+    //===================================
     // UPDATE DATA IF TASK STATUS "FAILWA
     //===================================
-    public void updateWorkFail(String wonum, String status, String errorCode, String engineerMemo, String statusDate) throws SQLException {
-        String update = "UPDATE app_fd_workorder SET c_status = ?, c_errorcode = ?, c_engineermemo = ?, c_statusdate = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+    public void updateWorkFail(String wonum, String status, String errorCode, String engineerMemo) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET c_status = ?, c_errorcode = ?, c_engineermemo = ?, c_statusdate = sysdate, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
@@ -32,8 +32,7 @@ public class FailwaDao {
             ps.setString(1 + index, status);
             ps.setString(2 + index, errorCode);
             ps.setString(3 + index, engineerMemo);
-            ps.setString(4 + index, statusDate);
-            ps.setString(5 + index, wonum);
+            ps.setString(4 + index, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Status updated to: " + status + "| Error code: " + errorCode + "| Engineer Memo: " + engineerMemo);

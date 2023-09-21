@@ -99,42 +99,43 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                 UpdateStatusParam param = new UpdateStatusParam();
                 ResponseAPI responseTemplete = new ResponseAPI();
                 JSONObject res = new JSONObject();
-
                 //Store param
-                String status = (body.get("status") == null ? "" : body.get("status").toString());
-                String wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
-                String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
-                String taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
-                String siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
-                String woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
-                String woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
-                String description = (body.get("description") == null ? "" : body.get("description").toString());
-                String activity = (body.get("activity") == null ? "" : body.get("activity").toString());
-                String errorCode;
-                String engineerMemo;
-                String memo = (body.get("memo") == null ? "" : body.get("memo").toString());
-                String modifiedBy = (body.get("modifiedBy") == null ? "" : body.get("modifiedBy").toString());
-                String currentDate = time.getCurrentTime();
+//                String status = (body.get("status") == null ? "" : body.get("status").toString());
+//                String wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
+//                String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
+//                String taskId = (body.get("taskId") == null ? "" : body.get("taskId").toString());
+//                String siteId = (body.get("siteId") == null ? "" : body.get("siteId").toString());
+//                String woSequence = (body.get("woSequence") == null ? "" : body.get("woSequence").toString());
+//                String woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
+//                String description = (body.get("description") == null ? "" : body.get("description").toString());
+//                String activity = (body.get("activity") == null ? "" : body.get("activity").toString());
+//                String errorCode = (body.get("errorCode") == null ? "" : body.get("errorCode").toString());
+//                String engineerMemo = (body.get("engineerMemo") == null ? "" : body.get("engineerMemo").toString());
+//                String memo = (body.get("memo") == null ? "" : body.get("memo").toString());
+//                String modifiedBy = (body.get("modifiedBy") == null ? "" : body.get("modifiedBy").toString());
+//                String currentDate = time.getCurrentTime();
 
-                param.setParent(parent);
-                param.setWonum(wonum);
-                param.setDescription(description);
-                param.setActivity(activity);
-                param.setSiteId(siteId);
-                param.setStatus(status);
-                param.setTaskId(taskId);
-                param.setWoStatus(woStatus);
-                param.setMemo(memo);
-                param.setModifiedBy(modifiedBy);
-                param.setCurrentDate(currentDate);
-                boolean validate = false;
-                boolean validatenoncore = false;
+                param.setParent((body.get("parent") == null ? "" : body.get("parent").toString()));
+                param.setWonum((body.get("wonum") == null ? "" : body.get("wonum").toString()));
+                param.setDescription((body.get("description") == null ? "" : body.get("description").toString()));
+                param.setActivity((body.get("activity") == null ? "" : body.get("activity").toString()));
+                param.setSiteId((body.get("siteId") == null ? "" : body.get("siteId").toString()));
+                param.setStatus((body.get("status") == null ? "" : body.get("status").toString()));
+                param.setTaskId((body.get("taskId") == null ? "" : body.get("taskId").toString()));
+                param.setWoStatus((body.get("woStatus") == null ? "" : body.get("woStatus").toString()));
+                param.setMemo((body.get("memo") == null ? "" : body.get("memo").toString()));
+                param.setModifiedBy((body.get("modifiedBy") == null ? "" : body.get("modifiedBy").toString()));
+                param.setErrorCode((body.get("errorCode") == null ? "" : body.get("errorCode").toString()));
+                param.setEngineerMemo((body.get("engineerMemo") == null ? "" : body.get("engineerMemo").toString()));
+                param.setCurrentDate(time.getCurrentTime());
+//                boolean validate = false;
+//                boolean validatenoncore = false;
                 String message = "";
 
-                switch (status) {
+                switch (param.getStatus()) {
                     case "STARTWA":
-                        validate = validateTask.startTask(param);
-                        if (validate) {
+                        boolean validateStarwa = validateTask.startTask(param);
+                        if (validateStarwa) {
                             message = "Successfully update status";
                             res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), message);
                             res.writeJSONString(hsr1.getWriter());
@@ -144,19 +145,34 @@ public class TestUpdateStatusEbis extends Element implements PluginWebSupport {
                         }
                         break;
                     case "COMPWA":
-//                        validate = validateTask.compwaTask(param);
-                        JSONObject response = validateTask.validateTask(param);
+                        String validateCompwa = validateTask.compwaTask(param);
+                        LogUtil.info(getClass().getName(), "VALIDATE: " + validateCompwa);
+                        if (validateCompwa.equalsIgnoreCase("true")) {
+                            JSONObject response = validateTask.validateTask(param);
                             if ((int) response.get("code") == 200) {
                                 res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());
-                                res.writeJSONString(hsr1.getWriter());   
+                                res.writeJSONString(hsr1.getWriter());
                             } else {
                                 hsr1.sendError((int) response.get("code"), response.get("message").toString());
                             }
+                        } else {
+                            message = "Please insert Task Attribute in Mandatory";
+                            hsr1.sendError(422, message);
+                        }
+                        break;
+                    case "FAILWA":
+                        boolean validateFailwa = validateTask.failTask(param);
+                        if (validateFailwa) {
+                            message = "Successfully update status";
+                            res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), message);
+                            res.writeJSONString(hsr1.getWriter());
+                        } else {
+                            message = "Status Failwa is not success";
+                            hsr1.sendError(422, message);
+                        }
                         break;
                     default:
                         message = "Status Task is not found";
-//                        res = responseTemplete.getUpdateStatusErrorResp(param.getWonum(), param.getStatus(), message, 422);
-//                        res.writeJSONString(hsr1.getWriter());
                         hsr1.sendError(422, message);
                         break;
                 }
