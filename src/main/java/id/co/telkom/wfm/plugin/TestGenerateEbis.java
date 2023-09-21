@@ -11,10 +11,10 @@ import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.SQLException;
+//import java.sql.SQLException;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -78,9 +78,6 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
         //@Authorization
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
-//        TaskActivityDao dao2 = new TaskActivityDao();
-//        TestGenerateDao dao2 = new TestGenerateDao();
-//        TaskHistoryDao taskHistory = new TaskHistoryDao();
         validateGenerateTask validateTask = new validateGenerateTask();
         validateOwnerGroup validateOwnerGroup = new validateOwnerGroup();
         dao.getApiAttribute();
@@ -113,7 +110,6 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
                 //Parse JSON String to JSONObject
-//                String id = UuidGenerator.getInstance().getUuid();//generating uuid
                 String bodyParam = jb.toString();
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject)parser.parse(bodyParam);
@@ -159,14 +155,11 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 JSONArray attr_array = (JSONArray)body.get("WORKORDERATTRIBUTE");
                 Object ossitem_arrayObj = (Object)body.get("OSSITEM");
                 
-                //Getting Owner group from tkmapping
-//                String ownerGroup = validateOwnerGroup.ownerGroupParent(workorder);
-//                String ownerGroup = dao2.getOwnerGroup(workorder.get("workZone").toString());
                 workorder.put("wonum", wonum);
-//                workorder.put("ownerGroup", ownerGroup);
                 
                 //@Work Order attribute
                 JSONArray AttributeWO = new JSONArray();
+                String dcType;
                 //Loop getting each attribute
                 for (int i = 0 ; i < attr_array.size() ; i++){
                     JSONObject attr_arrayObj = (JSONObject)attr_array.get(i);
@@ -177,27 +170,40 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString()));
                     AttributeWO.add(woAttribute);
                     
+                    if (woAttribute.get("woAttrName").toString().equalsIgnoreCase("DC_Type")) {
+                        String[] dc_type = woAttribute.get("woAttrValue").toString().split(" ");
+                        dcType = dc_type[0];
+                        LogUtil.info(getClass().getName(), "DC TYPE = " +dcType);
+                    }
+                    
                     //Insert attribute
                     dao.insertToWoAttrTable2(workorder.get("wonum").toString(), woAttribute);
                 }
                 
-                //Getting Owner group from tkmapping
-//                String ownerGroup = validateOwnerGroup.ownerGroupParent(workorder);
-//                workorder.put("ownerGroup", "");
-                
                 JSONArray oss_item = new JSONArray();
-                LogUtil.info(getClass().getName(), "OSS ITEM = " +ossitem_arrayObj);
+//                LogUtil.info(getClass().getName(), "OSS ITEM = " +ossitem_arrayObj);
                 
                 if (ossitem_arrayObj == null) {
                     LogUtil.info(getClass().getName(), "OSS ITEM IS NULL");
-                    validateTask.generateTaskNonCore(oss_item, workorder, AttributeWO, duration);
+                    validateTask.generateTaskNonCoreTest(oss_item, workorder, AttributeWO, duration);
+//                    validateTask.generateTaskNonCore(oss_item, workorder, AttributeWO, duration);
                 } else {
                     LogUtil.info(getClass().getName(), "OSS ITEM IS NOT NULL");
-                    validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, AttributeWO, duration);
+                    validateTask.generateTaskCoreTest(ossitem_arrayObj, oss_item, workorder, AttributeWO, duration);
+//                    validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, AttributeWO, duration);
+                }
+                
+                String[] splittedScOrder = workorder.get("scOrderNo").toString().split("-");
+                String segment = splittedScOrder[0];
+                
+                if (segment.equalsIgnoreCase("2")) {
+                    workorder.put("segment", "Wholesale");
+                } else {
+                    workorder.put("segment", "EBIS");
                 }
                 
                 workorder.put("duration", duration);
-                final boolean insertWoStatus = dao.insertToWoTable1(workorder);
+                final boolean insertWoStatus = dao.insertToWoTable2(workorder);
                 
                 //@@End
                 //@Response
@@ -235,7 +241,6 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
             //Authorization failed
-            
         //Authorization failed    
         } else if (!methodStatus) {
             try {

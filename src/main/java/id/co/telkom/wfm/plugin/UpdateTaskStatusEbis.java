@@ -114,8 +114,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 String woStatus = (body.get("woStatus") == null ? "" : body.get("woStatus").toString());
                 String description = (body.get("description") == null ? "" : body.get("description").toString());
                 String activity = (body.get("activity") == null ? "" : body.get("activity").toString());
-                String errorCode;
-                String engineerMemo;
+                String errorCode = (body.get("errorCode") == null ? "" : body.get("errorCode").toString());
+                String engineerMemo = (body.get("engineerMemo") == null ? "" : body.get("engineerMemo").toString());
                 String memo = (body.get("memo") == null ? "" : body.get("memo").toString());
                 String modifiedBy = (body.get("modifiedBy") == null ? "" : body.get("modifiedBy").toString());
                 String currentDate = time.getCurrentTime();
@@ -131,6 +131,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 param.setMemo(memo);
                 param.setModifiedBy(modifiedBy);
                 param.setCurrentDate(currentDate);
+                param.setErrorCode(errorCode);
+                param.setEngineerMemo(engineerMemo);
 //                boolean validate = true;
 //                boolean validatenoncore = false;
                 String message = "";

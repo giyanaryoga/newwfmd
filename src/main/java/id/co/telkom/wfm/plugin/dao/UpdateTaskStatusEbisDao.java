@@ -371,12 +371,7 @@ public class UpdateTaskStatusEbisDao {
             ps.setString(2, nextTaskId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                final String result = rs.getString("c_wosequence");
-//                if (result.equals("10") || result.equals("20") || result.equals("30") || result.equals("40") || result.equals("50") || result.equals("60")) {
-                    nextMove = "ASSIGNTASK";
-//                } else {
-//                    nextMove = "COMPLETE";
-//                }
+                nextMove = "ASSIGNTASK";
                 LogUtil.info(getClass().getName(), "next move: " + nextMove);
             } else {
                 nextMove = "COMPLETE";
@@ -658,7 +653,7 @@ public class UpdateTaskStatusEbisDao {
 //        JSONObject attrError = new JSONObject();
 //        attrError.put("ErrorCode", errorCode);
 //        attrError.put("EngineerMemo", engineerMemo);
-//        
+        
 //        itemObj.put("Error", attrError);
         // Wrapper
         JSONObject attributes = new JSONObject();

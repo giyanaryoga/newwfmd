@@ -11,14 +11,14 @@ import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.IOException;
 import java.sql.*;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
+//import java.time.*;
+//import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletResponse;
-import java.util.logging.*;
-import static javassist.runtime.Desc.getParams;
+//import javax.servlet.http.HttpServletResponse;
+//import java.util.logging.*;
+//import static javassist.runtime.Desc.getParams;
 import org.joget.commons.util.LogUtil;
 import org.json.JSONException;
 import org.json.simple.JSONArray;
@@ -34,6 +34,7 @@ public class validateTaskStatus {
     ScmtIntegrationEbisDao daoScmt = new ScmtIntegrationEbisDao();
     TaskHistoryDao daoHistory = new TaskHistoryDao();
 //    TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
+    FailwaDao failDao = new FailwaDao();
     validateNonCoreProduct validateNonCoreProduct = new validateNonCoreProduct();
     NonCoreCompleteDao daoNonCore = new NonCoreCompleteDao();
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
@@ -44,8 +45,8 @@ public class validateTaskStatus {
     public boolean startTask(UpdateStatusParam param) throws JSONException {
         boolean startwa = false;
         try {
-            String updateTask = "";
-            String response = "";
+//            String updateTask = "";
+//            String response = "";
 
             String isAssigned = daoUpdate.checkAssignment(param.getWonum());
             String checkActPlace = daoUpdate.checkActPlace(param.getWonum());
@@ -90,6 +91,41 @@ public class validateTaskStatus {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
         return compwa;
+    }
+    
+    public boolean failTask(UpdateStatusParam param) throws JSONException {
+        boolean failwa = false;
+        try {
+            String updateTask = "";
+//            String response = "";
+            updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+            
+            if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                failwa = true;
+                failDao.updateWorkFail(param.getWonum(), "WORKFAIL", param.getErrorCode(), param.getEngineerMemo());
+                LogUtil.info(getClass().getName(), "Update WORKFAIL Successfully!");
+                // Insert data to table WFMMILESTONE
+                daoUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
+                daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                
+                JSONObject dataRes = new JSONObject();
+                dataRes.put("wonum", param.getParent());
+                dataRes.put("milestone", param.getWoStatus());
+                //Build Response
+                JSONObject data = failDao.getFailWorkJson(param.getParent());
+                // Response to Kafka
+                String topic = "WFM_MILESTONE_ENTERPRISE_" + param.getSiteId().replaceAll("\\s+", "");
+                String kafkaRes = data.toJSONString();
+                KafkaProducerTool kaf = new KafkaProducerTool();
+                kaf.generateMessage(kafkaRes, topic, "");
+            } else {
+                failwa = false;
+            }
+            LogUtil.info(getClass().getName(), "result status : " + failwa);
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return failwa;
     }
     
     private boolean validateStartwaProduct(UpdateStatusParam param) {

@@ -289,9 +289,11 @@ public class GenerateWonumEbisDao {
         boolean insertStatus = false;    
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         
-        String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, "
-                + "c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, c_ownergroup, c_statusdate, c_tk_custom_header_01, c_estdur, c_latitude, c_longitude, dateCreated) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String insert = "INSERT INTO app_fd_workorder (id, c_wonum, c_crmordertype, c_customer_name, c_serviceaddress, "
+                + "c_description, c_productname, c_producttype, c_scorderno, c_workzone, c_siteid, c_worktype, "
+                + "c_schedstart, c_reportedby, c_woclass, c_worevisionno, c_jmscorrelationid, c_status, c_servicenum, c_tk_workorder_04, "
+                + "c_ownergroup, c_statusdate, c_tk_custom_header_01, c_estdur, c_latitude, c_longitude, c_segment, dateCreated) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         //c_schedstart1 dan c_statusdate1 TEMPORARY masih, angka 1 dihilangkan jika sudah di hapus column di table
         try {
             Connection con = ds.getConnection();
@@ -321,10 +323,11 @@ public class GenerateWonumEbisDao {
                     ps.setString(21, param.get("ownerGroup").toString());
                     ps.setTimestamp(22, Timestamp.valueOf(param.get("statusDate").toString()));
                     ps.setString(23, param.get("tkCustomHeader01").toString());
-                    ps.setInt(24, (int) param.get("duration"));
+                    ps.setFloat(24, (float) param.get("duration"));
                     ps.setString(25, param.get("latitude").toString());
                     ps.setString(26, param.get("longitude").toString());
-                    ps.setTimestamp(27, getTimeStamp());
+                    ps.setString(27, param.get("segment").toString());
+                    ps.setTimestamp(28, getTimeStamp());
                     
                     int exe = ps.executeUpdate();
                     //Checking insert status

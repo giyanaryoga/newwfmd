@@ -8,6 +8,7 @@ import id.co.telkom.wfm.plugin.dao.NonCoreCompleteDao;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.dao.TkMappingOwnerGroupDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
+import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import org.json.simple.JSONObject;
  */
 public class validateOwnerGroup {
     NonCoreCompleteDao productNonCore = new NonCoreCompleteDao();
+    GenerateWonumEbisDao generateDao = new GenerateWonumEbisDao();
     UpdateTaskStatusEbisDao product = new UpdateTaskStatusEbisDao();
     TkMappingOwnerGroupDao tkMapping = new TkMappingOwnerGroupDao();
     TaskActivityDao taskDao = new TaskActivityDao();
@@ -32,37 +34,69 @@ public class validateOwnerGroup {
     private static String dc_type_segment;
     private static final String dcType1[] = {"Wholesale", "OLO_MS"};
     private static final String dcType2[] = {"DBS", "DES", "DGS"};
+    private static final String ProductNonConn[] = {
+        "REVIEW_ORDER", "Activate_Service", "Upload_Berita_Acara", "Modify_Service",
+        "Shipment_Delivery", "Suspend_Service", "Resume_Service", "Deactivate_Service",
+        "Approval_Project_Management"
+    };
+    private static final String TSAProduct1[] = { "TSA_CONSPART","TSA_SPMS" };
+    private static final String TSAProduct2[] = { "TSA_CONSPART","TSA_OSS_ISP","TSA_OSS_OSP","TSA_SPMS","TSA_PM_ISP" };
+    private static final String activityTSA1[] = {
+        "WFMNonCore Request Order to Vendor", "WFMNonCore Update Pekerjaan dan Biaya Partner",
+        "WFMNonCore Approve Completion Partner"
+    };
+    private static final String activityTSA2[] = {
+        "WFMNonCore Receive Working Order Vendor", "WFMNonCore Insert Time Delivery Partner",
+        "WFMNonCore Monitoring Period Partner","WFMNonCore Initial Respond Partner SPMS",
+        "WFMNonCore Approve Pekerjaan Partner","WFMNonCore Part Delivery Partner SPMS",
+        "WFMNonCore Insert Time Delivery Partner SPMS","WFMNonCore Approve Completion Partner",
+        "WFMNonCore Approve Completion Partner SPMS"
+    };
     
     private String BastFlag(JSONObject workorder) throws SQLException {
-        String bastflag = product.getTaskAttrValue(workorder.get("wonum").toString(), "BASTFlag");
+        String bastflag = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "BASTFlag");
         return bastflag;
     }
     
     private String LocOrig(JSONObject workorder) throws SQLException {
-        String locorig = product.getTaskAttrValue(workorder.get("wonum").toString(), "Location_Origin");
+        String locorig = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "Location_Origin");
         return locorig;
     }
     
     private String LocDest(JSONObject workorder) throws SQLException {
-        String locdest = product.getTaskAttrValue(workorder.get("wonum").toString(), "Location_Destination");
+        String locdest = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "Location_Destination");
         return locdest;
     }
             
     private String getSupplier(JSONObject workorder) throws SQLException {
-        String supplier = product.getTaskAttrValue(workorder.get("wonum").toString(), "PartnerNumber");
+        String supplier = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "PartnerNumber");
         if (supplier == null) supplier = "";
         return supplier;
     }
     
     private String getDivision(JSONObject workorder) throws SQLException {
-        String division = product.getTaskAttrValue(workorder.get("wonum").toString(), "AM_Division");
+        String division = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "AM_Division");
         if (division == null) division = "";
         return division;
     }
     
     private String getDCTypeSegment(JSONObject workorder) throws SQLException {
-        dc_type = product.getTaskAttrValue(workorder.get("wonum").toString(), "DC_Type");
+        dc_type = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "DC_Type");
+        String dcType[] = dc_type.split(" ");
+        dc_type = dcType[0];
         dc_type_segment = dc_type;
+        return dc_type_segment;
+    }
+    
+    private String getDCTypeSegmentNonCore(JSONObject workorder) throws SQLException {
+        String dc_type_noncore = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "DC_TYPE");
+        if (dc_type_noncore.equalsIgnoreCase(null) || dc_type_noncore.equalsIgnoreCase("")) {
+            dc_type = dc_type_noncore;
+            dc_type_segment = dc_type;
+        } else {
+            dc_type = "";
+            dc_type_segment = dc_type;
+        }
         return dc_type_segment;
     }
     
@@ -86,66 +120,55 @@ public class validateOwnerGroup {
         String workzone = "";
         if (workorder.get("prodName").toString().equalsIgnoreCase("SL_WDM")) {
             if (Arrays.asList(act1).contains(activity)) {
-                workzone = product.getTaskAttrValue(workorder.get("wonum").toString(), "STO END 1");
+                workzone = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "STO END 1");
             } else if (Arrays.asList(act2).contains(activity)) {
-                workzone = product.getTaskAttrValue(workorder.get("wonum").toString(), "STO END 2");
+                workzone = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "STO END 2");
             } else {
                 workzone = workorder.get("workZone").toString();
             }
         }
         if (workorder.get("prodName").toString().equalsIgnoreCase("INF_IPPBX")) {
             if (Arrays.asList(act3).contains(activity)) {
-                String workzoneOrig = product.getTaskAttrValue(workorder.get("wonum").toString(), "Origination_STO");
+                String workzoneOrig = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "Origination_STO");
                 workzone = workzoneOrig;
             }
             if (Arrays.asList(act4).contains(activity)) {
-                String workzoneDest = product.getTaskAttrValue(workorder.get("wonum").toString(), "Destination_STO");
+                String workzoneDest = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "Destination_STO");
                 workzone = workzoneDest;
             }
         }
         return workzone;
     }
     
-    public String ownerGroupParent(JSONObject workorder) throws SQLException {
-        String workzone = workorder.get("workZone").toString();
-        String siteId = workorder.get("siteId").toString();
-        String ownerGroup = "";
-        if (dc_type == null) {
-            ownerGroup = tkMapping.getOwnerGroupParentCCAN(workzone, siteId);
-        } else if (Arrays.asList(dcType1).contains(dc_type)) {
-            ownerGroup = tkMapping.getOwnerGroupParentSegment(workzone, siteId, dc_type);
-        } else if (Arrays.asList(dcType2).contains(dc_type)) {
-            ownerGroup = tkMapping.getOwnerGroupParentSegment(workzone, siteId, dc_type);
-        } else {
-            ownerGroup = "";
-        }
-        return ownerGroup;
-    }
-    
     public String ownerGroupTask(JSONObject taskObj, JSONObject workorder) throws SQLException {
-        boolean isTaskNonConn = tkMapping.getTaskNonConn(taskObj.get("activity").toString());
-        String dcType = this.getDCTypeSegment(workorder);
-        String supplier = this.getSupplier(workorder);
-        String division = this.getDivision(workorder);
+        String ownerGroupSet;
         String classstructureid = taskObj.get("classstructureid").toString();
-        String ownerGroupSet = "";
-        if (isTaskNonConn) {
+        String prodName = workorder.get("prodName").toString();
+        String workzone = workorder.get("workZone").toString();
+        String activity = taskObj.get("activity").toString();
+        String crmOrder = workorder.get("crmOrderType").toString();
+        String dcType = (this.getDCTypeSegment(workorder) == null ? "" : this.getDCTypeSegment(workorder));
+        String supplier = (this.getSupplier(workorder) == null ? "" : this.getSupplier(workorder));
+        String division = (this.getDivision(workorder) == null ? "" : this.getDivision(workorder));
+        LogUtil.info(getClass().getName(), "DC TYPE = " +getDCTypeSegment(workorder));
+        
+        if (Arrays.asList(ProductNonConn).contains(activity)) {
             //Non - Connectivity mapping
-            if (!"ASTINET".equalsIgnoreCase(workorder.get("prodName").toString()) && !"Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString()) && "Wholesale".equalsIgnoreCase(dcType)) {
-                String ownerGroup = tkMapping.getOwnerGroup1("NAS", workorder.get("prodName").toString(), dcType, supplier, classstructureid);
+            if (!"ASTINET".equalsIgnoreCase(prodName) && !"Approval_Project_Management".equalsIgnoreCase(activity) && "Wholesale".equalsIgnoreCase(dcType)) {
+                String ownerGroup = tkMapping.getOwnerGroup1("NAS", prodName, dcType, supplier, classstructureid);
                 ownerGroupSet = ownerGroup;
                 if (ownerGroupSet  == null) {
-                    String ownerGroup2 = tkMapping.getOwnerGroup2("NAS", workorder.get("prodName").toString(), dcType, classstructureid);
+                    String ownerGroup2 = tkMapping.getOwnerGroup2("NAS", prodName, dcType, classstructureid);
                     ownerGroupSet = ownerGroup2;
                     if (ownerGroupSet == null) {
-                        String ownerGroup3 = tkMapping.getOwnerGroup3(workorder.get("workZone").toString(), dcType, classstructureid);
+                        String ownerGroup3 = tkMapping.getOwnerGroup3(workzone, dcType, classstructureid);
                         ownerGroupSet = ownerGroup3;
                     }
                 }
-            } else if ("Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString()) && Arrays.asList(dcType1).contains(dcType)) {
-                String ownerGroup = tkMapping.getOwnerGroup4(workorder.get("workZone").toString(), dcType, classstructureid);
+            } else if ("Approval_Project_Management".equalsIgnoreCase(activity) && Arrays.asList(dcType1).contains(dcType)) {
+                String ownerGroup = tkMapping.getOwnerGroup4(workzone, dcType, classstructureid);
                 ownerGroupSet = ownerGroup;
-            } else if ("Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString()) && Arrays.asList(dcType2).contains(dcType)) {
+            } else if ("Approval_Project_Management".equalsIgnoreCase(activity) && Arrays.asList(dcType2).contains(dcType)) {
                 String ownerGroup2 = "";
                 if (division == null || division.equalsIgnoreCase("")) {
                     ownerGroup2 = tkMapping.getOwnerGroup5("NAS", dcType, classstructureid);
@@ -157,23 +180,21 @@ public class validateOwnerGroup {
                     ownerGroup2 = tkMapping.getOwnerGroup7("NAS", dcType, classstructureid);
                     ownerGroupSet = ownerGroup2;
                 }
-            } else if (!Arrays.asList(dcType2).contains(dcType) && "Approval_Project_Management".equalsIgnoreCase(taskObj.get("activity").toString())) {
+            } else if (!Arrays.asList(dcType2).contains(dcType) && "Approval_Project_Management".equalsIgnoreCase(activity)) {
                 ownerGroupSet = tkMapping.getOwnerGroup8("NAS", dcType, classstructureid);
-//                ownerGroupSet = ownerGroup2;
             } else {
-                ownerGroupSet = tkMapping.getOwnerGroup9("NAS", dcType, workorder.get("prodName").toString(), classstructureid);
-//                ownerGroupSet = ownerGroup2;
+                ownerGroupSet = tkMapping.getOwnerGroup9("NAS", dcType, prodName, classstructureid);
             }
             if (ownerGroupSet == null) {
-                ownerGroupSet = tkMapping.getOwnerGroup10("NAS", dcType, workorder.get("prodName").toString(), classstructureid);
+                ownerGroupSet = tkMapping.getOwnerGroup10("NAS", dcType, prodName, classstructureid);
                 if (ownerGroupSet == null) {
-                    ownerGroupSet = tkMapping.getOwnerGroup11("NAS", workorder.get("prodName").toString(), classstructureid);
+                    ownerGroupSet = tkMapping.getOwnerGroup11("NAS", prodName, classstructureid);
                     if (ownerGroupSet == null) {
-                        ownerGroupSet = tkMapping.getOwnerGroup11(workorder.get("workZone").toString(), workorder.get("prodName").toString(), classstructureid);
+                        ownerGroupSet = tkMapping.getOwnerGroup11(workzone, prodName, classstructureid);
                         if (ownerGroupSet == null) {
-                            ownerGroupSet = tkMapping.getOwnerGroup12(workorder.get("workZone").toString(), classstructureid);
+                            ownerGroupSet = tkMapping.getOwnerGroup12(workzone, classstructureid);
                             if (ownerGroupSet == null) {
-                                ownerGroupSet = tkMapping.getOwnerGroup11("NAS", workorder.get("prodName").toString(), classstructureid);
+                                ownerGroupSet = tkMapping.getOwnerGroup11("NAS", prodName, classstructureid);
                             }
                         }
                     }
@@ -181,16 +202,69 @@ public class validateOwnerGroup {
             }
         } else {
             //Connectivity mapping
-            ownerGroupSet = tkMapping.getOwnerGroupConn1(workorder.get("workZone").toString(), classstructureid, dcType);
-            if (ownerGroupSet == null) {
+            ownerGroupSet = tkMapping.getOwnerGroupConn1(workzone, classstructureid, dcType);
+            if (ownerGroupSet.equalsIgnoreCase(null)) {
                 if (supplier != null) {
-                    String ownerGroupSupplier = tkMapping.getOwnerGroupConn3(workorder.get("workZone").toString(), supplier, classstructureid);
+                    String ownerGroupSupplier = tkMapping.getOwnerGroupConn3(workzone, supplier, classstructureid);
                     if (ownerGroupSupplier != null) {
                         ownerGroupSet = ownerGroupSupplier;
                     }
                 }
-                ownerGroupSet = tkMapping.getOwnerGroupConn2(workorder.get("workZone").toString(), classstructureid);
+                ownerGroupSet = tkMapping.getOwnerGroupConn2(workzone, classstructureid);
             }
+            
+            //IP Transit
+            if (prodName.equalsIgnoreCase("IP Transit")) {
+                if (workzone.equalsIgnoreCase("NAS")) {
+                    int ipTransitNAS = tkMapping.isIPTransitNAS(activity);
+                    if (ipTransitNAS == 1) {
+                        ownerGroupSet = tkMapping.getOwnerGroup2("NAS", prodName, dcType, classstructureid);
+                    }  
+                } else {
+                    int ipTransitREG = tkMapping.isIPTransitREG(activity);
+                    if (ipTransitREG == 1) {
+                        ownerGroupSet = tkMapping.getOwnerGroup2(workzone, prodName, dcType, classstructureid);
+                    }
+                }
+            }
+        }
+        
+        if (activity.equalsIgnoreCase("Service Testing") && crmOrder.equalsIgnoreCase("Resume")) {
+            ownerGroupSet = "DSS_ODM";
+        }
+
+        String bastFlag = BastFlag(workorder);
+        if (bastFlag.equalsIgnoreCase("N") && activity.equalsIgnoreCase("Approval_Project_Management")) {
+            ownerGroupSet = "SDA ASC";
+        }
+        
+        // Non Core OwnerGroup Logic
+        // Logic Neucentrix interconnect
+        if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Origin")) {
+            ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocOrig(workorder), prodName, classstructureid);
+        } else {
+            ownerGroupSet = "";
+        }
+        
+        if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Destination")) {
+            ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocDest(workorder), prodName, classstructureid);
+        } else {
+            ownerGroupSet = "";
+        }
+        
+        // CYS CyberSecurity
+        if (prodName.equalsIgnoreCase("DDoS Protection") && activity.equalsIgnoreCase("Approval_Project_Management")) {
+            ownerGroupSet = "CYS (CYBERSECURITY DELIVERY)";
+        }
+        
+        // Product TSA
+        if (Arrays.asList(TSAProduct1).contains(prodName) && Arrays.asList(activityTSA1).contains(activity)) {
+            String partnerTSA = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "MITRA_TSA");
+            ownerGroupSet = partnerTSA;
+        }
+        if (Arrays.asList(TSAProduct2).contains(prodName) && Arrays.asList(activityTSA2).contains(activity)) {
+            String vendorTSA = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "NAMA_VENDOR");
+            ownerGroupSet = vendorTSA;
         }
         
         return ownerGroupSet;
