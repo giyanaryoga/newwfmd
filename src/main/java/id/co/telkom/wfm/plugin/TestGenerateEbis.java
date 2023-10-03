@@ -11,10 +11,7 @@ import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
-//import java.sql.SQLException;
 import java.util.Map;
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -170,14 +167,8 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                     woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString()));
                     AttributeWO.add(woAttribute);
                     
-                    if (woAttribute.get("woAttrName").toString().equalsIgnoreCase("DC_Type")) {
-                        String[] dc_type = woAttribute.get("woAttrValue").toString().split(" ");
-                        dcType = dc_type[0];
-                        LogUtil.info(getClass().getName(), "DC TYPE = " +dcType);
-                    }
-                    
                     //Insert attribute
-                    dao.insertToWoAttrTable2(workorder.get("wonum").toString(), woAttribute);
+                    dao.insertToWoAttrTable(workorder.get("wonum").toString(), woAttribute);
                 }
                 
                 JSONArray oss_item = new JSONArray();

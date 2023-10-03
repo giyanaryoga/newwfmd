@@ -150,17 +150,12 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 //Generate wonum with counter function from DB
                 String wonum = dao.getWonum();
                 String parent = wonum;
+                workorder.put("wonum", wonum);
                 //Checking the match of siteId and wonum w/ previous 'generate wonum request'
                 LogUtil.info(getClass().getName(), "Start Process: Generate task | Wonum: " + parent);
                 //Define JSON WORKORDER request
                 JSONArray attr_array = (JSONArray)body.get("WORKORDERATTRIBUTE");
                 Object ossitem_arrayObj = (Object)body.get("OSSITEM");
-                
-                //Getting Owner group from tkmapping
-//                String ownerGroup = validateOwnerGroup.ownerGroupParent(workorder);
-//                String ownerGroup = dao2.getOwnerGroup(workorder.get("workZone").toString());
-                workorder.put("wonum", wonum);
-//                workorder.put("ownerGroup", ownerGroup);
                 
                 //@Work Order attribute
                 JSONArray AttributeWO = new JSONArray();
@@ -174,7 +169,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString()));
                     AttributeWO.add(woAttribute);
                     //Insert attribute
-                    dao.insertToWoAttrTable2(workorder.get("wonum").toString(), woAttribute);
+                    dao.insertToWoAttrTable(workorder.get("wonum").toString(), woAttribute);
                 }
                 
                 JSONArray oss_item = new JSONArray();
@@ -188,8 +183,17 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, duration);
                 }
                 
+                String[] splittedScOrder = workorder.get("scOrderNo").toString().split("-");
+                String segment = splittedScOrder[0];
+                
+                if (segment.equalsIgnoreCase("2")) {
+                    workorder.put("segment", "Wholesale");
+                } else {
+                    workorder.put("segment", "EBIS");
+                }
+                
                 workorder.put("duration", duration);
-                final boolean insertWoStatus = dao.insertToWoTable1(workorder);
+                final boolean insertWoStatus = dao.insertToWoTable2(workorder);
                 
                 //@@End
                 //@Response

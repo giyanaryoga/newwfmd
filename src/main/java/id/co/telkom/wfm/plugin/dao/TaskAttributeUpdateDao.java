@@ -218,6 +218,7 @@ public class TaskAttributeUpdateDao {
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
+            ps.setString(2, assetattrid);
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 value = rs.getString("c_value");
@@ -270,12 +271,12 @@ public class TaskAttributeUpdateDao {
         StringBuilder update = new StringBuilder();
         update
             .append("UPDATE app_fd_workorderspec SET ")
-            .append("c_mandatory = ?, ")
-            .append("c_isrequired = ?, ")
-            .append("datemodified = ? ")
-            .append("WHERE ")
-            .append("c_wonum = ?")
-            .append("c_assetattrid = ?");
+            .append(" c_mandatory = ?, ")
+            .append(" c_isrequired = ?, ")
+            .append(" datemodified = ? ")
+            .append(" WHERE ")
+            .append(" c_wonum = ? ")
+            .append(" AND c_assetattrid = ? ");
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setInt(1, mandatory);

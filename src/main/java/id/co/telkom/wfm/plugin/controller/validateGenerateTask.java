@@ -13,7 +13,7 @@ import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -289,7 +289,7 @@ public class validateGenerateTask {
             //GENERATE TASK
             dao2.generateActivityTask(sortedTask, workorder, ownerGroup);
             //GENERATE ASSIGNMENT
-//            dao2.generateAssignment(sortedTask, workorder);
+            dao2.generateAssignment(sortedTask, workorder);
             //GENERATE TASK HISTORY
             historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum OSM", "OSM", "OSM");
             //GENERATE TASK ATTRIBUTE
