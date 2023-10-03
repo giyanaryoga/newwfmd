@@ -367,7 +367,7 @@ public class TkMappingOwnerGroupDao {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping "
-                + "WHERE c_workzone = ? AND c_classstructureid = ?";
+                + "WHERE c_workzone = ? AND c_classstructureid = ? AND c_tkcustomersegment is null";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
@@ -392,7 +392,7 @@ public class TkMappingOwnerGroupDao {
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, workzone);
             ps.setString(2, supplier);
-            ps.setString(2, classstructureid); //classstructureid
+            ps.setString(3, classstructureid); //classstructureid
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");

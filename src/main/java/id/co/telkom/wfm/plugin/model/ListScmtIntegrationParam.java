@@ -20,8 +20,11 @@ public class ListScmtIntegrationParam {
     private String cpeVendor;
     private String cpeModel;
     private String cpeSerialNumber;
-//    private String longitude;
-//    private String latitude;
+    private String serviceId;
+    private String customerCode;
+    private String installLoc;
+    private String longitude;
+    private String latitude;
     private String description;
     private String siteId;
     
@@ -104,23 +107,7 @@ public class ListScmtIntegrationParam {
     public void setCpeSerialNumber(String cpeSerialNumber) {
         this.cpeSerialNumber = cpeSerialNumber;
     }
-
-//    public String getLongitude() {
-//        return this.longitude;
-//    }
-//
-//    public void setLongitude(String longitude) {
-//        this.longitude = longitude;
-//    }
-
-//    public String getLatitude() {
-//        return this.latitude;
-//    }
-//
-//    public void setLatitude(String latitude) {
-//        this.latitude = latitude;
-//    }
-
+    
     public String getDescription() {
         return this.description;
     }
@@ -135,5 +122,45 @@ public class ListScmtIntegrationParam {
 
     public void setSiteId(String siteId) {
         this.siteId = siteId;
+    }
+
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public String getCustomerCode() {
+        return customerCode;
+    }
+
+    public void setCustomerCode(String customerCode) {
+        this.customerCode = customerCode;
+    }
+
+    public String getInstallLoc() {
+        return installLoc;
+    }
+
+    public void setInstallLoc(String installLoc) {
+        this.installLoc = installLoc;
+    }
+
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
     }
 }

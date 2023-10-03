@@ -452,11 +452,11 @@ public class TaskActivityDao {
                     psInsert.setString(13, rs.getString("c_isshared"));
                     psInsert.setString(14, rs.getString("c_isrequired"));
                     psInsert.setString(15, taskObj.get("parent").toString());
-                    if (rs.getString("c_defaultalnvalue") != null) {
-                        psInsert.setString(16, rs.getString("c_defaultalnvalue"));
-                    } else {
+//                    if (rs.getString("c_defaultalnvalue") != null || !rs.getString("c_defaultalnvalue").equalsIgnoreCase("None")) {
+//                        psInsert.setString(16, rs.getString("c_defaultalnvalue"));
+//                    } else {
                         psInsert.setString(16, "");
-                    }
+//                    }
                     psInsert.setString(17, rs.getString("c_classstructureid"));
                     psInsert.addBatch();
                 }

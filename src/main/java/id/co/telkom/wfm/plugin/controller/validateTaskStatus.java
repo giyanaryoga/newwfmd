@@ -6,6 +6,7 @@ package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
+import id.co.telkom.wfm.plugin.controller.validateReTools;
 import id.co.telkom.wfm.plugin.dao.*;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
@@ -29,13 +30,14 @@ import org.json.simple.JSONObject;
  * @author Giyanaryoga Puguh
  */
 public class validateTaskStatus {
-
+    GenerateWonumEbisDao woDao = new GenerateWonumEbisDao();
     UpdateTaskStatusEbisDao daoUpdate = new UpdateTaskStatusEbisDao();
     ScmtIntegrationEbisDao daoScmt = new ScmtIntegrationEbisDao();
     TaskHistoryDao daoHistory = new TaskHistoryDao();
 //    TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     FailwaDao failDao = new FailwaDao();
     validateNonCoreProduct validateNonCoreProduct = new validateNonCoreProduct();
+    validateReTools validateRE = new validateReTools();
     NonCoreCompleteDao daoNonCore = new NonCoreCompleteDao();
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
 
@@ -77,14 +79,19 @@ public class validateTaskStatus {
         String compwa = "";
         try {
             JSONArray isMandatoryValue = daoUpdate.checkMandatory(param.getWonum());
-            for (Object obj : isMandatoryValue) {
-                JSONObject valueObj = (JSONObject)obj;
-                if (valueObj.get("value").toString() == "true") {
-                    compwa = "true";
-                    LogUtil.info(getClass().getName(), "test: " + compwa);
-                } else {
-                    compwa = "false";
-                    LogUtil.info(getClass().getName(), "test: " + compwa);
+            if (isMandatoryValue == null) {
+                compwa = "true";
+                LogUtil.info(getClass().getName(), "test: " + compwa);
+            } else {
+                for (Object obj : isMandatoryValue) {
+                    JSONObject valueObj = (JSONObject)obj;
+                    if (valueObj.get("value").toString() == "true") {
+                        compwa = "true";
+                        LogUtil.info(getClass().getName(), "test: " + compwa);
+                    } else {
+                        compwa = "false";
+                        LogUtil.info(getClass().getName(), "test: " + compwa);
+                    }
                 }
             }
         } catch (SQLException ex) {
@@ -421,6 +428,23 @@ public class validateTaskStatus {
                             response.put("code", 422);
                             response.put("message", "Document BA INTEGRASI TRANS Tidak ada...");
                         }
+                    }
+                    break;
+                case "Shipment_Delivery":
+                    //validasi workorderattribute C_ATTR_NAME = 'ManagedService' and C_ATTR_VALUE = 'Yes'
+                    String woAttr = woDao.getValueWorkorderAttribute(param.getParent(), "ManagedService");
+                    
+                    if (woAttr.equalsIgnoreCase("Yes") || woAttr.equalsIgnoreCase("YES")) {
+                        //validasi attachment file SERVICE_DETAIL
+                        int document = daoUpdate.checkAttachedFile(param.getParent(), "SERVICE_DETAIL");
+                        if (document == 1) {
+                            //response true send url to retools
+                            validateRE.validateOBL(param.getParent());
+                        } else {
+                            //response false, gagal send url dan kirim message gagal
+                        }
+                    } else {
+                        //tidak dieksekusi, proses loncat
                     }
                     break;
                 default:

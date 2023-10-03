@@ -150,7 +150,10 @@ public class validateOwnerGroup {
         String dcType = (this.getDCTypeSegment(workorder) == null ? "" : this.getDCTypeSegment(workorder));
         String supplier = (this.getSupplier(workorder) == null ? "" : this.getSupplier(workorder));
         String division = (this.getDivision(workorder) == null ? "" : this.getDivision(workorder));
-        LogUtil.info(getClass().getName(), "DC TYPE = " +getDCTypeSegment(workorder));
+        LogUtil.info(getClass().getName(), "DC TYPE = " +dcType);
+        LogUtil.info(getClass().getName(), "CLASSSTRUCTURE = " +classstructureid);
+        LogUtil.info(getClass().getName(), "WORKZONE = " +workzone);
+        LogUtil.info(getClass().getName(), "SUPPLIER = " +supplier);
         
         if (Arrays.asList(ProductNonConn).contains(activity)) {
             //Non - Connectivity mapping
@@ -203,15 +206,16 @@ public class validateOwnerGroup {
         } else {
             //Connectivity mapping
             ownerGroupSet = tkMapping.getOwnerGroupConn1(workzone, classstructureid, dcType);
-            if (ownerGroupSet.equalsIgnoreCase(null)) {
-                if (supplier != null) {
+            if (ownerGroupSet.equalsIgnoreCase("")) {
+                LogUtil.info(getClass().getName(), "Validate OwnerGroup1 = "+ownerGroupSet);
+                if (supplier.equalsIgnoreCase("")) {
                     String ownerGroupSupplier = tkMapping.getOwnerGroupConn3(workzone, supplier, classstructureid);
-                    if (ownerGroupSupplier != null) {
-                        ownerGroupSet = ownerGroupSupplier;
-                    }
+                    ownerGroupSet = ownerGroupSupplier;
+                } else {
+                    ownerGroupSet = tkMapping.getOwnerGroupConn2(workzone, classstructureid);
                 }
-                ownerGroupSet = tkMapping.getOwnerGroupConn2(workzone, classstructureid);
             }
+            LogUtil.info(getClass().getName(), "Validate OwnerGroup2 = "+ownerGroupSet);
             
             //IP Transit
             if (prodName.equalsIgnoreCase("IP Transit")) {

@@ -227,7 +227,7 @@ public class validateGenerateTask {
                 task.put("correlation", correlationId);
                 task.put("sequence", (int) detailAct.get("sequence"));
                 task.put("actplace", detailAct.get("actPlace"));
-                task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
+                task.put("ownerGroup", detailAct.get("ownergroup"));
                 task.put("duration", (float) detailAct.get("duration"));
                 task.put("classstructureid", detailAct.get("classstructureid"));
 //                duration = (float) task.get("duration");
@@ -263,21 +263,21 @@ public class validateGenerateTask {
             } else {
                 sortedTask.put("status", "LABASSIGN");   
                 TaskDescription = sortedTask.get("description").toString();
-                ownerGroup = sortedTask.get("ownerGroup").toString();
+                ownerGroup = (sortedTask.get("ownerGroup") == null ? "" : sortedTask.get("ownerGroup").toString());
+            }
+        
+            if (ownerGroup.equalsIgnoreCase("")) {
+                //jika ownergroup di table detailactivity null
+                String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
+                LogUtil.info(getClass().getName(), "OwnerGroup = "+owner_group);
+                ownerGroup = owner_group;
+            } else {
+                String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+                ownerGroup = owner_group;
             }
             
             String schedFinish = schedFinish(sortedTask);
             sortedTask.put("schedfinish", schedFinish);
-
-            if (ownerGroup.equalsIgnoreCase("")) {
-                //jika ownergroup di table detailactivity null
-                String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
-                String ownerGroup1 = owner_group;
-                ownerGroup = ownerGroup1;
-            } else {
-                String ownerGroup1 = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
-                ownerGroup = ownerGroup1;
-            }
             workorder.put("TaskDescription", TaskDescription);
             workorder.put("ownerGroup", ownerGroup);
 

@@ -120,28 +120,31 @@ public class UpdateTaskStatusEbisDao {
         JSONArray valueArray = new JSONArray();
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?"
-                + "ORDER BY c_value, c_isrequired ASC";
+        String query = "SELECT c_assetattrid, c_value, c_alnvalue, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ? "
+                + "AND c_isrequired = 1"
+                + "ORDER BY c_displaysequence ASC";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 JSONObject valueObj = new JSONObject();
-                String alnvalue = rs.getString("c_value");
-                int mandatory = rs.getInt("c_isrequired");
-                if (alnvalue != null && mandatory == 1) {
-                    value = "true";
-                } else if (alnvalue == null && mandatory == 1) {
+                String value2 = rs.getString("c_value");
+                String alnvalue = rs.getString("c_alnvalue");
+//                int mandatory = rs.getInt("c_isrequired");
+                
+                if (alnvalue == null && value2 == null) {
                     value = "false";
-                } else if (alnvalue == null && mandatory == 0) {
-                    value = "true";
                 } else {
-                    value = "true";
+                    if (value2.equalsIgnoreCase("None")) {
+                        value = "false";
+                    } else {
+                        value = "true";
+                    }
                 }
                 valueObj.put("value", value);
                 valueArray.add(valueObj);
-                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + value);
+                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + " = " + rs.getString("c_isrequired") + " = " + value);
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

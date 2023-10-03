@@ -152,7 +152,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                     case "COMPWA":
                         String validateCompwa = validateTask.compwaTask(param);
                         LogUtil.info(getClass().getName(), "VALIDATE: " + validateCompwa);
-                        if (validateCompwa.equalsIgnoreCase("true")) {
+                        if (validateCompwa.equalsIgnoreCase("true") || validateCompwa.equalsIgnoreCase("")) {
                             JSONObject response = validateTask.validateTask(param);
                             if ((int) response.get("code") == 200) {
                                 res = responseTemplete.getUpdateStatusSuccessResp(param.getWonum(), param.getStatus(), response.get("message").toString());

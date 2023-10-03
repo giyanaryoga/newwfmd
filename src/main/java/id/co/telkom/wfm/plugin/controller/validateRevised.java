@@ -23,7 +23,7 @@ public class validateRevised {
     public void validate (String parent, String wonum, String attrName, String attrValue, String task) {
         try {
             JSONArray taskArray = dao.getTask(parent);
-            LogUtil.info(getClass().getName(), "Task => " + taskArray);
+//            LogUtil.info(getClass().getName(), "Task => " + taskArray);
 
             switch(attrName){
                 case "APPROVAL_SURVEY":
