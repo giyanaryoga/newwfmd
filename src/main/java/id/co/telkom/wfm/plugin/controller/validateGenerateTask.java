@@ -227,7 +227,7 @@ public class validateGenerateTask {
                 task.put("correlation", correlationId);
                 task.put("sequence", (int) detailAct.get("sequence"));
                 task.put("actplace", detailAct.get("actPlace"));
-                task.put("ownerGroup", detailAct.get("ownergroup"));
+                task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
                 task.put("duration", (float) detailAct.get("duration"));
                 task.put("classstructureid", detailAct.get("classstructureid"));
 //                duration = (float) task.get("duration");
@@ -257,29 +257,30 @@ public class validateGenerateTask {
             sortedTask.put("wonum", wonumChild);
             sortedTask.put("parent", workorder.get("wonum").toString());
             sortedTask.put("taskid", counter*10);
+            String ownerGroupWO = "";
 
-            if ((int) sortedTask.get("taskid") != 10) {
-                sortedTask.put("status", "APPR"); 
-            } else {
-                sortedTask.put("status", "LABASSIGN");   
-                TaskDescription = sortedTask.get("description").toString();
-                ownerGroup = (sortedTask.get("ownerGroup") == null ? "" : sortedTask.get("ownerGroup").toString());
-            }
-        
-            if (ownerGroup.equalsIgnoreCase("")) {
+            if (sortedTask.get("ownerGroup").toString().equalsIgnoreCase("")) {
                 //jika ownergroup di table detailactivity null
                 String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
-                LogUtil.info(getClass().getName(), "OwnerGroup = "+owner_group);
                 ownerGroup = owner_group;
             } else {
                 String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
                 ownerGroup = owner_group;
             }
             
+            LogUtil.info(getClass().getName(), "OwnerGroup = "+ownerGroup);
+            if ((int) sortedTask.get("taskid") != 10) {
+                sortedTask.put("status", "APPR"); 
+            } else {
+                sortedTask.put("status", "LABASSIGN");   
+                TaskDescription = sortedTask.get("description").toString();
+                ownerGroupWO = ownerGroup;
+            }
+            
             String schedFinish = schedFinish(sortedTask);
             sortedTask.put("schedfinish", schedFinish);
             workorder.put("TaskDescription", TaskDescription);
-            workorder.put("ownerGroup", ownerGroup);
+            workorder.put("ownerGroup", ownerGroupWO);
 
             //GENERATE OSS ITEM
             generateDao.insertToOssItem(sortedTask);

@@ -204,30 +204,62 @@ public class validateOwnerGroup {
                 }
             }
         } else {
-            //Connectivity mapping
-            ownerGroupSet = tkMapping.getOwnerGroupConn1(workzone, classstructureid, dcType);
-            if (ownerGroupSet.equalsIgnoreCase("")) {
-                LogUtil.info(getClass().getName(), "Validate OwnerGroup1 = "+ownerGroupSet);
-                if (supplier.equalsIgnoreCase("")) {
-                    String ownerGroupSupplier = tkMapping.getOwnerGroupConn3(workzone, supplier, classstructureid);
-                    ownerGroupSet = ownerGroupSupplier;
+            //NonCoreProduct
+            if (productNonCore.isNonCoreProduct(prodName) == 1) {
+                // Non Core OwnerGroup Logic
+                // Logic Neucentrix interconnect
+                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Origin")) {
+                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocOrig(workorder), prodName, classstructureid);
                 } else {
-                    ownerGroupSet = tkMapping.getOwnerGroupConn2(workzone, classstructureid);
+                    ownerGroupSet = "";
                 }
-            }
-            LogUtil.info(getClass().getName(), "Validate OwnerGroup2 = "+ownerGroupSet);
-            
-            //IP Transit
-            if (prodName.equalsIgnoreCase("IP Transit")) {
-                if (workzone.equalsIgnoreCase("NAS")) {
-                    int ipTransitNAS = tkMapping.isIPTransitNAS(activity);
-                    if (ipTransitNAS == 1) {
-                        ownerGroupSet = tkMapping.getOwnerGroup2("NAS", prodName, dcType, classstructureid);
-                    }  
+
+                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Destination")) {
+                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocDest(workorder), prodName, classstructureid);
                 } else {
-                    int ipTransitREG = tkMapping.isIPTransitREG(activity);
-                    if (ipTransitREG == 1) {
-                        ownerGroupSet = tkMapping.getOwnerGroup2(workzone, prodName, dcType, classstructureid);
+                    ownerGroupSet = "";
+                }
+
+                // CYS CyberSecurity
+                if (prodName.equalsIgnoreCase("DDoS Protection") && activity.equalsIgnoreCase("Approval_Project_Management")) {
+                    ownerGroupSet = "CYS (CYBERSECURITY DELIVERY)";
+                }
+
+                // Product TSA
+                if (Arrays.asList(TSAProduct1).contains(prodName) && Arrays.asList(activityTSA1).contains(activity)) {
+                    String partnerTSA = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "MITRA_TSA");
+                    ownerGroupSet = partnerTSA;
+                }
+                if (Arrays.asList(TSAProduct2).contains(prodName) && Arrays.asList(activityTSA2).contains(activity)) {
+                    String vendorTSA = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "NAMA_VENDOR");
+                    ownerGroupSet = vendorTSA;
+                }
+            } else {
+                //Connectivity mapping
+                ownerGroupSet = tkMapping.getOwnerGroupConn1(workzone, classstructureid, dcType);
+                if (ownerGroupSet.equalsIgnoreCase("")) {
+                    LogUtil.info(getClass().getName(), "Validate OwnerGroup1 = "+ownerGroupSet);
+                    if (!supplier.equalsIgnoreCase("")) {
+                        String ownerGroupSupplier = tkMapping.getOwnerGroupConn3(workzone, supplier, classstructureid);
+                        ownerGroupSet = ownerGroupSupplier;
+                    } else {
+                        ownerGroupSet = tkMapping.getOwnerGroupConn2(workzone, classstructureid);
+                    }
+                }
+                LogUtil.info(getClass().getName(), "Validate OwnerGroup2 = "+ownerGroupSet);
+
+                //IP Transit
+                if (prodName.equalsIgnoreCase("IP Transit")) {
+                    if (workzone.equalsIgnoreCase("NAS")) {
+                        int ipTransitNAS = tkMapping.isIPTransitNAS(activity);
+                        if (ipTransitNAS == 1) {
+                            ownerGroupSet = tkMapping.getOwnerGroup2("NAS", prodName, dcType, classstructureid);
+                        }  
+                    } else {
+                        int ipTransitREG = tkMapping.isIPTransitREG(activity);
+                        if (ipTransitREG == 1) {
+                            ownerGroupSet = tkMapping.getOwnerGroup2(workzone, prodName, dcType, classstructureid);
+                        }
                     }
                 }
             }
@@ -242,34 +274,7 @@ public class validateOwnerGroup {
             ownerGroupSet = "SDA ASC";
         }
         
-        // Non Core OwnerGroup Logic
-        // Logic Neucentrix interconnect
-        if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Origin")) {
-            ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocOrig(workorder), prodName, classstructureid);
-        } else {
-            ownerGroupSet = "";
-        }
-        
-        if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Destination")) {
-            ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocDest(workorder), prodName, classstructureid);
-        } else {
-            ownerGroupSet = "";
-        }
-        
-        // CYS CyberSecurity
-        if (prodName.equalsIgnoreCase("DDoS Protection") && activity.equalsIgnoreCase("Approval_Project_Management")) {
-            ownerGroupSet = "CYS (CYBERSECURITY DELIVERY)";
-        }
-        
-        // Product TSA
-        if (Arrays.asList(TSAProduct1).contains(prodName) && Arrays.asList(activityTSA1).contains(activity)) {
-            String partnerTSA = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "MITRA_TSA");
-            ownerGroupSet = partnerTSA;
-        }
-        if (Arrays.asList(TSAProduct2).contains(prodName) && Arrays.asList(activityTSA2).contains(activity)) {
-            String vendorTSA = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "NAMA_VENDOR");
-            ownerGroupSet = vendorTSA;
-        }
+        LogUtil.info(getClass().getName(), "Validate OwnerGroup return = "+ownerGroupSet);
         
         return ownerGroupSet;
     }
