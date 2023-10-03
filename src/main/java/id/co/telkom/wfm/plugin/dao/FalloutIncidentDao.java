@@ -48,8 +48,9 @@ public class FalloutIncidentDao {
 
     public void buildFalloutJson(String ticketId) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_ticketid, c_tk_channel, c_tk_classification, c_tk_ossid, c_tk_statuscode, datemodified  FROM app_fd_incident WHERE c_ticketid = ?";
+        String query = "SELECT c_ticketid, c_tk_channel, c_tk_classification, c_tk_ossid, c_tk_statuscode, c_tk_region, datemodified  FROM app_fd_incident WHERE c_ticketid = ?";
         try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement(query)) {
+            String region = "";
             ps.setString(1, ticketId);
             ResultSet rs = ps.executeQuery();
             JSONObject falloutMessage = new JSONObject();
@@ -61,13 +62,13 @@ public class FalloutIncidentDao {
                 format.setOssid((rs.getString("c_tk_ossid") == null) ? "" : rs.getString("c_tk_ossid"));
                 format.setStatusCode((rs.getString("c_tk_statuscode") == null) ? "" : rs.getString("c_tk_statuscode"));
                 format.setDatemodified((rs.getString("datemodified") == null) ? "" : rs.getString("datemodified"));
-
+                region = rs.getString("c_tk_region");    
                 falloutMessage = buildFormatMessage(format);
             }
             String kafkaRes = falloutMessage.toJSONString();
             KafkaProducerTool kaf = new KafkaProducerTool();
 
-            String topic = "WFM_FALLOUT_INCIDENT";
+            String topic = "WFM_FALLOUT_INCIDENT_" + region;
             kaf.generateMessage(kafkaRes, topic, "");
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
