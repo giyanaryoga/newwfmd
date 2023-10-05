@@ -81,7 +81,7 @@ public class TaskAttributeUpdateDao {
     public JSONArray getTaskAttrWonum(String wonum) throws SQLException {
         JSONArray activityProp = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_parent, c_wonum, c_assetattrid, c_value, c_mandatory, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?";
+        String query = "SELECT c_parent, c_wonum, c_assetattrid, c_value, c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -89,7 +89,7 @@ public class TaskAttributeUpdateDao {
             while (rs.next()) {
                 JSONObject attr = new JSONObject();
                 attr.put("mandatory", rs.getInt("c_mandatory"));
-                attr.put("isrequired", rs.getInt("c_isrequired"));
+//                attr.put("isrequired", rs.getInt("c_isrequired"));
                 attr.put("assetattrid", rs.getString("c_assetattrid"));
                 attr.put("value", rs.getString("c_value"));
                 attr.put("parent", rs.getString("c_parent"));
@@ -102,6 +102,26 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
         return activityProp;
+    }
+    
+    public JSONObject getWorkzoneRegional(String workzone) throws SQLException {
+        JSONObject workzoneObj = new JSONObject();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_tk_subregion, c_tk_region FROM app_fd_workzone WHERE c_workzone = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, workzone);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                workzoneObj.put("subregion", rs.getString("c_tk_subregion"));
+                workzoneObj.put("region", rs.getString("c_tk_region"));
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return workzoneObj;
     }
     
     public boolean updateAttributeMyStaff(String wonum, String siteId, String assetAttrId, String value, String changeBy, String modifiedBy, String changeDate) throws SQLException {
@@ -272,7 +292,7 @@ public class TaskAttributeUpdateDao {
         update
             .append("UPDATE app_fd_workorderspec SET ")
             .append(" c_mandatory = ?, ")
-            .append(" c_isrequired = ?, ")
+//            .append(" c_isrequired = ?, ")
             .append(" datemodified = ? ")
             .append(" WHERE ")
             .append(" c_wonum = ? ")
@@ -280,10 +300,10 @@ public class TaskAttributeUpdateDao {
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setInt(1, mandatory);
-            ps.setInt(2, mandatory);
-            ps.setTimestamp(3, getTimeStamp());
-            ps.setString(4, wonum);
-            ps.setString(5, assetattrid);
+//            ps.setInt(2, mandatory);
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, wonum);
+            ps.setString(4, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
@@ -297,7 +317,7 @@ public class TaskAttributeUpdateDao {
         }
     }
     
-    public void updateTaskValue(String parent, String assetattrid, String value ) throws SQLException {
+    public void updateTaskValueParent(String parent, String assetattrid, String value) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
         update
@@ -316,6 +336,87 @@ public class TaskAttributeUpdateDao {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), parent + " | Assetattrid mandatory update to:  " + assetattrid);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateTaskValue(String wonum, String assetattrid, String value) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_workorderspec SET ")
+            .append("c_value = ?, ")
+            .append("datemodified = ? ")
+            .append("WHERE ")
+            .append("c_wonum = ?")
+            .append("c_assetattrid = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, value);
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, wonum);
+            ps.setString(4, assetattrid);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateTaskAttrViewLike(String wonum, String assetattrid, int isview) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_workorderspec SET ")
+            .append("c_isview = ?, ")
+            .append("datemodified = ? ")
+            .append("WHERE ")
+            .append("c_wonum = ?")
+            .append("c_assetattrid like ?%");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setInt(1, isview);
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, wonum);
+            ps.setString(4, assetattrid);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateTaskAttrView(String wonum, String assetattrid, int isview) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_workorderspec SET ")
+            .append("c_isview = ?, ")
+            .append("datemodified = ? ")
+            .append("WHERE ")
+            .append("c_wonum = ?")
+            .append("c_assetattrid = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setInt(1, isview);
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, wonum);
+            ps.setString(4, assetattrid);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

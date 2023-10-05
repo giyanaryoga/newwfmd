@@ -405,7 +405,7 @@ public class TestGenerateDao {
                 .append(" c_sequence, ")
                 .append(" c_domainid, ")
                 .append(" c_readonly, ")
-                .append(" c_isrequired, ") //joinan dari classspecusewith
+                .append(" c_mandatory, ") //joinan dari classspecusewith
                 .append(" c_isshared ")
                 .append(" FROM app_fd_classspec WHERE ")
                 .append(" c_activity = ? ");  //this is for next patching
@@ -419,7 +419,7 @@ public class TestGenerateDao {
                 //TASK ATTRIBUTE
                 .append(" c_wonum, c_assetattrid, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
                 //PERMISSION
-                .append(" c_readonly, c_isrequired, c_isshared ")
+                .append(" c_readonly, c_mandatory, c_isshared ")
                 .append(" ) ")
                 .append(" VALUES ")
                 .append(" ( ")
@@ -452,7 +452,7 @@ public class TestGenerateDao {
                     psInsert.setString(9, rs.getString("c_sequence"));
                     psInsert.setString(10, rs.getString("c_domainid"));
                     psInsert.setString(11, rs.getString("c_readonly"));
-                    psInsert.setString(12, rs.getString("c_isrequired"));
+                    psInsert.setString(12, rs.getString("c_mandatory"));
                     psInsert.setString(13, rs.getString("c_isshared"));
                     psInsert.addBatch();
                 }

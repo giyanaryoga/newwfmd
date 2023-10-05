@@ -78,7 +78,7 @@ public class TestUpdateStatusEbisDao {
     public JSONObject getTaskAttr(String wonum) throws SQLException {
         JSONObject activityProp = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_isrequired, c_isshared FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
+        String query = "SELECT c_assetattrid, c_value, c_mandatory, c_isshared FROM app_fd_workorderspec WHERE c_wonum = ? AND c_mandatory = 1";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -86,7 +86,7 @@ public class TestUpdateStatusEbisDao {
             if (rs.next()) {
                 activityProp.put("attrName", rs.getInt("c_assetattrid"));
                 activityProp.put("attrValue", rs.getString("c_value"));
-                activityProp.put("mandatory", rs.getString("c_isrequired"));
+                activityProp.put("mandatory", rs.getString("c_mandatory"));
                 activityProp.put("shared", rs.getString("c_isshared"));
 //                activityProp.put("parent", rs.getString("c_parent"));
             } else {
@@ -103,13 +103,13 @@ public class TestUpdateStatusEbisDao {
     public Integer isRequired(String wonum) throws SQLException {
         int required = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?";
+        String query = "SELECT c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                required = rs.getInt("c_isrequired");
+                required = rs.getInt("c_mandatory");
                 LogUtil.info(getClass().getName(), "Is Required " + required);
             }
         } catch (Exception e) {
@@ -162,7 +162,7 @@ public class TestUpdateStatusEbisDao {
     public boolean checkMandatory(String wonum) throws SQLException {
         boolean value = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
+        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_mandatory = 1";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);

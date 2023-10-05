@@ -78,6 +78,50 @@ public class RevisedTaskDao {
         }
     }
     
+    public void reviseTaskDocType(String wonum, String docType) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_wonum = ? AND c_woclass = 'ACTIVITY'";
+        try {
+            Connection con = ds.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(update);
+                try {
+                    ps.setString(1, docType);
+                    ps.setTimestamp(2, getTimeStamp());
+                    ps.setString(3, wonum);
+                    int exe = ps.executeUpdate();
+                    //Checking insert status
+                    if (exe > 0) 
+                        LogUtil.info(getClass().getName(), "Older activity task has been revised, will be deactivated task");
+                    if (ps != null)
+                        ps.close();
+                } catch (SQLException throwable) {
+                    try {
+                        if (ps != null)
+                            ps.close();
+                    } catch (SQLException throwable1) {
+                        throwable.addSuppressed(throwable1);
+                    }
+                    throw throwable;
+                }
+                if (con != null)
+                    con.close();
+            } catch (SQLException throwable) {
+                try {
+                    if (con != null)
+                        con.close();
+                } catch (SQLException throwable1) {
+                    throwable.addSuppressed(throwable1);
+                }
+                throw throwable;
+            } finally {
+                ds.getConnection().close();
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+    
     public void updateWfmDocType(String wonum, String doctype) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_wonum = ?";

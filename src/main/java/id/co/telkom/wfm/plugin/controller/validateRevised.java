@@ -203,6 +203,13 @@ public class validateRevised {
                         LogUtil.info(getClass().getName(), "Approval Survey is not NO");
                     }
                 break;
+                case "COORDINATE CORRECT":
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        dao.reviseTaskDocType(wonum, "REVISED");
+                    } else {
+                        dao.reviseTaskDocType(wonum, "NEW");
+                    }
+                break;
                 default:
                     LogUtil.info(getClass().getName(), "Attribute name dan value tidak memenuhi Revised Task");
                 break;

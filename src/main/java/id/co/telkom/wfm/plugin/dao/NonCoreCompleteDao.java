@@ -230,7 +230,7 @@ public class NonCoreCompleteDao {
         Timestamp timestamp = new Timestamp(date.getTime());
 
         String selectQuery
-                = "SELECT c_isrequired, c_classstructureid, c_assetattrid, c_sequence, c_defaultalnvalue "
+                = "SELECT c_mandatory, c_classstructureid, c_assetattrid, c_sequence, c_defaultvalue "
                 + "FROM app_fd_classspec WHERE c_activity = ?";
         String insertQuery
                 = "INSERT INTO app_fd_assetspec"
@@ -272,7 +272,7 @@ public class NonCoreCompleteDao {
                     psInsert.setTimestamp(8, timestamp);
                     psInsert.setString(9, siteid);
                     psInsert.setString(10, "TELKOM");
-                    psInsert.setString(11, (rs.getString("c_isrequired") == null ? "" : rs.getString("c_isrequired")));
+                    psInsert.setString(11, (rs.getString("c_mandatory") == null ? "" : rs.getString("c_mandatory")));
                     psInsert.addBatch();
                 }
                 clearAttributeNoncore(assetnum, con);

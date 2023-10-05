@@ -80,7 +80,7 @@ public class UpdateStatusMyStaffDao {
     public JSONObject getTaskAttr(String wonum) throws SQLException {
         JSONObject activityProp = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_isrequired, c_isshared FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
+        String query = "SELECT c_assetattrid, c_value, c_mandatory, c_isshared FROM app_fd_workorderspec WHERE c_wonum = ? AND c_mandatory = 1";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -88,7 +88,7 @@ public class UpdateStatusMyStaffDao {
             if (rs.next()) {
                 activityProp.put("attrName", rs.getInt("c_assetattrid"));
                 activityProp.put("attrValue", rs.getString("c_value"));
-                activityProp.put("mandatory", rs.getString("c_isrequired"));
+                activityProp.put("mandatory", rs.getString("c_mandatory"));
                 activityProp.put("shared", rs.getString("c_isshared"));
 //                activityProp.put("parent", rs.getString("c_parent"));
             } else {

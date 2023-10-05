@@ -74,7 +74,7 @@ public class UpdateTaskStatusEbisDao {
     public JSONObject getTaskAttr(String wonum) throws SQLException {
         JSONObject activityProp = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_isrequired, c_isshared FROM app_fd_workorderspec WHERE c_wonum = ? AND c_isrequired = 1";
+        String query = "SELECT c_assetattrid, c_value, c_mandatory, c_isshared FROM app_fd_workorderspec WHERE c_wonum = ? AND c_mandatory = 1";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -99,13 +99,13 @@ public class UpdateTaskStatusEbisDao {
     public Integer isRequired(String wonum) throws SQLException {
         int required = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ?";
+        String query = "SELECT c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                required = rs.getInt("c_isrequired");
+                required = rs.getInt("c_mandatory");
                 LogUtil.info(getClass().getName(), "Is Required " + required);
             }
         } catch (Exception e) {
@@ -120,8 +120,8 @@ public class UpdateTaskStatusEbisDao {
         JSONArray valueArray = new JSONArray();
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_alnvalue, c_isrequired FROM app_fd_workorderspec WHERE c_wonum = ? "
-                + "AND c_isrequired = 1"
+        String query = "SELECT c_assetattrid, c_value, c_alnvalue, c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ? "
+                + "AND c_mandatory = 1"
                 + "ORDER BY c_displaysequence ASC";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
@@ -131,7 +131,7 @@ public class UpdateTaskStatusEbisDao {
                 JSONObject valueObj = new JSONObject();
                 String value2 = rs.getString("c_value");
                 String alnvalue = rs.getString("c_alnvalue");
-//                int mandatory = rs.getInt("c_isrequired");
+//                int mandatory = rs.getInt("c_mandatory");
                 
                 if (alnvalue == null && value2 == null) {
                     value = "false";
@@ -144,7 +144,7 @@ public class UpdateTaskStatusEbisDao {
                 }
                 valueObj.put("value", value);
                 valueArray.add(valueObj);
-                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + " = " + rs.getString("c_isrequired") + " = " + value);
+                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + " = " + rs.getString("c_mandatory") + " = " + value);
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

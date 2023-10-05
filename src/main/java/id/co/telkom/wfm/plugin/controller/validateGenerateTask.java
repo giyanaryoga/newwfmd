@@ -38,7 +38,7 @@ public class validateGenerateTask {
     String TaskDescription = "";
 //    String ownerGroupTask = "";
     String ownerGroup = "";
-    
+
     private String schedFinish(JSONObject activity) {
         String strSchedFinish = "";
         String strSchedStart = activity.get("schedstart").toString();
@@ -257,7 +257,7 @@ public class validateGenerateTask {
             sortedTask.put("wonum", wonumChild);
             sortedTask.put("parent", workorder.get("wonum").toString());
             sortedTask.put("taskid", counter*10);
-            String ownerGroupWO = "";
+//            String ownerGroupWO = "";
 
             if (sortedTask.get("ownerGroup").toString().equalsIgnoreCase("")) {
                 //jika ownergroup di table detailactivity null
@@ -274,13 +274,13 @@ public class validateGenerateTask {
             } else {
                 sortedTask.put("status", "LABASSIGN");   
                 TaskDescription = sortedTask.get("description").toString();
-                ownerGroupWO = ownerGroup;
+//                ownerGroupWO = ownerGroup;
+                workorder.put("TaskDescription", TaskDescription);
+                workorder.put("ownerGroup", ownerGroup);
             }
             
             String schedFinish = schedFinish(sortedTask);
             sortedTask.put("schedfinish", schedFinish);
-            workorder.put("TaskDescription", TaskDescription);
-            workorder.put("ownerGroup", ownerGroupWO);
 
             //GENERATE OSS ITEM
             generateDao.insertToOssItem(sortedTask);

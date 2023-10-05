@@ -387,6 +387,24 @@ public class TaskActivityDao {
         }
     }
     
+    private String getDomainType(String domainId) throws SQLException {
+        String domainType = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_domaintype FROM app_fd_maxdomain WHERE c_domainid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, domainId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                domainType = rs.getString("c_domaintype");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return domainType;
+    }
+    
     public void GenerateTaskAttribute(JSONObject taskObj, JSONObject workorder, String orderId) throws SQLException {
         StringBuilder query = new StringBuilder();
         query
@@ -398,13 +416,12 @@ public class TaskActivityDao {
                 .append(" c_sequence, ")
                 .append(" c_domainid, ")
                 .append(" c_readonly, ")
-                .append(" c_isrequired, ") //joinan dari classspecusewith
-                .append(" c_defaultalnvalue, ")
-                .append(" c_defaulttablevalue, ")
+                .append(" c_mandatory, ") //joinan dari classspecusewith
+                .append(" c_defaultvalue, ")
                 .append(" c_classstructureid, ")
                 .append(" c_isshared ")
                 .append(" FROM app_fd_classspec WHERE ")
-                .append(" c_activity = ? ");  //this is for next patching
+                .append(" c_classstructureid = ? ");  //this is for next patching
         
         StringBuilder insert = new StringBuilder();
         insert
@@ -415,7 +432,7 @@ public class TaskActivityDao {
                 //TASK ATTRIBUTE
                 .append(" c_wonum, c_assetattrid, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
                 //PERMISSION
-                .append(" c_readonly, c_isrequired, c_isshared, c_mandatory, c_parent, c_value, c_classstructureid ")
+                .append(" c_readonly, c_isshared, c_mandatory, c_parent, c_value, c_classstructureid, c_domaintype, c_isview ")
                 .append(" ) ")
                 .append(" VALUES ")
                 .append(" ( ")
@@ -424,7 +441,7 @@ public class TaskActivityDao {
                 //VALUES TASK ATTRIBUTE
                 .append(" ?, ?, ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
-                .append(" ?, ?, ?, ?, ?, ?, ? ")
+                .append(" ?, ?, ?, ?, ?, ?, ?, ? ")
                 .append(" ) ");
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -434,7 +451,7 @@ public class TaskActivityDao {
             con.setAutoCommit(false);
             try(PreparedStatement ps = con.prepareStatement(query.toString());
                 PreparedStatement psInsert = con.prepareStatement(insert.toString())) {
-                    ps.setString(1, taskObj.get("activity").toString());
+                    ps.setString(1, taskObj.get("classstructureid").toString());
                     ResultSet rs = ps.executeQuery();
                 while (rs.next()) {
                     psInsert.setString(1, UuidGenerator.getInstance().getUuid());
@@ -448,16 +465,17 @@ public class TaskActivityDao {
                     psInsert.setString(9, rs.getString("c_sequence"));
                     psInsert.setString(10, rs.getString("c_domainid"));
                     psInsert.setString(11, rs.getString("c_readonly"));
-                    psInsert.setString(12, rs.getString("c_isrequired"));
-                    psInsert.setString(13, rs.getString("c_isshared"));
-                    psInsert.setString(14, rs.getString("c_isrequired"));
-                    psInsert.setString(15, taskObj.get("parent").toString());
-//                    if (rs.getString("c_defaultalnvalue") != null || !rs.getString("c_defaultalnvalue").equalsIgnoreCase("None")) {
-//                        psInsert.setString(16, rs.getString("c_defaultalnvalue"));
-//                    } else {
-                        psInsert.setString(16, "");
-//                    }
-                    psInsert.setString(17, rs.getString("c_classstructureid"));
+                    psInsert.setString(12, rs.getString("c_isshared"));
+                    psInsert.setString(13, rs.getString("c_mandatory"));
+                    psInsert.setString(14, taskObj.get("parent").toString());
+                    psInsert.setString(15, rs.getString("c_defaultvalue"));
+                    psInsert.setString(16, rs.getString("c_classstructureid"));
+                    if (rs.getString("c_domainid") != null) {
+                        psInsert.setString(17, getDomainType(rs.getString("c_domainid")));
+                    } else {
+                        psInsert.setString(17, "");
+                    }
+                    psInsert.setInt(18, 1);
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();

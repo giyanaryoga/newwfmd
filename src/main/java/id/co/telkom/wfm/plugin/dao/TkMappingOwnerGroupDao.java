@@ -21,7 +21,7 @@ public class TkMappingOwnerGroupDao {
         int isTransitNas = 0;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT act.c_activity, cls.c_classificationid FROM app_fd_classstructure cls, app_fd_detailactivity act "
-                + "WHERE cls.c_classstructureid = act.c_classstructureid AND c_activity = ?";
+                + "WHERE cls.c_classstructureid = act.c_classstructureid AND act.c_activity = ?";
         String query2 = "SELECT * FROM app_fd_customconfigdata"
                 + "WHERE c_configcode = 'IPTRANSIT' AND c_attrtype = 'CLASSIFICATION FOR NAS' AND c_attrname = 'CLASSIFICATIONID' "
                 + "AND c_attrstatus = 'ACTIVE' AND c_attrvalue = ?";
@@ -52,7 +52,7 @@ public class TkMappingOwnerGroupDao {
         int isTransitReg = 0;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT act.c_activity, cls.c_classificationid FROM app_fd_classstructure cls, app_fd_detailactivity act "
-                + "WHERE cls.c_classstructureid = act.c_classstructureid AND c_activity = ?";
+                + "WHERE cls.c_classstructureid = act.c_classstructureid AND act.c_activity = ?";
         String query2 = "SELECT * FROM app_fd_customconfigdata"
                 + "WHERE c_configcode = 'IPTRANSIT' AND c_attrtype = 'CLASSIFICATION FOR REG' AND c_attrname = 'CLASSIFICATIONID' "
                 + "AND c_attrstatus = 'ACTIVE' AND c_attrvalue = ?";
