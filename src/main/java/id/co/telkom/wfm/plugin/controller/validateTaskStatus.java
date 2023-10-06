@@ -448,8 +448,13 @@ public class validateTaskStatus {
                             response.put("message", "Document 'SERVICE_DETAIL' is not found!");
                         }
                     }
-                    response.put("code", 200);
-                    response.put("message", "Berhasil mengupdate status Compwa!");
+                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                    nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                    if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                        response.put("code", 200);
+                        response.put("message", "Berhasil mengupdate status Compwa!");
+                    }
                     break;
                 default:
                     // Define the next move
