@@ -46,15 +46,16 @@ public class ReToolDao {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                activityProp.put("wonum", rs.getString("c_wonum"));
-                activityProp.put("customerName", rs.getString("c_customer_name"));
-                activityProp.put("ownerGroup", rs.getString("c_ownergroup"));
-                activityProp.put("workzone", rs.getString("c_workzone"));
-                activityProp.put("scOrderNo", rs.getString("c_scorderno"));
-                activityProp.put("siteid", rs.getString("c_siteid"));
-                activityProp.put("serviceAddress", rs.getString("c_serviceaddress"));
-                activityProp.put("productName", rs.getString("c_productname"));
-                activityProp.put("statusDate", rs.getString("c_statusdate"));
+                activityProp.put("parent", rs.getString("parent.C_WONUM"));
+                activityProp.put("wonum", rs.getString("child.C_WONUM"));
+                activityProp.put("customerName", rs.getString("parent.C_CUSTOMER_NAME"));
+                activityProp.put("ownerGroup", rs.getString("parent.C_OWNERGROUP"));
+                activityProp.put("workzone", rs.getString("parent.c_workzone"));
+                activityProp.put("scOrderNo", rs.getString("parent.C_SCORDERNO"));
+                activityProp.put("siteid", rs.getString("parent.C_SITEID"));
+                activityProp.put("serviceAddress", rs.getString("parent.C_SERVICEADDRESS"));
+                activityProp.put("productName", rs.getString("parent.C_PRODUCTNAME"));
+                activityProp.put("statusDate", rs.getString("parent.C_STATUSDATE"));
             } else {
                 activityProp = null;
             }

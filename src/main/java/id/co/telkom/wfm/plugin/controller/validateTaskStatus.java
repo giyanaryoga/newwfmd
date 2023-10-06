@@ -440,12 +440,16 @@ public class validateTaskStatus {
                         if (document == 1) {
                             //response true send url to retools
                             validateRE.validateOBL(param.getParent());
+                            response.put("code", 200);
+                            response.put("message", "Berhasil mengupdate status, Mengirim Document to ReTools and create Customer");
                         } else {
                             //response false, gagal send url dan kirim message gagal
+                            response.put("code", 422);
+                            response.put("message", "Document 'SERVICE_DETAIL' is not found!");
                         }
-                    } else {
-                        //tidak dieksekusi, proses loncat
                     }
+                    response.put("code", 200);
+                    response.put("message", "Berhasil mengupdate status Compwa!");
                     break;
                 default:
                     // Define the next move

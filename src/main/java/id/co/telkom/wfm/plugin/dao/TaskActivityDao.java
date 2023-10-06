@@ -430,7 +430,7 @@ public class TaskActivityDao {
                 //TEMPLATE CONFIGURATION
                 .append(" id, dateCreated, createdBy, createdByName,  ")
                 //TASK ATTRIBUTE
-                .append(" c_wonum, c_assetattrid, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
+                .append(" c_wonum, c_assetattrid, c_description, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
                 //PERMISSION
                 .append(" c_readonly, c_isshared, c_mandatory, c_parent, c_value, c_classstructureid, c_domaintype, c_isview ")
                 .append(" ) ")
@@ -439,7 +439,7 @@ public class TaskActivityDao {
                 //VALUES TEMPLATE CONFIGURATION
                 .append(" ?, ?, 'admin', 'Admin admin', ")
                 //VALUES TASK ATTRIBUTE
-                .append(" ?, ?, ?, ?, ?, ?, ?, ?, ")
+                .append(" ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
                 .append(" ?, ?, ?, ?, ?, ?, ?, ? ")
                 .append(" ) ");
@@ -457,25 +457,26 @@ public class TaskActivityDao {
                     psInsert.setString(1, UuidGenerator.getInstance().getUuid());
                     psInsert.setTimestamp(2, getTimeStamp());
                     psInsert.setString(3, taskObj.get("wonum").toString());
-                    psInsert.setString(4, rs.getString("c_description"));
-                    psInsert.setString(5, workorder.get("siteId").toString());
-                    psInsert.setString(6, rs.getString("c_orgid"));
-                    psInsert.setString(7, rs.getString("c_classspecid"));
-                    psInsert.setString(8, orderId);
-                    psInsert.setString(9, rs.getString("c_sequence"));
-                    psInsert.setString(10, rs.getString("c_domainid"));
-                    psInsert.setString(11, rs.getString("c_readonly"));
-                    psInsert.setString(12, rs.getString("c_isshared"));
-                    psInsert.setString(13, rs.getString("c_mandatory"));
-                    psInsert.setString(14, taskObj.get("parent").toString());
-                    psInsert.setString(15, rs.getString("c_defaultvalue"));
-                    psInsert.setString(16, rs.getString("c_classstructureid"));
+                    psInsert.setString(4, rs.getString("c_assetattrid"));
+                    psInsert.setString(5, rs.getString("c_description"));
+                    psInsert.setString(6, workorder.get("siteId").toString());
+                    psInsert.setString(7, rs.getString("c_orgid"));
+                    psInsert.setString(8, rs.getString("c_classspecid"));
+                    psInsert.setString(9, orderId);
+                    psInsert.setString(10, rs.getString("c_sequence"));
+                    psInsert.setString(11, rs.getString("c_domainid"));
+                    psInsert.setString(12, rs.getString("c_readonly"));
+                    psInsert.setString(13, rs.getString("c_isshared"));
+                    psInsert.setString(14, rs.getString("c_mandatory"));
+                    psInsert.setString(15, taskObj.get("parent").toString());
+                    psInsert.setString(16, rs.getString("c_defaultvalue"));
+                    psInsert.setString(17, rs.getString("c_classstructureid"));
                     if (rs.getString("c_domainid") != null) {
-                        psInsert.setString(17, getDomainType(rs.getString("c_domainid")));
+                        psInsert.setString(18, getDomainType(rs.getString("c_domainid")));
                     } else {
-                        psInsert.setString(17, "");
+                        psInsert.setString(18, "");
                     }
-                    psInsert.setInt(18, 1);
+                    psInsert.setInt(19, 1);
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();

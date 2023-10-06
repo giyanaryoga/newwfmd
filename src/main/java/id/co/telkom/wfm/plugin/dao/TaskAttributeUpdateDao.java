@@ -89,7 +89,6 @@ public class TaskAttributeUpdateDao {
             while (rs.next()) {
                 JSONObject attr = new JSONObject();
                 attr.put("mandatory", rs.getInt("c_mandatory"));
-//                attr.put("isrequired", rs.getInt("c_isrequired"));
                 attr.put("assetattrid", rs.getString("c_assetattrid"));
                 attr.put("value", rs.getString("c_value"));
                 attr.put("parent", rs.getString("c_parent"));
@@ -286,6 +285,62 @@ public class TaskAttributeUpdateDao {
         return activity;
     }
     
+    public String getWonumActivityTask(String parent, String activity) throws SQLException {
+        String wonum = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_wonum FROM app_fd_workorder WHERE c_parent = ? AND c_detailactcode = ? AND c_woclass = 'ACTIVITY'";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, parent);
+            ps.setString(2, activity);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                wonum = rs.getString("c_wonum");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return wonum;
+    }
+    
+    public String getProductName(String parent) throws SQLException {
+        String productName = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_productname FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, parent);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                productName = rs.getString("c_productname");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return productName;
+    }
+    
+    public String getWoAttrValue(String parent, String attrName, String attrValue) throws SQLException {
+        String value = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "UPDATE app_fd_workorderattribute SET c_attr_value = ?, datemodified = sysdate WHERE c_wonum = ? AND c_attr_name = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, parent);
+            ps.setString(2, attrName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                value = rs.getString("c_attr_value");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return value;
+    }
+    
     public void updateMandatory(String wonum, String assetattrid, int mandatory ) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
@@ -326,7 +381,7 @@ public class TaskAttributeUpdateDao {
             .append("datemodified = ? ")
             .append("WHERE ")
             .append("c_parent = ?")
-            .append("c_assetattrid = ?");
+            .append("AND c_assetattrid = ?");
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setString(1, value);
@@ -353,7 +408,7 @@ public class TaskAttributeUpdateDao {
             .append("datemodified = ? ")
             .append("WHERE ")
             .append("c_wonum = ?")
-            .append("c_assetattrid = ?");
+            .append("AND c_assetattrid = ?");
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setString(1, value);
@@ -380,7 +435,7 @@ public class TaskAttributeUpdateDao {
             .append("datemodified = ? ")
             .append("WHERE ")
             .append("c_wonum = ?")
-            .append("c_assetattrid like ?%");
+            .append("AND c_assetattrid like ?");
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setInt(1, isview);
@@ -407,7 +462,7 @@ public class TaskAttributeUpdateDao {
             .append("datemodified = ? ")
             .append("WHERE ")
             .append("c_wonum = ?")
-            .append("c_assetattrid = ?");
+            .append("AND c_assetattrid = ?");
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setInt(1, isview);
@@ -417,6 +472,32 @@ public class TaskAttributeUpdateDao {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateWoAttrView(String parent, String attrName, String attrValue) throws SQLException {
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+            .append("UPDATE app_fd_workorderattribute SET ")
+            .append("c_attr_value = ?, ")
+            .append("datemodified = sysdate ")
+            .append("WHERE ")
+            .append("c_wonum = ?")
+            .append("AND c_attr_name = ?");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, attrValue);
+            ps.setString(2, parent);
+            ps.setString(3, attrName);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), parent + " | Update workorder attribute:  " + attrName);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
