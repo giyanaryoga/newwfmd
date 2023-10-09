@@ -691,15 +691,16 @@ public class TaskActivityDao {
     public JSONObject getProduct(String parent) throws SQLException {
         JSONObject getProduct = new JSONObject();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_productname, c_crmordertype, c_schedstart, c_wonum, c_siteid, c_jmscorrelationid, c_scorderno FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        String query = "SELECT c_productname, c_crmordertype, c_schedstart, c_wonum, c_siteid, c_jmscorrelationid, c_scorderno, c_workzone FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 getProduct.put("wonum", rs.getString("c_wonum"));
-                getProduct.put("productName", rs.getString("c_productname"));
-                getProduct.put("crmordertype", rs.getString("c_crmordertype"));
+                getProduct.put("prodName", rs.getString("c_productname"));
+                getProduct.put("crmOrderType", rs.getString("c_crmordertype"));
+                getProduct.put("workZone", rs.getString("c_workzone"));
                 getProduct.put("schedStart", rs.getString("c_schedstart"));
                 getProduct.put("siteId", rs.getString("c_siteid"));
                 getProduct.put("jmsCorrelationId", rs.getString("c_jmscorrelationid"));
