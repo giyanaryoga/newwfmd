@@ -363,7 +363,7 @@ public class validateGenerateTask {
         boolean generate = false;
         try {
             JSONObject product = dao2.getProduct(parent);
-            JSONArray taskNonCore = dao2.getDetailTaskNonCore(product.get("productName").toString(), product.get("crmordertype").toString());
+            JSONArray taskNonCore = dao2.getDetailTaskNonCore(product.get("prodName").toString(), product.get("crmOrderType").toString());
             JSONArray taskWO = dao2.getTaskWo(parent);
             
             int taskProductNonCore = taskNonCore.size();
@@ -386,20 +386,19 @@ public class validateGenerateTask {
         return generate;
     }
     
-    public void generateTaskNonCoreTestButton(String parent) {
+    private void generateTaskNonCoreTestButton(String parent) {
         try {
             JSONArray arrayNull = new JSONArray();
             JSONArray taskItem = new JSONArray();
-//            boolean isGenerateTask = true;
             dao2.deleteTask(parent);
             JSONObject product = dao2.getProduct(parent);
-            String prodName = product.get("productName").toString();
-            String crmOrderType = product.get("crmordertype").toString();
+            LogUtil.info(getClass().getName(), "product = "+ product);
+            String prodName = product.get("prodName").toString();
+            String crmOrderType = product.get("crmOrderType").toString();
             JSONArray detailTaskNonCore = dao2.getDetailTaskNonCore(prodName, crmOrderType);
             
             for (Object obj : detailTaskNonCore) {
                 JSONObject taskNonCoreObj = (JSONObject)obj;
-//                isGenerateTask = isGenerateTask(workorder, prodName, taskNonCoreObj.get("activity").toString());
                 JSONObject taskNoncore = new JSONObject();
                 taskNoncore.put("ACTION", "ADD");
                 taskNoncore.put("CORRELATIONID", "35363732383333303936333333323130");
@@ -413,7 +412,7 @@ public class validateGenerateTask {
             String orderId = splittedJms[0];
             defineTaskButton(taskItem, product);
             sortedTask();
-            generateTaskTest(product, counter, orderId);
+            generateTask(product, counter, orderId);
         } catch (SQLException ex) {
             Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }

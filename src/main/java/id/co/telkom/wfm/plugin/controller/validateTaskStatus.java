@@ -440,8 +440,13 @@ public class validateTaskStatus {
                         if (document == 1) {
                             //response true send url to retools
                             validateRE.validateOBL(param.getParent());
-                            response.put("code", 200);
-                            response.put("message", "Berhasil mengupdate status, Mengirim Document to ReTools and create Customer");
+                            updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                            nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                                daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                                response.put("code", 200);
+                                response.put("message", "Berhasil mengupdate status, Mengirim Document to ReTools and create Customer!");
+                            }
                         } else {
                             //response false, gagal send url dan kirim message gagal
                             response.put("code", 422);

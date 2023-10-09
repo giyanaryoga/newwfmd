@@ -4,22 +4,12 @@
  */
 package id.co.telkom.wfm.plugin;
 
-//import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
-//import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
-//import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
-//import id.co.telkom.wfm.plugin.controller.validateTaskStatus;
-//import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
-//import java.sql.SQLException;
 import java.util.Map;
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,8 +17,6 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
-//import org.json.JSONException;
-//import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
