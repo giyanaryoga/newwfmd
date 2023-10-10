@@ -229,12 +229,9 @@ public class validateTaskAttribute {
     }
 
     private void validateSTP(String wonum, String attrtype) throws SQLException {
-   
         String id = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrtype);
         String specification = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_SPECIFICATION", attrtype);
-
         LogUtil.info(getClass().getName(), "STP_ID = " + id + " STP_SPECIFICATION = " + specification);
-
         try {
             boolean validate = taskAttrDao.updateAttributeSTP(wonum, id, specification);
             if (validate == true) {
@@ -272,7 +269,6 @@ public class validateTaskAttribute {
                 validateNeuAPIX(parent, wonum, attrValue);
                 break;
             case "STP_NETWORKLOCATION_LOV":
-                
                 validateSTP(wonum, attrValue);
                 break;
             default:
