@@ -111,7 +111,7 @@ public class validateGenerateTask {
         }
     }
     
-    public void generateTaskNonCoreTest(JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
+    public void generateTaskNonCoreTest1(JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
         try {
             JSONArray arrayNull = new JSONArray();
             boolean isGenerateTask = true;
@@ -146,7 +146,7 @@ public class validateGenerateTask {
         }
     }
     
-    public void generateTaskCoreTest(Object ossitem_arrayObj, JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
+    public void generateTaskCoreTest1(Object ossitem_arrayObj, JSONArray oss_item, JSONObject workorder, JSONArray AttributeWO, float duration) {
         try {
             int counter = 1;
             String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");

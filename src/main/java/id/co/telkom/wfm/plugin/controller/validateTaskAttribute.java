@@ -122,14 +122,14 @@ public class validateTaskAttribute {
 //                LogUtil.info(getClass().getName(), "Task attribute = " +taskAttrObj);
                 String attr_name = taskAttrObj.get("task_attr_name").toString();
                 String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
-                if (attr_name.equalsIgnoreCase(attrName)) {
-                    if (attr_value == null || attr_value == "" || attr_value == "None") {
+                if (attrName.equalsIgnoreCase(attr_name)) {
+//                    if (attr_value == "" || attr_value.equalsIgnoreCase("None")) {
                         taskAttrDao.updateTaskValueParent(parent, attr_name, attrValue);
                         LogUtil.info(getClass().getName(), "Task attribute value insert from assetattrid same");
-                    }
-                    LogUtil.info(getClass().getName(), "Task attribute value is not null");
+//                    }
+//                    LogUtil.info(getClass().getName(), "Task attribute value is not null");
                 }
-//                LogUtil.info(getClass().getName(), "Task attribute name is not same");
+                LogUtil.info(getClass().getName(), "Task attribute name is not same");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);

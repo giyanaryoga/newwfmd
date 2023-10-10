@@ -159,9 +159,10 @@ public class validateReTools {
             ListReTools param = new ListReTools();
             ListScmtIntegrationParam paramScmt = new ListScmtIntegrationParam();
             JSONObject workorder = reDao.getWorkorder(wonum);
-            param.setWonum(wonum);
-            param.setParent(wonum);
+            String docName = reDao.docName(wonum, "SERVICE_DETAIL");
             
+            param.setWonum(workorder.get("wonum").toString());
+            param.setParent(workorder.get("parent").toString());
             String oblTrcNo = param.getWonum(); //wonum parent
             String namaMitra = workorder.get("ownerGroup").toString();
             String customerCode = woDao.getValueWorkorderAttribute(wonum, "CustomerID");
@@ -179,8 +180,8 @@ public class validateReTools {
             String statusDate = workorder.get("statusDate").toString();
             
             //Kurang docName sama URL document
-            param.setDocName(wonum);
-            param.setUrlDoc(wonum);
+            param.setDocName(docName);
+            param.setUrlDoc(urlRE.getApiMinio() + "? ObjectName ?");
             
             param.setNomorKb(nomorKb == null ? "" : nomorKb);
             param.setNomorKl(nomorKl == null ? workorder.get("productName").toString() : nomorKl);
@@ -200,6 +201,7 @@ public class validateReTools {
             paramScmt.setInstallLoc(serviceId);
             paramScmt.setServiceAddress(address);
             paramScmt.setWorkzone(workzone);
+            
             //Create Customer to SCMT tool
             createCustomerSCMT(paramScmt);
             

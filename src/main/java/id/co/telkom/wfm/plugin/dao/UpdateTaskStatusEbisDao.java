@@ -558,7 +558,7 @@ public class UpdateTaskStatusEbisDao {
         JSONArray listAttr = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 //        String query = "SELECT C_VALUE, C_ASSETATTRID, C_ISSHARED  FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND a.C_WONUM = ?";
-        String query = "SELECT C_WONUM, C_VALUE, C_ASSETATTRID, C_ISSHARED FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND (a.C_WONUM = ? OR (a.C_WONUM = ? AND EXISTS (SELECT 1 FROM app_fd_workorder WHERE c_wonum = ? AND c_description = 'Survey On Desk')))";
+        String query = "SELECT C_WONUM, C_VALUE, C_DESCRIPTION, C_ISSHARED FROM APP_FD_WORKORDERSPEC a WHERE a.C_ISSHARED = 1 AND (a.C_WONUM = ? OR (a.C_WONUM = ? AND EXISTS (SELECT 1 FROM app_fd_workorder WHERE c_wonum = ? AND c_description = 'Survey On Desk')))";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             String newwonum = wonum;
@@ -573,7 +573,7 @@ public class UpdateTaskStatusEbisDao {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 JSONObject attributeObject = new JSONObject();
-                attributeObject.put("Name", rs.getString("C_ASSETATTRID"));
+                attributeObject.put("Name", rs.getString("C_DESCRIPTION"));
                 attributeObject.put("Value", rs.getString("C_VALUE"));
                 listAttr.add(attributeObject);
             }
