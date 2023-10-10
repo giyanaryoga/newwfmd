@@ -437,7 +437,7 @@ public class TaskAttributeUpdateDao {
         }
     }
 
-    public void updateTaskAttrViewLike(String wonum, String assetattrid, int isview) throws SQLException {
+    public void updateTaskAttrViewLike(String parent, String assetattrid, int isview) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
         update
@@ -445,17 +445,17 @@ public class TaskAttributeUpdateDao {
                 .append("c_isview = ?, ")
                 .append("datemodified = ? ")
                 .append("WHERE ")
-                .append("c_wonum = ?")
+                .append("c_parent = ?")
                 .append("AND c_assetattrid like ?");
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setInt(1, isview);
             ps.setTimestamp(2, getTimeStamp());
-            ps.setString(3, wonum);
+            ps.setString(3, parent);
             ps.setString(4, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), parent + " | Assetattrid mandatory update to:  " + assetattrid);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -538,7 +538,7 @@ public class TaskAttributeUpdateDao {
         return value;
     }
 
-    public boolean updateAttributeSTP(String wonum, String stpid, String specification) throws SQLException {
+    public boolean updateAttributeSTP(String parent, String stpid, String specification, String netLoc) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String updateQuery
@@ -546,21 +546,23 @@ public class TaskAttributeUpdateDao {
                 + "SET c_value = CASE c_assetattrid "
                 + "WHEN 'STP_ID' THEN ? "
                 + "WHEN 'STP_SPECIFICATION' THEN ? "
+                + "WHEN 'STP_NETWORKLOCATION_LOV' THEN ? "
                 + "ELSE 'Missing' END "
-                + "WHERE c_wonum = ? "
-                + "AND c_assetattrid IN ('STP_ID', 'STP_SPECIFICATION')";
+                + "WHERE c_parent = ? "
+                + "AND c_assetattrid IN ('STP_ID', 'STP_SPECIFICATION', 'STP_NETWORKLOCATION_LOV')";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(updateQuery)) {
             ps.setString(1, stpid);
             ps.setString(2, specification);
-            ps.setString(3, wonum);
+            ps.setString(3, netLoc);
+            ps.setString(4, parent);
 
             int exe = ps.executeUpdate();
 
             if (exe > 0) {
                 result = true;
-                LogUtil.info(getClass().getName(), "Attribute value updated to " + wonum);
+                LogUtil.info(getClass().getName(), "Attribute value updated to " + parent);
             }
 
         } catch (SQLException e) {

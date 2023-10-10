@@ -78,20 +78,30 @@ public class validateTaskStatus {
     public String compwaTask(UpdateStatusParam param) {
         String compwa = "";
         try {
-            JSONArray isMandatoryValue = daoUpdate.checkMandatory(param.getWonum());
-            if (isMandatoryValue == null) {
-                compwa = "true";
-                LogUtil.info(getClass().getName(), "test: " + compwa);
-            } else {
-                for (Object obj : isMandatoryValue) {
-                    JSONObject valueObj = (JSONObject)obj;
-                    if (valueObj.get("value").toString() == "true") {
-                        compwa = "true";
-                        LogUtil.info(getClass().getName(), "test: " + compwa);
-                    } else {
-                        compwa = "false";
-                        LogUtil.info(getClass().getName(), "test: " + compwa);
-                    }
+            JSONArray isMandatoryNone = daoUpdate.checkMandatory(param.getWonum());
+            JSONArray isMandatoryNull = daoUpdate.isRequired(param.getWonum());
+            LogUtil.info(getClass().getName(), "None: " + isMandatoryNone);
+            LogUtil.info(getClass().getName(), "Null: " + isMandatoryNull);
+            for (Object obj : isMandatoryNone) {
+                JSONObject valueObj = (JSONObject)obj;
+                int value = (int) valueObj.get("value");
+                if (value == 1) {
+                    compwa = "false";
+                    LogUtil.info(getClass().getName(), "test: " + compwa);
+                } else {
+                    compwa = "true";
+                    LogUtil.info(getClass().getName(), "test: " + compwa);
+                }
+            }
+            for (Object obj : isMandatoryNull) {
+                JSONObject valueObj = (JSONObject)obj;
+                int value = (int) valueObj.get("value");
+                if (value == 1) {
+                    compwa = "false";
+                    LogUtil.info(getClass().getName(), "test: " + compwa);
+                } else {
+                    compwa = "true";
+                    LogUtil.info(getClass().getName(), "test: " + compwa);
                 }
             }
         } catch (SQLException ex) {

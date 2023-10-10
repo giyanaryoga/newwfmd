@@ -96,33 +96,13 @@ public class UpdateTaskStatusEbisDao {
         return activityProp;
     }
     
-    public Integer isRequired(String wonum) throws SQLException {
-        int required = 0;
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ?";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                required = rs.getInt("c_mandatory");
-                LogUtil.info(getClass().getName(), "Is Required " + required);
-            }
-        } catch (Exception e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return required;
-    }
-    
-    public JSONArray checkMandatory(String wonum) throws SQLException {
+    public JSONArray isRequired(String wonum) throws SQLException {
         JSONArray valueArray = new JSONArray();
-        String value = "";
+        int value = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_assetattrid, c_value, c_alnvalue, c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ? "
                 + "AND c_mandatory = 1"
-                + "ORDER BY c_displaysequence ASC";
+                + "AND c_value is NULL";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -130,17 +110,41 @@ public class UpdateTaskStatusEbisDao {
             while (rs.next()) {
                 JSONObject valueObj = new JSONObject();
                 String value2 = rs.getString("c_value");
-                String alnvalue = rs.getString("c_alnvalue");
-//                int mandatory = rs.getInt("c_mandatory");
-                
-                if (alnvalue == null && value2 == null) {
-                    value = "false";
+                if (value2 != null) {
+                    value = 0;
                 } else {
-                    if (value2.equalsIgnoreCase("None")) {
-                        value = "false";
-                    } else {
-                        value = "true";
-                    }
+                    value = 1;
+                }
+                valueObj.put("value", value);
+                valueArray.add(valueObj);
+                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + " = " + rs.getString("c_mandatory") + " = " + value);
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return valueArray;
+    }
+    
+    public JSONArray checkMandatory(String wonum) throws SQLException {
+        JSONArray valueArray = new JSONArray();
+        int value = 0;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_value, c_alnvalue, c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ? "
+                + "AND c_mandatory = 1"
+                + "AND c_value = 'None'";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject valueObj = new JSONObject();
+                String value2 = rs.getString("c_value");
+                if (value2 != null) {
+                    value = 0;
+                } else {
+                    value = 1;
                 }
                 valueObj.put("value", value);
                 valueArray.add(valueObj);
