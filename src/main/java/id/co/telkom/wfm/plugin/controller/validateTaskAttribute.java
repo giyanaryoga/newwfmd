@@ -14,24 +14,26 @@ import java.util.logging.Logger;
 import org.joget.commons.util.LogUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
 /**
  *
  * @author Giyanaryoga Puguh
  */
 public class validateTaskAttribute {
+
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
     TaskActivityDao taskDao = new TaskActivityDao();
-    
+
     private static final String nteType1[] = {"L2Switch", "DirectME", "DirectPE"};
     private static final String taskNTEAvailable[] = {
         "Survey-Ondesk", "Site-Survey", "Survey-Ondesk Wifi", "Site-Survey Wifi"
     };
-    
+
     private void validateRole(String wonum) {
         try {
             String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
             String valueNteType = taskAttrDao.getTaskAttrValue(wonum, "NTE_TYPE");
-            
+
             if (value.equalsIgnoreCase("STP")) {
                 taskAttrDao.updateMandatory(wonum, "NTE_TYPE", 0);
                 taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
@@ -39,12 +41,12 @@ public class validateTaskAttribute {
                 taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
                 taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
                 taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
-                
+
                 taskAttrDao.updateTaskAttrViewLike(wonum, "NTE%", 0);
                 taskAttrDao.updateTaskAttrViewLike(wonum, "STP%", 1);
             } else {
                 //IF ROLE = NTE
-                LogUtil.info(getClass().getName(), "NTE_TYPE =" +valueNteType);
+                LogUtil.info(getClass().getName(), "NTE_TYPE =" + valueNteType);
                 taskAttrDao.updateTaskAttrViewLike(wonum, "STP%", 0);
                 taskAttrDao.updateTaskAttrViewLike(wonum, "NTE%", 1);
                 if (valueNteType == null) {
@@ -75,7 +77,7 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void nteAvailable(String wonum) {
         try {
             String value = taskAttrDao.getTaskAttrValue(wonum, "NTE_AVAILABLE");
@@ -87,7 +89,7 @@ public class validateTaskAttribute {
                     taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 1);
                     taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORTNAME", 1);
                     taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 1);
-                    
+
                     taskAttrDao.updateTaskValue(wonum, "NTE_TYPE", "None");
                     taskAttrDao.updateTaskValue(wonum, "NTE_NAME", "None");
                     taskAttrDao.updateTaskValue(wonum, "NTE_SERIALNUMBER", "None");
@@ -99,7 +101,7 @@ public class validateTaskAttribute {
                     taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
                     taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORTNAME", 0);
                     taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
-                    
+
                     taskAttrDao.updateTaskValue(wonum, "NTE_TYPE", "");
                     taskAttrDao.updateTaskValue(wonum, "NTE_NAME", "");
                     taskAttrDao.updateTaskValue(wonum, "NTE_SERIALNUMBER", "");
@@ -111,12 +113,12 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void validateValueNextTask(String parent, String attrName, String attrValue) {
         try {
             JSONArray taskAttrParent = taskAttrDao.getTaskAttributeParent(parent);
             for (Object obj : taskAttrParent) {
-                JSONObject taskAttrObj = (JSONObject)obj;
+                JSONObject taskAttrObj = (JSONObject) obj;
 //                LogUtil.info(getClass().getName(), "Task attribute = " +taskAttrObj);
                 String attr_name = taskAttrObj.get("task_attr_name").toString();
                 String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
@@ -133,7 +135,7 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void validateSTO(String wonum, String attrValue) {
         try {
             JSONObject workzone = taskAttrDao.getWorkzoneRegional(attrValue);
@@ -143,7 +145,7 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void validatePIC(String parent, String wonum) {
         try {
             String valuePic = taskAttrDao.getTaskAttrValue(wonum, "PIC_CONTACTNUMBER");
@@ -154,7 +156,7 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void validateNeuAPIX(String parent, String wonum, String attrValue) {
         try {
             String productName = taskAttrDao.getProductName(parent);
@@ -225,8 +227,28 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public void validate(String parent, String wonum, String attrName, String attrValue) {
+
+    private void validateSTP(String wonum, String attrtype) throws SQLException {
+   
+        String id = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrtype);
+        String specification = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_SPECIFICATION", attrtype);
+
+        LogUtil.info(getClass().getName(), "STP_ID = " + id + " STP_SPECIFICATION = " + specification);
+
+        try {
+            boolean validate = taskAttrDao.updateAttributeSTP(wonum, id, specification);
+            if (validate == true) {
+                LogUtil.info(getClass().getName(), "Update Data Successfully");
+            } else {
+                LogUtil.info(getClass().getName(), "Update Data failed");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    public void validate(String parent, String wonum, String attrName, String attrValue) throws SQLException {
         if (!attrName.equalsIgnoreCase("APPROVAL")) {
             validateValueNextTask(parent, attrName, attrValue);
         }
@@ -248,6 +270,10 @@ public class validateTaskAttribute {
                 break;
             case "HOSTNAME SBC":
                 validateNeuAPIX(parent, wonum, attrValue);
+                break;
+            case "STP_NETWORKLOCATION_LOV":
+                
+                validateSTP(wonum, attrValue);
                 break;
             default:
                 break;

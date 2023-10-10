@@ -104,6 +104,7 @@ public class RollbackStatusDao {
 
     public boolean rollbackStatus(String parent, String modifiedBy) throws JSONException, SQLException {
         Map<String, String> attributeData = getWoAttribute(parent);
+        LogUtil.info(getClass().getName(), "LIST ATTRIBUTE : " + attributeData);
         updateParentStatus(parent, "STARTWORK", modifiedBy);
         boolean isCompwaFound = false;
         for (Map.Entry<String, String> entry : attributeData.entrySet()) {
