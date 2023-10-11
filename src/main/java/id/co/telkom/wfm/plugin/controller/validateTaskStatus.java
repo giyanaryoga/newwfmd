@@ -82,28 +82,37 @@ public class validateTaskStatus {
             JSONArray isMandatoryNull = daoUpdate.isRequired(param.getWonum());
             LogUtil.info(getClass().getName(), "None: " + isMandatoryNone);
             LogUtil.info(getClass().getName(), "Null: " + isMandatoryNull);
-            for (Object obj : isMandatoryNone) {
-                JSONObject valueObj = (JSONObject)obj;
-                int value = (int) valueObj.get("value");
-                if (value == 1) {
-                    compwa = "false";
-                    LogUtil.info(getClass().getName(), "test: " + compwa);
-                } else {
-                    compwa = "true";
-                    LogUtil.info(getClass().getName(), "test: " + compwa);
-                }
+            
+            int NoneLength = isMandatoryNone.size();
+            int NullLength = isMandatoryNull.size();
+            
+            if (NoneLength == 0 && NullLength == 0) {
+                compwa = "true";
+            } else {
+                compwa = "false";
             }
-            for (Object obj : isMandatoryNull) {
-                JSONObject valueObj = (JSONObject)obj;
-                int value = (int) valueObj.get("value");
-                if (value == 1) {
-                    compwa = "false";
-                    LogUtil.info(getClass().getName(), "test: " + compwa);
-                } else {
-                    compwa = "true";
-                    LogUtil.info(getClass().getName(), "test: " + compwa);
-                }
-            }
+//            for (Object obj : isMandatoryNone) {
+//                JSONObject valueObj = (JSONObject)obj;
+//                int value = (int) valueObj.get("value");
+//                if (value == 1) {
+//                    compwa = "false";
+//                    LogUtil.info(getClass().getName(), "test: " + compwa);
+//                } else {
+//                    compwa = "true";
+//                    LogUtil.info(getClass().getName(), "test: " + compwa);
+//                }
+//            }
+//            for (Object obj : isMandatoryNull) {
+//                JSONObject valueObj = (JSONObject)obj;
+//                int value = (int) valueObj.get("value");
+//                if (value == 1) {
+//                    compwa = "false";
+//                    LogUtil.info(getClass().getName(), "test: " + compwa);
+//                } else {
+//                    compwa = "true";
+//                    LogUtil.info(getClass().getName(), "test: " + compwa);
+//                }
+//            }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
