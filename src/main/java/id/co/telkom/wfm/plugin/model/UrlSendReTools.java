@@ -18,7 +18,6 @@ public class UrlSendReTools {
      * @return the urlSendRe
      */
     public String getUrlSendRe() {
-//        urlSendRe = "http://10.60.163.39/service/index.php/Json/insertURL"; //Dev
         return urlSendRe;
     }
 
@@ -56,7 +55,7 @@ public class UrlSendReTools {
      * @param apiMinio the apiMinio to set
      */
     public void setApiMinio(String apiMinio) {
-        apiMinio = "https://apiminio.telkom.co.id:9001/api/v1/buckets/oss-transformation/objects?prefix=";
+        apiMinio = "https://apiminio.telkom.co.id:9001/api/v1/buckets/oss-transformation/";
         this.apiMinio = apiMinio;
     }
 }

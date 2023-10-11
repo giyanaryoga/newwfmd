@@ -176,11 +176,11 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 
                 if (ossitem_arrayObj == null) {
                     LogUtil.info(getClass().getName(), "OSS ITEM IS NULL");
-                    validateTask.generateTaskNonCoreTest(oss_item, workorder, AttributeWO, duration);
+                    validateTask.generateTaskNonCore(oss_item, workorder, duration);
 //                    validateTask.generateTaskNonCore(oss_item, workorder, AttributeWO, duration);
                 } else {
                     LogUtil.info(getClass().getName(), "OSS ITEM IS NOT NULL");
-                    validateTask.generateTaskCoreTest(ossitem_arrayObj, oss_item, workorder, AttributeWO, duration);
+                    validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, duration);
 //                    validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, AttributeWO, duration);
                 }
                 

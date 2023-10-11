@@ -29,7 +29,7 @@ public class validateTaskAttribute {
         "Survey-Ondesk", "Site-Survey", "Survey-Ondesk Wifi", "Site-Survey Wifi"
     };
 
-    private void validateRole(String wonum) {
+    private void validateRole(String parent, String wonum) {
         try {
             String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
             String valueNteType = taskAttrDao.getTaskAttrValue(wonum, "NTE_TYPE");
@@ -42,13 +42,13 @@ public class validateTaskAttribute {
                 taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
                 taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
 
-                taskAttrDao.updateTaskAttrViewLike(wonum, "NTE%", 0);
-                taskAttrDao.updateTaskAttrViewLike(wonum, "STP%", 1);
+                taskAttrDao.updateTaskAttrViewLike(parent, "NTE%", 0);
+                taskAttrDao.updateTaskAttrViewLike(parent, "STP%", 1);
             } else {
                 //IF ROLE = NTE
                 LogUtil.info(getClass().getName(), "NTE_TYPE =" + valueNteType);
-                taskAttrDao.updateTaskAttrViewLike(wonum, "STP%", 0);
-                taskAttrDao.updateTaskAttrViewLike(wonum, "NTE%", 1);
+                taskAttrDao.updateTaskAttrViewLike(parent, "STP%", 0);
+                taskAttrDao.updateTaskAttrViewLike(parent, "NTE%", 1);
                 if (valueNteType == null) {
                     taskAttrDao.updateMandatory(wonum, "NTE_NAME", 0);
                     taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
@@ -122,14 +122,12 @@ public class validateTaskAttribute {
 //                LogUtil.info(getClass().getName(), "Task attribute = " +taskAttrObj);
                 String attr_name = taskAttrObj.get("task_attr_name").toString();
                 String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
-                if (attr_name.equalsIgnoreCase(attrName)) {
-                    if (attr_value == null || attr_value == "" || attr_value == "None") {
+                if (attrName.equalsIgnoreCase(attr_name) ) {
+                    if (!attrName.equalsIgnoreCase("APPROVAL")) {
                         taskAttrDao.updateTaskValueParent(parent, attr_name, attrValue);
                         LogUtil.info(getClass().getName(), "Task attribute value insert from assetattrid same");
                     }
-                    LogUtil.info(getClass().getName(), "Task attribute value is not null");
                 }
-//                LogUtil.info(getClass().getName(), "Task attribute name is not same");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -228,12 +226,13 @@ public class validateTaskAttribute {
         }
     }
 
-    private void validateSTP(String wonum, String attrtype) throws SQLException {
+    private void validateSTP(String parent, String wonum, String attrtype) throws SQLException {
         String id = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrtype);
         String specification = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_SPECIFICATION", attrtype);
-        LogUtil.info(getClass().getName(), "STP_ID = " + id + " STP_SPECIFICATION = " + specification);
+        String netLoc = taskAttrDao.getTaskAttrValue(wonum, "STP_NETWORKLOCATION_LOV");
+        LogUtil.info(getClass().getName(), "STP_ID = " + id + "; STP_SPECIFICATION = " + specification + "; STP_NETWORKLOCATION = " +netLoc);
         try {
-            boolean validate = taskAttrDao.updateAttributeSTP(wonum, id, specification);
+            boolean validate = taskAttrDao.updateAttributeSTP(parent, id, specification, netLoc);
             if (validate == true) {
                 LogUtil.info(getClass().getName(), "Update Data Successfully");
             } else {
@@ -242,17 +241,16 @@ public class validateTaskAttribute {
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     public void validate(String parent, String wonum, String attrName, String attrValue) throws SQLException {
-        if (!attrName.equalsIgnoreCase("APPROVAL")) {
+//        if (!attrName.equalsIgnoreCase("APPROVAL")) {
             validateValueNextTask(parent, attrName, attrValue);
-        }
+//        }
         switch (attrName) {
             case "ROLE":
             case "NTE_TYPE":
-                validateRole(wonum);
+                validateRole(parent, wonum);
                 break;
             case "STO":
                 if (!attrValue.equalsIgnoreCase("NAS")) {
@@ -269,8 +267,9 @@ public class validateTaskAttribute {
                 validateNeuAPIX(parent, wonum, attrValue);
                 break;
             case "STP_NETWORKLOCATION_LOV":
-                validateSTP(wonum, attrValue);
+                validateSTP(parent, wonum, attrValue);
                 break;
+            
             default:
                 break;
         }

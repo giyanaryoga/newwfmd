@@ -428,7 +428,7 @@ public class TaskActivityDao {
                 .append(" INSERT INTO app_fd_workorderspec ")
                 .append(" ( ")
                 //TEMPLATE CONFIGURATION
-                .append(" id, dateCreated, createdBy, createdByName,  ")
+                .append(" id, dateCreated, createdBy, createdByName, c_workorderspecid,  ")
                 //TASK ATTRIBUTE
                 .append(" c_wonum, c_assetattrid, c_description, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
                 //PERMISSION
@@ -437,7 +437,7 @@ public class TaskActivityDao {
                 .append(" VALUES ")
                 .append(" ( ")
                 //VALUES TEMPLATE CONFIGURATION
-                .append(" ?, ?, 'admin', 'Admin admin', ")
+                .append(" ?, ?, 'admin', 'Admin admin', WORKORDERSPECIDSEQ.NEXTVAL, ")
                 //VALUES TASK ATTRIBUTE
                 .append(" ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
                 //VALUES PERMISSION
