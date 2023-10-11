@@ -124,7 +124,6 @@ public class GenerateFallout extends Element implements PluginWebSupport {
                 String region = (data_obj.get("region") == null ? "" : data_obj.get("region").toString());
                 String classification = (data_obj.get("classification") == null ? "" : data_obj.get("classification").toString());
                 String ossid = (data_obj.get("ossid") == null ? "" : data_obj.get("ossid").toString());
-//                String statusCode = (data_obj.get("statusCode") == null ? "" : data_obj.get("statusCode").toString());
                 String statusCode = "OPEN";
                 String internalPriority = (data_obj.get("internalPriority") == null ? "" : data_obj.get("internalPriority").toString());
                 String externalSystem = (data_obj.get("externalSystem") == null ? "" : data_obj.get("externalSystem").toString());

@@ -144,16 +144,16 @@ public class GenerateFalloutDao {
         return ownergroup;
     }
 
-    public String getWonum(String assetNum) {
+    public String getOssid(String ossid) {
         String wonum = "";
 
         DataSource dataSource = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "select c_wonum from app_fd_workorder where c_tk_custom_header_07 = ?";
+        String query = "select c_wonum from app_fd_workorder where c_jmscorrelationid = ?";
 
         try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            preparedStatement.setString(1, assetNum);
+            preparedStatement.setString(1, ossid);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
                     wonum = resultSet.getString("c_wonum");
@@ -217,7 +217,7 @@ public class GenerateFalloutDao {
                 ps.setString(12, statusCode);
                 ps.setString(13, ticketId);
                 ps.setString(14, tk_channel);
-                ps.setString(15, getWonum(assetNum));
+                ps.setString(15, getOssid(ossid));
                 ps.setString(16, assetNum);
                 ps.setTimestamp(17, timestamp);
 
