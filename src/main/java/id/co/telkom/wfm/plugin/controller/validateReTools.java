@@ -9,27 +9,20 @@ import id.co.telkom.wfm.plugin.model.ListReTools;
 import id.co.telkom.wfm.plugin.model.ListScmtIntegrationParam;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.controller.InsertIntegrationHistory;
-import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
+//import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.dao.ReToolDao;
-import java.io.DataOutputStream;
+import id.co.telkom.wfm.plugin.model.APIConfig;
+import id.co.telkom.wfm.plugin.util.ConnUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-//import java.sql.Connection;
-//import java.sql.PreparedStatement;
-//import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import javax.sql.DataSource;
-//import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-//import org.joget.commons.util.UuidGenerator;
-//import org.json.JSONException;
-//import org.json.XML;
 import org.json.simple.JSONObject;
 
 /**
@@ -38,15 +31,16 @@ import org.json.simple.JSONObject;
  */
 public class validateReTools {
     GenerateWonumEbisDao woDao = new GenerateWonumEbisDao();
-//    UpdateTaskStatusEbisDao updateDao = new UpdateTaskStatusEbisDao();
     ReToolDao reDao = new ReToolDao();
     InsertIntegrationHistory integrationDao = new InsertIntegrationHistory();
     UrlSendReTools urlRE = new UrlSendReTools();
-//    ListScmtIntegrationParam scmtList = new ListScmtIntegrationParam();
+    ConnUtil connUtil = new ConnUtil();
     
     private void sendUrl(ListReTools param) {
         try {
-            URL url = new URL(urlRE.getUrlSendRe());
+            APIConfig apiConfig = new APIConfig();
+            apiConfig = connUtil.getApiParam("send_url_obl");
+            URL url = new URL(apiConfig.getUrl());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
@@ -68,11 +62,11 @@ public class validateReTools {
             bodyParam.put("SITEID", param.getSiteId());
             
             String request = bodyParam.toString();
-            OutputStream str = conn.getOutputStream();
-            byte[] b = request.getBytes("UTF-8");
-            str.write(b);
-            str.flush();
-            str.close();
+            try (OutputStream outputStream = conn.getOutputStream()) {
+                byte[] b = request.getBytes("UTF-8");
+                outputStream.write(b);
+                outputStream.flush();
+            }
             
             int responseCode = conn.getResponseCode();
             InputStream inputStr = conn.getInputStream();
@@ -100,11 +94,14 @@ public class validateReTools {
     
     private void createCustomerSCMT(ListScmtIntegrationParam paramScmt) {
         try {
-            URL url = new URL(urlRE.getCreateCustomer());
+            APIConfig apiConfig = new APIConfig();
+            apiConfig = connUtil.getApiParam("create_customer_obl");
+            URL url = new URL(apiConfig.getUrl());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
             conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", apiConfig.getClientSecret());
             conn.setDoOutput(true);
             JSONObject bodyParam = new JSONObject();
             //requestnya belum
@@ -118,15 +115,11 @@ public class validateReTools {
             bodyParam.put("work_zone", paramScmt.getWorkzone());
             
             String request = bodyParam.toString();
-            DataOutputStream str1 = (DataOutputStream) conn.getOutputStream();
-            str1.writeBytes(request);
-            str1.flush();
-            str1.close();
-//            OutputStream str = conn.getOutputStream();
-//            byte[] b = request.getBytes("UTF-8");
-//            str.write(b);
-//            str.flush();
-//            str.close();
+            try (OutputStream outputStream = conn.getOutputStream()) {
+                byte[] b = request.getBytes("UTF-8");
+                outputStream.write(b);
+                outputStream.flush();
+            }
             
             int responseCode = conn.getResponseCode();
             InputStream inputStr = conn.getInputStream();

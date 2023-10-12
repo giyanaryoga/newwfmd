@@ -571,4 +571,24 @@ public class TaskAttributeUpdateDao {
 
         return result;
     }
+    
+    public JSONObject getAssignment(String wonum) throws SQLException {
+        JSONObject workzoneObj = new JSONObject();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_laborcode, c_amcrew FROM app_fd_assignment WHERE c_wonum = ? AND c_status = 'ASSIGNED'";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                workzoneObj.put("laborcode", rs.getString("c_laborcode"));
+                workzoneObj.put("amcrew", rs.getString("c_amcrew"));
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return workzoneObj;
+    }
 }

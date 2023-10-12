@@ -40,7 +40,7 @@ public class ScmtIntegrationEbisDao {
         ConnUtil connUtil = new ConnUtil();
         try {
             APIConfig apiConfig = new APIConfig();
-            apiConfig = connUtil.getApiParam("get_eai_token_scmt");
+            apiConfig = connUtil.getApiParam("get_eai_token");
             FormBody formBody = (new FormBody.Builder()).add("grant_type", apiConfig.getGrantType()).add("client_id", apiConfig.getClientId()).add("client_secret", apiConfig.getClientSecret()).build();
             String response = "";
             response = api.sendPostEaiToken(apiConfig, (RequestBody) formBody);

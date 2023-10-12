@@ -27,30 +27,22 @@ public class TaskAttribute extends DefaultApplicationPlugin {
 
     @Override
     public Object execute(Map map) {
-        try {
-            validateRevised logicValidate = new validateRevised();
-            validateTaskAttribute logicTaskAttr = new validateTaskAttribute();
-            
-            String parent = getPropertyString("parent");
-            String task = getPropertyString("task");
-            String taskId = getPropertyString("taskid");
-            String wonum = getPropertyString("wonum");
-            String attrName = getPropertyString("assetattrid");
-            String attrValue = getPropertyString("value");
-            
-            LogUtil.info(this.getClassName(), "PARENT: " + parent);
-            LogUtil.info(this.getClassName(), "WONUM: " + wonum);
-            LogUtil.info(this.getClassName(), "TASK ID: " + taskId);
-            LogUtil.info(this.getClassName(), "TASK: " + task);
-            LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: " + attrName);
-            LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: " + attrValue);
-            
-            logicTaskAttr.validate(parent, wonum, attrName, attrValue);
-            logicValidate.validate(parent, wonum, attrName, attrValue, task);
-            
-        } catch (SQLException ex) {
-            Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        validateRevised logicValidate = new validateRevised();
+        validateTaskAttribute logicTaskAttr = new validateTaskAttribute();
+        String parent = getPropertyString("parent");
+        String task = getPropertyString("task");
+        String taskId = getPropertyString("taskid");
+        String wonum = getPropertyString("wonum");
+        String attrName = getPropertyString("assetattrid");
+        String attrValue = getPropertyString("value");
+        LogUtil.info(this.getClassName(), "PARENT: " + parent);
+        LogUtil.info(this.getClassName(), "WONUM: " + wonum);
+        LogUtil.info(this.getClassName(), "TASK ID: " + taskId);
+        LogUtil.info(this.getClassName(), "TASK: " + task);
+        LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: " + attrName);
+        LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: " + attrValue);
+        logicTaskAttr.validate(parent, wonum, attrName, attrValue);
+        logicValidate.validate(parent, wonum, attrName, attrValue, task);
         return null;
     }
 

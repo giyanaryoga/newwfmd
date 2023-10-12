@@ -7,6 +7,14 @@ package id.co.telkom.wfm.plugin.controller;
 //import id.co.telkom.wfm.plugin.TaskAttribute;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
+import id.co.telkom.wfm.plugin.model.APIConfig;
+import id.co.telkom.wfm.plugin.util.ConnUtil;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -23,10 +31,16 @@ public class validateTaskAttribute {
 
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
     TaskActivityDao taskDao = new TaskActivityDao();
+    ConnUtil connUtil = new ConnUtil();
 
     private static final String nteType1[] = {"L2Switch", "DirectME", "DirectPE"};
     private static final String taskNTEAvailable[] = {
         "Survey-Ondesk", "Site-Survey", "Survey-Ondesk Wifi", "Site-Survey Wifi"
+    };
+    private static final String cpeActivity[] = {
+        "Pickup AP From SCM Wifi", "Install AP", "Pickup NTE from SCM Wifi",
+        "Install NTE Wifi", "Pickup NTE from SCM", "Pickup NTE from SCM Manual",
+        "Install NTE", "Install NTE Manual"
     };
 
     private void validateRole(String parent, String wonum) {
@@ -215,11 +229,9 @@ public class validateTaskAttribute {
                     taskAttrDao.updateTaskValue(nextWonum, "PE_IPADDRESS", "118.98.9.122");
                     taskAttrDao.updateTaskValue(nextWonum, "ME_SERVICE_IPADDRESS", "118.98.9.22");
                     taskAttrDao.updateTaskValue(nextWonum, "ME_SERVICE_PORTNAME", "Gi12/0/5");
-                } else {
-//                    Do Nothing
                 }
             } else {
-                //Do Nothing
+                LogUtil.info(getClass().getName(), "Product name is not INF_IPPBX_NEUAPIX");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -242,36 +254,175 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    public void validate(String parent, String wonum, String attrName, String attrValue) throws SQLException {
-//        if (!attrName.equalsIgnoreCase("APPROVAL")) {
-            validateValueNextTask(parent, attrName, attrValue);
-//        }
-        switch (attrName) {
-            case "ROLE":
-            case "NTE_TYPE":
-                validateRole(parent, wonum);
-                break;
-            case "STO":
-                if (!attrValue.equalsIgnoreCase("NAS")) {
-                    validateSTO(wonum, attrValue);
+    
+    private void validateAPManufacture(String wonum, String attrValue) {
+        try {
+            String activity = taskAttrDao.getActivity(wonum);
+            if (activity.equalsIgnoreCase("Populate AP Manufacture")) {
+                if (attrValue.equalsIgnoreCase("HUAWEI")) {
+                    taskAttrDao.updateTaskValue(wonum, "AP_MANUFACTURER_CODE", "HW");
+                } else if (attrValue.equalsIgnoreCase("CISCO")) {
+                    taskAttrDao.updateTaskValue(wonum, "AP_MANUFACTURER_CODE", "CI");
+                } else if (attrValue.equalsIgnoreCase("AUTELAN")) {
+                    taskAttrDao.updateTaskValue(wonum, "AP_MANUFACTURER_CODE", "AU");
                 }
-                break;
-            case "NTE_AVAILABLE":
-                nteAvailable(wonum);
-                break;
-            case "PIC_CONTACTNUMBER":
-                validatePIC(parent, wonum);
-                break;
-            case "HOSTNAME SBC":
-                validateNeuAPIX(parent, wonum, attrValue);
-                break;
-            case "STP_NETWORKLOCATION_LOV":
-                validateSTP(parent, wonum, attrValue);
-                break;
-            
-            default:
-                break;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-}
+    
+    private void validateType(String wonum, String attrValue) {
+        try {
+            String[] act = { "Pickup AP From SCM Wifi", "Pickup NTE from SCM Wifi" };
+            String activity = taskAttrDao.getActivity(wonum);
+            if (Arrays.asList(act).contains(activity)) {
+                if (attrValue.equalsIgnoreCase("NEW")) {
+                    taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORTNAME", 0);
+                    taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
+                } else if (attrValue.equalsIgnoreCase("EXISTING")) {
+                    taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORTNAME", 1);
+                    taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 1);
+                    taskAttrDao.updateTaskValue(wonum, "NTE_DOWNLINK_PORTNAME", "None");
+                    taskAttrDao.updateTaskValue(wonum, "NTE_DOWNLINK_PORT", "None");
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validateAPStatus(String wonum, String attrValue) {
+        try {
+            String[] act = { "Pickup AP From SCM Wifi" };
+            String activity = taskAttrDao.getActivity(wonum);
+            if (Arrays.asList(act).contains(activity)) {
+                if (attrValue.equalsIgnoreCase("NEW")) {
+                    taskAttrDao.updateMandatory(wonum, "AP_COORDINATE", 0);
+                    taskAttrDao.updateMandatory(wonum, "AP_MAC_ADDRESS", 0);
+                    taskAttrDao.updateMandatory(wonum, "AP_MANUFACTURE", 0);
+                    taskAttrDao.updateMandatory(wonum, "AP_MODEL", 0);
+                    taskAttrDao.updateMandatory(wonum, "AP_PREPOSISI", 0);
+                    taskAttrDao.updateMandatory(wonum, "AP_SERIALNUMBER", 0);
+                } else if (attrValue.equalsIgnoreCase("EXISTING")) {
+                    taskAttrDao.updateMandatory(wonum, "AP_COORDINATE", 1);
+                    taskAttrDao.updateMandatory(wonum, "AP_MAC_ADDRESS", 1);
+                    taskAttrDao.updateMandatory(wonum, "AP_MANUFACTURE", 1);
+                    taskAttrDao.updateMandatory(wonum, "AP_MODEL", 1);
+                    taskAttrDao.updateMandatory(wonum, "AP_PREPOSISI", 1);
+                    taskAttrDao.updateMandatory(wonum, "AP_SERIALNUMBER", 1);
+                    taskAttrDao.updateTaskValue(wonum, "AP_COORDINATE", "None");
+                    taskAttrDao.updateTaskValue(wonum, "AP_MAC_ADDRESS", "None");
+                    taskAttrDao.updateTaskValue(wonum, "AP_MANUFACTURE", "None");
+                    taskAttrDao.updateTaskValue(wonum, "AP_MODEL", "None");
+                    taskAttrDao.updateTaskValue(wonum, "AP_PREPOSISI", "None");
+                    taskAttrDao.updateTaskValue(wonum, "AP_SERIALNUMBER", "None");
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void validate(String parent, String wonum, String attrName, String attrValue) {
+        try {
+            validateValueNextTask(parent, attrName, attrValue);
+            switch (attrName) {
+                case "ROLE":
+                case "NTE_TYPE":
+                    validateRole(parent, wonum);
+                    break;
+                case "STO":
+                    if (!attrValue.equalsIgnoreCase("NAS")) {
+                        validateSTO(wonum, attrValue);
+                    }
+                    break;
+                case "NTE_AVAILABLE":
+                    nteAvailable(wonum);
+                    break;
+                case "PIC_CONTACTNUMBER":
+                    validatePIC(parent, wonum);
+                    break;
+                case "HOSTNAME SBC":
+                    validateNeuAPIX(parent, wonum, attrValue);
+                    break;
+                case "STP_NETWORKLOCATION_LOV":
+                    validateSTP(parent, wonum, attrValue);
+                    break;
+                case "AP_MANUFACTURE":
+                    validateAPManufacture(wonum, attrValue);
+                    break;
+                case "TYPE":
+                    validateType(wonum, attrValue);
+                    break;
+                case "AP_STATUS":
+                    validateAPStatus(wonum, attrValue);
+                    break;
+                case "NTE_SERIALNUMBER":
+                case "AP_SERIALNUMBER":
+                    validateCpeScmt(wonum, attrValue);
+                    break;
+                default:
+                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
+                    break;
+            }
+            
+            } catch (SQLException ex) {
+                Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    
+        private void validateCpeScmt(String wonum, String attrValue) {
+        try {
+            String activity = taskAttrDao.getActivity(wonum);
+            
+            if (Arrays.asList(cpeActivity).contains(activity)) {
+                APIConfig apiConfig = new APIConfig();
+                apiConfig = connUtil.getApiParam("cpe_validation_ebis");
+                URL url = new URL(apiConfig.getUrl());
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                
+                JSONObject laborObj = taskAttrDao.getAssignment(wonum);
+                JSONObject bodyParam = new JSONObject();
+                bodyParam.put("wonum", wonum);
+                bodyParam.put("cpeSerialNumber", attrValue);
+                bodyParam.put("chiefCode", (laborObj.get("laborcode") == null ? "" : laborObj.get("laborcode").toString()));
+                bodyParam.put("amcrew", (laborObj.get("amcrew") == null ? "" : laborObj.get("amcrew").toString()));
+                
+                String request = bodyParam.toString();
+                try (OutputStream outputStream = conn.getOutputStream()) {
+                    byte[] b = request.getBytes("UTF-8");
+                    outputStream.write(b);
+                    outputStream.flush();
+                }
+                //Response
+                int responseCode = conn.getResponseCode();
+                InputStream inputStr = conn.getInputStream();
+                StringBuilder response = new StringBuilder();
+                byte[] res = new byte[2048];
+                int i = 0;
+                while ((i = inputStr.read(res)) != -1) {
+                    response.append(new String(res, 0, i));
+                }
+                LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
+
+                if (responseCode == 200) {
+                    LogUtil.info(this.getClass().getName(), "Success POST");
+                } else {
+                    LogUtil.info(this.getClass().getName(), "Failed POST");
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        }
+    }
+
