@@ -4,7 +4,6 @@
  */
 package id.co.telkom.wfm.plugin.controller;
 
-//import id.co.telkom.wfm.plugin.TaskAttribute;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
@@ -13,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -135,7 +133,7 @@ public class validateTaskAttribute {
                 JSONObject taskAttrObj = (JSONObject) obj;
 //                LogUtil.info(getClass().getName(), "Task attribute = " +taskAttrObj);
                 String attr_name = taskAttrObj.get("task_attr_name").toString();
-                String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
+//                String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
                 if (attrName.equalsIgnoreCase(attr_name) ) {
                     if (!attrName.equalsIgnoreCase("APPROVAL")) {
                         taskAttrDao.updateTaskValueParent(parent, attr_name, attrValue);
@@ -323,56 +321,8 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    public void validate(String parent, String wonum, String attrName, String attrValue) {
-        try {
-            validateValueNextTask(parent, attrName, attrValue);
-            switch (attrName) {
-                case "ROLE":
-                case "NTE_TYPE":
-                    validateRole(parent, wonum);
-                    break;
-                case "STO":
-                    if (!attrValue.equalsIgnoreCase("NAS")) {
-                        validateSTO(wonum, attrValue);
-                    }
-                    break;
-                case "NTE_AVAILABLE":
-                    nteAvailable(wonum);
-                    break;
-                case "PIC_CONTACTNUMBER":
-                    validatePIC(parent, wonum);
-                    break;
-                case "HOSTNAME SBC":
-                    validateNeuAPIX(parent, wonum, attrValue);
-                    break;
-                case "STP_NETWORKLOCATION_LOV":
-                    validateSTP(parent, wonum, attrValue);
-                    break;
-                case "AP_MANUFACTURE":
-                    validateAPManufacture(wonum, attrValue);
-                    break;
-                case "TYPE":
-                    validateType(wonum, attrValue);
-                    break;
-                case "AP_STATUS":
-                    validateAPStatus(wonum, attrValue);
-                    break;
-                case "NTE_SERIALNUMBER":
-                case "AP_SERIALNUMBER":
-                    validateCpeScmt(wonum, attrValue);
-                    break;
-                default:
-                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
-                    break;
-            }
-            
-            } catch (SQLException ex) {
-                Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
     
-        private void validateCpeScmt(String wonum, String attrValue) {
+    private void validateCpeScmt(String wonum, String attrValue) {
         try {
             String activity = taskAttrDao.getActivity(wonum);
             
@@ -416,13 +366,56 @@ public class validateTaskAttribute {
                     LogUtil.info(this.getClass().getName(), "Failed POST");
                 }
             }
-        } catch (SQLException ex) {
+        } catch (SQLException | IOException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-        }
         }
     }
+
+    public void validate(String parent, String wonum, String attrName, String attrValue) {
+        try {
+            validateValueNextTask(parent, attrName, attrValue);
+            switch (attrName) {
+                case "ROLE":
+                case "NTE_TYPE":
+                    validateRole(parent, wonum);
+                    break;
+                case "STO":
+                    if (!attrValue.equalsIgnoreCase("NAS")) {
+                        validateSTO(wonum, attrValue);
+                    }
+                    break;
+                case "NTE_AVAILABLE":
+                    nteAvailable(wonum);
+                    break;
+                case "PIC_CONTACTNUMBER":
+                    validatePIC(parent, wonum);
+                    break;
+                case "HOSTNAME SBC":
+                    validateNeuAPIX(parent, wonum, attrValue);
+                    break;
+                case "STP_NETWORKLOCATION_LOV":
+                    validateSTP(parent, wonum, attrValue);
+                    break;
+                case "AP_MANUFACTURE":
+                    validateAPManufacture(wonum, attrValue);
+                    break;
+                case "TYPE":
+                    validateType(wonum, attrValue);
+                    break;
+                case "AP_STATUS":
+                    validateAPStatus(wonum, attrValue);
+                    break;
+                case "NTE_SERIALNUMBER":
+                case "AP_SERIALNUMBER":
+                    validateCpeScmt(wonum, attrValue);
+                    break;
+                default:
+                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
+                    break;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+}
 

@@ -25,7 +25,6 @@ public class UrlSendReTools {
      * @param urlSendRe the urlSendRe to set
      */
     public void setUrlSendRe(String urlSendRe) {
-        urlSendRe = "http://10.60.163.39/service/index.php/Json/insertURL"; //Dev
         this.urlSendRe = urlSendRe;
     }
 
@@ -40,7 +39,6 @@ public class UrlSendReTools {
      * @param createCustomer the createCustomer to set
      */
     public void setCreateCustomer(String createCustomer) {
-        createCustomer = "http://10.6.3.135:8028/custLoc"; //Dev
         this.createCustomer = createCustomer;
     }
 
@@ -55,7 +53,6 @@ public class UrlSendReTools {
      * @param apiMinio the apiMinio to set
      */
     public void setApiMinio(String apiMinio) {
-        apiMinio = "https://apiminio.telkom.co.id:9001/api/v1/buckets/oss-transformation/";
         this.apiMinio = apiMinio;
     }
 }

@@ -22,7 +22,7 @@ public class TkMappingOwnerGroupDao {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT act.c_activity, cls.c_classificationid FROM app_fd_classstructure cls, app_fd_detailactivity act "
                 + "WHERE cls.c_classstructureid = act.c_classstructureid AND act.c_activity = ?";
-        String query2 = "SELECT * FROM app_fd_customconfigdata"
+        String query2 = "SELECT * FROM app_fd_customconfigdata "
                 + "WHERE c_configcode = 'IPTRANSIT' AND c_attrtype = 'CLASSIFICATION FOR NAS' AND c_attrname = 'CLASSIFICATIONID' "
                 + "AND c_attrstatus = 'ACTIVE' AND c_attrvalue = ?";
         try (Connection con = ds.getConnection();
@@ -31,15 +31,15 @@ public class TkMappingOwnerGroupDao {
             ps.setString(1, activity);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                String classsification = rs.getString("c_classificationid");
+                String classsification = rs.getString("cls.c_classificationid");
                 ps2.setString(1, classsification);
                 ResultSet rs2 = ps2.executeQuery();
                 if (rs2.next()) {
                     isTransitNas = 1;
                 }
-                    isTransitNas = 0;
+//                    isTransitNas = 0;
             }
-            isTransitNas = 0;
+//            isTransitNas = 0;
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -62,15 +62,15 @@ public class TkMappingOwnerGroupDao {
             ps.setString(1, activity);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                String classsification = rs.getString("c_classificationid");
+                String classsification = rs.getString("cls.c_classificationid");
                 ps2.setString(1, classsification);
                 ResultSet rs2 = ps2.executeQuery();
                 if (rs2.next()) {
                     isTransitReg = 1;
                 }
-                    isTransitReg = 0;
+//                    isTransitReg = 0;
             }
-            isTransitReg = 0;
+//            isTransitReg = 0;
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {

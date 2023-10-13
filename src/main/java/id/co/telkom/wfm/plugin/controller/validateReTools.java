@@ -4,12 +4,10 @@
  */
 package id.co.telkom.wfm.plugin.controller;
 
-import id.co.telkom.wfm.plugin.model.UrlSendReTools;
 import id.co.telkom.wfm.plugin.model.ListReTools;
 import id.co.telkom.wfm.plugin.model.ListScmtIntegrationParam;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.controller.InsertIntegrationHistory;
-//import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.dao.ReToolDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
@@ -33,7 +31,6 @@ public class validateReTools {
     GenerateWonumEbisDao woDao = new GenerateWonumEbisDao();
     ReToolDao reDao = new ReToolDao();
     InsertIntegrationHistory integrationDao = new InsertIntegrationHistory();
-    UrlSendReTools urlRE = new UrlSendReTools();
     ConnUtil connUtil = new ConnUtil();
     
     private void sendUrl(ListReTools param) {
@@ -174,7 +171,7 @@ public class validateReTools {
             
             //Kurang docName sama URL document
             param.setDocName(docName);
-            param.setUrlDoc(urlRE.getApiMinio() + "? ObjectName ?");
+            param.setUrlDoc("? ObjectName ?");
             
             param.setNomorKb(nomorKb == null ? "" : nomorKb);
             param.setNomorKl(nomorKl == null ? workorder.get("productName").toString() : nomorKl);

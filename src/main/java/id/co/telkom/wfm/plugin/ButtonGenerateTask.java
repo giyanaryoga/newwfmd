@@ -27,7 +27,7 @@ import org.json.simple.parser.ParseException;
  */
 public class ButtonGenerateTask extends Element implements PluginWebSupport {
 
-    String pluginName = "Telkom New WFM - Button Generate Task Non Core - Web Service";
+    String pluginName = "Telkom New WFM - Button Generate Task - Web Service";
 
     @Override
     public String renderTemplate(FormData fd, Map map) {
@@ -68,7 +68,7 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         TimeUtil time = new TimeUtil();
         //@@Start..
-        LogUtil.info(getClass().getName(), "Start Process: Generate Task");
+        LogUtil.info(getClass().getName(), "Start Process: Button Generate Task");
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
             try {
@@ -96,7 +96,7 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
                 validateGenerateTask validateGenerate = new validateGenerateTask();
                 
                 String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
-                boolean validate = validateGenerate.generateNonCoreButton(parent);
+                boolean validate = validateGenerate.generateButton(parent);
                 if (validate) {
                     message = "Successfully update task";
                     res.put("code", 200);

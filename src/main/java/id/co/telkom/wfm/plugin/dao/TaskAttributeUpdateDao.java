@@ -490,6 +490,30 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
     }
+    
+    public void deleteTaskAttrLike(String wonum, String assetattrid) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+                .append("DELETE FROM app_fd_workorderspec ")
+                .append("WHERE ")
+                .append("c_wonum = ?")
+                .append("AND c_assetattrid LIKE ?")
+                .append("AND c_assetattrid NOT IN ('STP_NETWORKLOCATION', 'STP_NETWORKLOCATION_LOV')");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, wonum);
+            ps.setString(2, assetattrid);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
 
     public void updateWoAttrView(String parent, String attrName, String attrValue) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
