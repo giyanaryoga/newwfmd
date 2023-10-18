@@ -18,6 +18,7 @@ public class Activator implements BundleActivator {
         //TEST PLUGIN
         registrationList.add(context.registerService(TestGenerateEbis.class.getName(), new TestGenerateEbis(), null));
         registrationList.add(context.registerService(TestUpdateStatusEbis.class.getName(), new TestUpdateStatusEbis(), null));
+        registrationList.add(context.registerService(TestKafka.class.getName(), new TestKafka(), null));
         //REGISTER PLUGIN HERE
         registrationList.add(context.registerService(GenerateWonumEbis.class.getName(), new GenerateWonumEbis(), null));
         registrationList.add(context.registerService(UpdateTaskStatusEbis.class.getName(), new UpdateTaskStatusEbis(), null));

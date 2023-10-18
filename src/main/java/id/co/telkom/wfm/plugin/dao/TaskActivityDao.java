@@ -627,7 +627,7 @@ public class TaskActivityDao {
         StringBuilder update = new StringBuilder();
         update
             .append(" UPDATE app_fd_workorder SET ")
-            .append(" c_wfmdoctype = ? ")
+            .append(" c_wfmdoctype = ?, ")
             .append(" datemodified = sysdate ")
             .append(" WHERE ")
             .append(" c_parent = ? ")
@@ -685,13 +685,11 @@ public class TaskActivityDao {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                if (rs.next()) {
-                    JSONObject activityProp = new JSONObject();
-                    activityProp.put("jmsCorrId", rs.getString("c_jmscorrelationid"));
-                    activityProp.put("scorderno", rs.getString("c_scorderno"));
-                    activityProp.put("activity", rs.getString("c_detailactcode"));
-                    activity.add(activityProp);
-                }
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("jmsCorrId", rs.getString("c_jmscorrelationid"));
+                activityProp.put("scorderno", rs.getString("c_scorderno"));
+                activityProp.put("activity", rs.getString("c_detailactcode"));
+                activity.add(activityProp);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -704,20 +702,41 @@ public class TaskActivityDao {
     public JSONArray getOssItem(String parent) throws SQLException {
         JSONArray activity = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_itemname, c_correlationid FROM app_fd_ossitem WHERE c_parent = ?";
+        String query = "SELECT oss.c_ossitemid, oss.c_itemname, oss.c_correlationid, wo.c_parent "
+                + "FROM app_fd_ossitem oss, app_fd_workorder wo "
+                + "WHERE oss.c_wonum = wo.c_wonum AND wo.c_parent = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                if (rs.next()) {
-                    JSONObject activityProp = new JSONObject();
-                    activityProp.put("jmsCorrId", rs.getString("c_jmscorrelationid"));
-                    activityProp.put("scorderno", rs.getString("c_scorderno"));
-                    activityProp.put("activity", rs.getString("c_detailactcode"));
-                    activity.add(activityProp);
-//                    LogUtil.info(getClass().getName(), "task = " + activity);
-                }
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("ossitemid", rs.getInt("c_ossitemid"));
+                activityProp.put("corrid", rs.getString("c_correlationid"));
+                activityProp.put("activity", rs.getString("c_itemname"));
+                activity.add(activityProp);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return activity;
+    }
+    
+    public JSONArray getOssItemAttr(int ossitemid) throws SQLException {
+        JSONArray activity = new JSONArray();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_attr_name, c_attr_value FROM app_fd_ossitemattribute WHERE c_ossitemid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, ossitemid);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("ATTR_NAME", rs.getString("c_attr_name"));
+                activityProp.put("ATTR_VALUE", rs.getString("c_attr_value") == null ? "" : rs.getString("c_attr_value"));
+                activity.add(activityProp);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

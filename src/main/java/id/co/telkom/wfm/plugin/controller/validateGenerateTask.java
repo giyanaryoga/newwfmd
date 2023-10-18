@@ -174,11 +174,8 @@ public class validateGenerateTask {
                 task.put("ownerGroup", (detailAct.get("ownergroup") == null ? "" : detailAct.get("ownergroup")));
                 task.put("duration", (float) detailAct.get("duration"));
                 task.put("classstructureid", detailAct.get("classstructureid"));
-//                totalDuration = (float) task.get("duration");
-                totalDuration += (float) task.get("duration");
                 task.put("schedstart", (workorder.get("schedStart").toString() == "" ? time.getCurrentTime() : workorder.get("schedStart").toString()));
-//                LogUtil.info(getClass().getName(), "SchedStart = "+ task.get("schedstart").toString());
-            
+                
                 JSONArray taskAttrList = new JSONArray();
                 for (Object ossItemAttr : ossitem_attr) {
                     JSONObject arrayObj2 = (JSONObject)ossItemAttr;
@@ -188,6 +185,10 @@ public class validateGenerateTask {
                     taskAttrList.add(taskAttrItem);
                 }
                 task.put("task_attr", taskAttrList);
+                
+                totalDuration += (float) task.get("duration");
+                workorder.put("duration", totalDuration);
+                
                 taskList.add(task);
             } catch (SQLException ex) {
                 Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
@@ -257,73 +258,73 @@ public class validateGenerateTask {
     public boolean generateButton(String parent) {
         boolean generate = false;
         try {
-            JSONObject product = dao2.getProduct(parent);
-            
-            int isNonCoreProduct = nonCoreDao.isNonCoreProduct(product.get("prodName").toString());
-            JSONArray taskNonCore = dao2.getDetailTaskNonCore(product.get("prodName").toString(), product.get("crmOrderType").toString());
+//            JSONObject product = dao2.getProduct(parent);
+//            int isNonCoreProduct = nonCoreDao.isNonCoreProduct(product.get("prodName").toString());
+//            JSONArray taskNonCore = dao2.getDetailTaskNonCore(product.get("prodName").toString(), product.get("crmOrderType").toString());
             JSONArray taskWO = dao2.getTaskWo(parent);
-            
-            int taskProductNonCore = taskNonCore.size();
+//            int taskProductNonCore = taskNonCore.size();
             int taskWo = taskWO.size();
-            
-            if (isNonCoreProduct != 1) {
-                //Core Product
-                JSONArray ossItem = dao2.getOssItem(parent);
-                if (taskWo != 0) {
-                    //revised task
-                } else {
-                    //generate new task
-                }
+            LogUtil.info(getClass().getName(), "Task :" +taskWO);
+            if (taskWo != 0) {
+                generate = true;
+                //revised task
+                dao2.revisedTask(parent);
+                generateTaskButton(parent);
+            } else if (taskWo == 0) {
+                //generate new task
+                generate = true;
+                generateTaskButton(parent);
             } else {
-                //NonCore Product
-                if (taskWo != 0) {
-                    //revised task
-                } else {
-                    //generate new task
-                }
+                generate = false;
             }
-            
-//            if (taskWoNonCore == 0) {
-//                generate = true;
-//                generateTaskButtonNonCore(parent);
-//            } else if (taskWoNonCore < taskProductNonCore) {
-//                generate = true;
-//                generateTaskButtonNonCore(parent);
-//            } else if (taskWoNonCore == taskProductNonCore) {
-//                generate = false;
-//            } else {
-//                generate = false;
-//            }
+            LogUtil.info(getClass().getName(), "Task :" +taskWO);
         } catch (SQLException ex) {
             Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
         return generate;
     }
     
-    private void generateTaskButtonNonCore(String parent) {
+    private void generateTaskButton(String parent) {
         try {
             JSONArray arrayNull = new JSONArray();
             JSONArray taskItem = new JSONArray();
-            dao2.revisedTask(parent);
             JSONObject product = dao2.getProduct(parent);
-            LogUtil.info(getClass().getName(), "product = "+ product);
-            String prodName = product.get("prodName").toString();
-            String crmOrderType = product.get("crmOrderType").toString();
-            JSONArray detailTaskNonCore = dao2.getDetailTaskNonCore(prodName, crmOrderType);
-            
-            for (Object obj : detailTaskNonCore) {
-                JSONObject taskNonCoreObj = (JSONObject)obj;
-                JSONObject taskNoncore = new JSONObject();
-                taskNoncore.put("ACTION", "ADD");
-                taskNoncore.put("CORRELATIONID", "35363732383333303936333333323130");
-                taskNoncore.put("ITEMNAME", taskNonCoreObj.get("activity").toString());
-                taskNoncore.put("OSSITEMATTRIBUTE", arrayNull);
-                taskItem.add(taskNoncore);
-            }
-            
             int counter = 1;
             String[] splittedJms = product.get("jmsCorrelationId").toString().split("_");
             String orderId = splittedJms[0];
+            LogUtil.info(getClass().getName(), "product = "+ product);
+            String prodName = product.get("prodName").toString();
+            String crmOrderType = product.get("crmOrderType").toString();
+            int isNonCoreProduct = nonCoreDao.isNonCoreProduct(prodName);
+            
+            if (isNonCoreProduct == 1) {
+                JSONArray detailTaskNonCore = dao2.getDetailTaskNonCore(prodName, crmOrderType);
+                for (Object obj : detailTaskNonCore) {
+                    JSONObject taskNonCoreObj = (JSONObject)obj;
+                    JSONObject taskNoncore = new JSONObject();
+                    taskNoncore.put("ACTION", "ADD");
+                    taskNoncore.put("CORRELATIONID", "35363732383333303936333333323130");
+                    taskNoncore.put("ITEMNAME", taskNonCoreObj.get("activity").toString());
+                    taskNoncore.put("OSSITEMATTRIBUTE", arrayNull);
+                    taskItem.add(taskNoncore);
+                }
+            } else {
+                JSONArray detailTaskCore = dao2.getOssItem(parent);
+                LogUtil.info(getClass().getName(), "OSS ITEM = "+ detailTaskCore);
+                for (Object obj : detailTaskCore) {
+                    JSONObject taskObj = (JSONObject)obj;
+                    JSONObject taskCore = new JSONObject();
+                    int ossitemid = (int) taskObj.get("ossitemid");
+                    JSONArray detailTaskAttr = dao2.getOssItemAttr(ossitemid);
+                    LogUtil.info(getClass().getName(), "OSS ITEM ATTR = "+ detailTaskAttr);
+                    taskCore.put("ACTION", "ADD");
+                    taskCore.put("CORRELATIONID", taskObj.get("corrid").toString());
+                    taskCore.put("ITEMNAME", taskObj.get("activity").toString());
+                    taskCore.put("OSSITEMATTRIBUTE", detailTaskAttr);
+                    taskItem.add(taskCore);
+                }
+            }
+            
             defineTaskButton(taskItem, product);
             sortedTask();
             generateTask(product, counter, orderId);
@@ -361,6 +362,7 @@ public class validateGenerateTask {
                     taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
                     taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
                     taskAttrList.add(taskAttrItem);
+                    LogUtil.info(getClass().getName(), "TASK ATTR = "+ taskAttrList);
                 }
                 task.put("task_attr", taskAttrList);
                 taskList.add(task);
