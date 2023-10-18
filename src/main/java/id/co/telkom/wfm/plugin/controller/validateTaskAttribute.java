@@ -329,6 +329,7 @@ public class validateTaskAttribute {
             validateValueNextTask(parent, attrName, attrValue);
             switch (attrName) {
                 case "ROLE":
+  
                 case "NTE_TYPE":
                     validateRole(parent, wonum);
                     break;

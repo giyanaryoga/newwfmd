@@ -272,10 +272,11 @@ public class validateNonCoreProduct {
                 + " c_location,"
                 + " c_description,"
                 + " c_saddresscode,"
+                + " c_disabled," 
                 + " modifiedby,"
                 + " c_type,"
                 + " c_status)"
-                + " VALUES (?, ?, ?, ?, ?, ?, ?)";
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -283,9 +284,10 @@ public class validateNonCoreProduct {
             ps.setString(2, location);
             ps.setString(3, description);
             ps.setString(4, addresscode);
-            ps.setString(5, modifiedBy);
-            ps.setString(6, "FMS");
-            ps.setString(7, "OPERATING");
+            ps.setInt(5, 0);
+            ps.setString(6, modifiedBy);
+            ps.setString(7, "FMS");
+            ps.setString(8, "OPERATING");
 
             int exe = ps.executeUpdate();
             if (exe > 0) {

@@ -102,7 +102,7 @@ public class RollbackStatusDao {
         return allAttributesDict;
     }
 
-    public boolean rollbackStatus(String parent, String modifiedBy) throws JSONException, SQLException {
+    public boolean rollbackStatus(String parent, String reqWonum, String modifiedBy) throws JSONException, SQLException {
         Map<String, String> attributeData = getWoAttribute(parent);
         LogUtil.info(getClass().getName(), "LIST ATTRIBUTE : " + attributeData);
         updateParentStatus(parent, "STARTWORK", modifiedBy);
@@ -111,7 +111,7 @@ public class RollbackStatusDao {
             String wonum = entry.getKey();
             String status = entry.getValue();
            
-            if ("COMPWA".equals(status)) {
+            if ("COMPWA".equals(status) && wonum.equals(reqWonum)) {
                 // Mengembalikan status dari "COMPWA" ke "STARTWA"
                 updateTaskStatus(wonum, "STARTWA", modifiedBy);
                 // Menampilkan pesan ke konsol atau melakukan tindakan lain yang diperlukan

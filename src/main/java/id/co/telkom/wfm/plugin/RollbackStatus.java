@@ -95,9 +95,10 @@ public class RollbackStatus extends Element implements PluginWebSupport {
 
                 //Store param
                 String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
+                String wonum = (body.get("wonum") == null ? "" : body.get("wonum").toString());
 
                 RollbackStatusDao dao = new RollbackStatusDao();
-                boolean updateTask = dao.rollbackStatus(parent, "WFM");
+                boolean updateTask = dao.rollbackStatus(parent,wonum, "WFM");
                 LogUtil.info(this.getClassName(), "update status : " + updateTask);
                 
                 if (updateTask == true) {
