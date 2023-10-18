@@ -42,7 +42,7 @@ public class TaskAttributeUpdateDao {
             while (rs.next()) {
                 JSONObject obj = new JSONObject();
                 String woAttrName = rs.getString("c_attr_name");
-                String woAttrValue = rs.getString("c_attr_value");
+                String woAttrValue = (rs.getString("c_attr_value") == null ? "" : rs.getString("c_attr_value"));
                 obj.put("attr_name", woAttrName.toUpperCase());
                 obj.put("attr_value", woAttrValue);
                 woAttr.add(obj);
@@ -66,7 +66,7 @@ public class TaskAttributeUpdateDao {
             while (rs.next()) {
                 JSONObject obj = new JSONObject();
                 String taskAttrName = rs.getString("c_assetattrid");
-                String taskAttrValue = rs.getString("c_value");
+                String taskAttrValue = (rs.getString("c_value") == null ? "" : rs.getString("c_value"));
                 obj.put("task_attr_name", taskAttrName);
                 obj.put("task_attr_value", taskAttrValue);
                 woAttr.add(obj);
@@ -277,7 +277,7 @@ public class TaskAttributeUpdateDao {
     public String getActivity(String wonum) throws SQLException {
         String activity = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_detailactcode FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'ACTIVITY'";
+        String query = "SELECT c_detailactcode FROM app_fd_workorder WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -437,6 +437,35 @@ public class TaskAttributeUpdateDao {
         }
     }
 
+    public void updateStatusValue(String wonum, String assetattrid, String value, String detailactcode) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+                .append("UPDATE app_fd_workorderspec SET ")
+                .append("c_value = ?, ")
+                .append("datemodified = ? ")
+                .append("WHERE ")
+                .append("c_wonum = ?")
+                .append("AND c_detailactcode= ?")
+                .append("AND c_assetattrid = ?");
+        try (Connection con = ds.getConnection();
+             PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, value);
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, wonum);
+            ps.setString(4, detailactcode);
+            ps.setString(5, assetattrid);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+
     public void updateTaskAttrViewLike(String parent, String assetattrid, int isview) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
@@ -483,6 +512,88 @@ public class TaskAttributeUpdateDao {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+
+    public void updateWO(String wonum, String table, String setvalue, String condition) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "UPDATE "+table+" SET "+setvalue+" WHERE c_wonum = ? "+condition;
+        try (Connection con = ds.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setString(1, wonum);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " Update WO Activity , Query :   " + query);
+            }else{
+                LogUtil.info(getClass().getName(), wonum + " Update WO Activity FAILED, Query:  " + query);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    public void insertWO(String wonum, String table, String columns, String values) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "INSERT INTO "+table+" ("+columns+") VALUES ("+values+")";
+        try (Connection con = ds.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setString(1, wonum);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " Insert WO  , Query :   " + query);
+            }else{
+                LogUtil.info(getClass().getName(), wonum + " Insert WO  FAILED, Query:  " + query);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    public void updateTKDeviceAttribute(String wonum, String setvalue, String condition) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "UPDATE app_fd_workorder SET "+setvalue+" WHERE c_wonum = ? "+condition;
+        try (Connection con = ds.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setString(1, wonum);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " Update TK Device Attribute , Query :   " + query);
+            }else{
+                LogUtil.info(getClass().getName(), wonum + " Update WO Activity FAILED, Query:  " + query);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void deleteTaskAttrLike(String wonum, String assetattrid) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+                .append("DELETE FROM app_fd_workorderspec ")
+                .append("WHERE ")
+                .append("c_parent = ?")
+                .append("AND c_assetattrid LIKE ?")
+                .append("AND c_assetattrid NOT IN ('STP_NETWORKLOCATION', 'STP_NETWORKLOCATION_LOV')");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, wonum);
+            ps.setString(2, assetattrid);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid delete:  " + assetattrid);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

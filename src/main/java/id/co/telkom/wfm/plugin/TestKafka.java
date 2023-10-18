@@ -4,9 +4,7 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
-import id.co.telkom.wfm.plugin.util.ResponseAPI;
-import id.co.telkom.wfm.plugin.util.TimeUtil;
+import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Map;
@@ -25,13 +23,12 @@ import org.json.simple.parser.ParseException;
  *
  * @author Giyanaryoga Puguh
  */
-public class ButtonGenerateTask extends Element implements PluginWebSupport {
-
-    String pluginName = "Telkom New WFM - Button Generate Task - Web Service";
-
+public class TestKafka extends Element implements PluginWebSupport {
+    String pluginName = "Telkom New WFM - Test Kafka - Web Service";
+    
     @Override
     public String renderTemplate(FormData fd, Map map) {
-        return "";
+        return "";    
     }
 
     @Override
@@ -66,9 +63,8 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
 
     @Override
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
-        TimeUtil time = new TimeUtil();
-        //@@Start..
-        LogUtil.info(getClass().getName(), "Start Process: Button Generate Task");
+       //@@Start..
+        LogUtil.info(getClass().getName(), "Start Process: Test Kafka Producer");
         //@Authorization
         if ("POST".equals(hsr.getMethod())) {
             try {
@@ -88,24 +84,15 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
                 //Parse JSON String to JSON Object
                 String bodyParam = jb.toString(); //String
                 JSONParser parser = new JSONParser();
-                JSONObject body = (JSONObject) parser.parse(bodyParam);//JSON Object
+                JSONObject body = (JSONObject) parser.parse(bodyParam);
 
-                ResponseAPI responseTemplete = new ResponseAPI();
-                JSONObject res = new JSONObject();
-                String message = "";
-                validateGenerateTask validateGenerate = new validateGenerateTask();
+                //Store param
+                String topic = (body.get("topic") == null ? "" : body.get("topic").toString());
+                String message = (body.get("message") == null ? "" : body.get("message").toString());
                 
-                String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
-                boolean validate = validateGenerate.generateButton(parent);
-                if (validate) {
-                    message = "Successfully update task";
-                    res.put("code", 200);
-                    res.put("message", message);
-                    res.writeJSONString(hsr1.getWriter());
-                } else {
-                    message = "Task is not generate!";
-                    hsr1.sendError(422, message);
-                }
+                String kafkaRes = body.toJSONString();
+                KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
+                kafkaProducerTool.generateConfluentMessage(kafkaRes, topic, "");
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
@@ -117,4 +104,5 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
             }
         }
     }
+    
 }

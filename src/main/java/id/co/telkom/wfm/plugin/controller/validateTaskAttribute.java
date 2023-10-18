@@ -4,27 +4,27 @@
  */
 package id.co.telkom.wfm.plugin.controller;
 
-//import id.co.telkom.wfm.plugin.TaskAttribute;
+import id.co.telkom.wfm.plugin.dao.STPDao;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.joget.commons.util.LogUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**
- *
  * @author Giyanaryoga Puguh
  */
 public class validateTaskAttribute {
@@ -34,58 +34,68 @@ public class validateTaskAttribute {
     ConnUtil connUtil = new ConnUtil();
 
     private static final String nteType1[] = {"L2Switch", "DirectME", "DirectPE"};
+    private static final String satelitNameType[] = {"WFMNonCore Deactivate Transponder", "WFMNonCore Review Order Transponder", "WFMNonCore Upload BA", "WFMNonCore Modify Bandwidth Transponder", "WFMNonCore Allocate Service Transponder", "WFMNonCore Resume Transponder", "WFMNonCore Suspend Transponder"};
     private static final String taskNTEAvailable[] = {
-        "Survey-Ondesk", "Site-Survey", "Survey-Ondesk Wifi", "Site-Survey Wifi"
+            "Survey-Ondesk", "Site-Survey", "Survey-Ondesk Wifi", "Site-Survey Wifi"
     };
     private static final String cpeActivity[] = {
-        "Pickup AP From SCM Wifi", "Install AP", "Pickup NTE from SCM Wifi",
-        "Install NTE Wifi", "Pickup NTE from SCM", "Pickup NTE from SCM Manual",
-        "Install NTE", "Install NTE Manual"
+            "Pickup AP From SCM Wifi", "Install AP", "Pickup NTE from SCM Wifi",
+            "Install NTE Wifi", "Pickup NTE from SCM", "Pickup NTE from SCM Manual",
+            "Install NTE", "Install NTE Manual"
     };
 
+    public void validateSTPPortName(String parent, String wonum, String attrValue){
+        try {
+            String stpPortId = taskAttrDao.getTkdeviceAttrValue(wonum,"STP_PORT_ID", attrValue);
+            LogUtil.info(this.getClass().getName(), "STP PORT ID"+stpPortId);
+
+            if(!stpPortId.isEmpty()){
+                taskAttrDao.updateWO(wonum, "app_fd_workorderspec",  "c_value='"+stpPortId+"'", "and c_assetattrid='STP_PORT_ID'");
+                taskAttrDao.updateWO(wonum, "app_fd_workorderspec",  "c_value='"+attrValue+"'", "and c_assetattrid='STP_PORT_NAME_ALN'");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     private void validateRole(String parent, String wonum) {
         try {
             String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
-            String valueNteType = taskAttrDao.getTaskAttrValue(wonum, "NTE_TYPE");
 
             if (value.equalsIgnoreCase("STP")) {
-                taskAttrDao.updateMandatory(wonum, "NTE_TYPE", 0);
-                taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
+                taskAttrDao.deleteTaskAttrLike(parent, "NTE%");
+            } else {
+                //IF ROLE = NTE
+                taskAttrDao.deleteTaskAttrLike(parent, "STP%");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void validateNteType(String wonum) {
+        try {
+            String valueNteType = taskAttrDao.getTaskAttrValue(wonum, "NTE_TYPE");
+
+            if (valueNteType == null) {
                 taskAttrDao.updateMandatory(wonum, "NTE_NAME", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
                 taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
                 taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
                 taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
-
-                taskAttrDao.updateTaskAttrViewLike(parent, "NTE%", 0);
-                taskAttrDao.updateTaskAttrViewLike(parent, "STP%", 1);
+            } else if (valueNteType.equalsIgnoreCase("ONT")) {
+                taskAttrDao.updateMandatory(wonum, "NTE_NAME", 1);
+                taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 1);
+                taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 1);
+                taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 1);
+                taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 1);
+            } else if (Arrays.asList(nteType1).contains(valueNteType)) {
+                taskAttrDao.updateMandatory(wonum, "NTE_NAME", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
+                taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
             } else {
-                //IF ROLE = NTE
-                LogUtil.info(getClass().getName(), "NTE_TYPE =" + valueNteType);
-                taskAttrDao.updateTaskAttrViewLike(parent, "STP%", 0);
-                taskAttrDao.updateTaskAttrViewLike(parent, "NTE%", 1);
-                if (valueNteType == null) {
-                    taskAttrDao.updateMandatory(wonum, "NTE_NAME", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
-                } else if (valueNteType.equalsIgnoreCase("ONT")) {
-                    taskAttrDao.updateMandatory(wonum, "NTE_NAME", 1);
-                    taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 1);
-                    taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 1);
-                    taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 1);
-                    taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 1);
-                } else if (Arrays.asList(nteType1).contains(valueNteType)) {
-                    taskAttrDao.updateMandatory(wonum, "NTE_NAME", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_SERIALNUMBER", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_DOWNLINK_PORT", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_MODEL", 0);
-                    taskAttrDao.updateMandatory(wonum, "NTE_MANUFACTUR", 0);
-                } else {
-                    LogUtil.info(getClass().getName(), "NTE_TYPE not yet inserted");
-                }
-                taskAttrDao.updateTaskAttrView(wonum, "STP_NETWORKLOCATION", 1);
-                taskAttrDao.updateTaskAttrView(wonum, "STP_NETWORKLOCATION_LOV", 1);
+                LogUtil.info(getClass().getName(), "NTE_TYPE not yet inserted");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -135,8 +145,8 @@ public class validateTaskAttribute {
                 JSONObject taskAttrObj = (JSONObject) obj;
 //                LogUtil.info(getClass().getName(), "Task attribute = " +taskAttrObj);
                 String attr_name = taskAttrObj.get("task_attr_name").toString();
-                String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
-                if (attrName.equalsIgnoreCase(attr_name) ) {
+//                String attr_value = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
+                if (attrName.equalsIgnoreCase(attr_name)) {
                     if (!attrName.equalsIgnoreCase("APPROVAL")) {
                         taskAttrDao.updateTaskValueParent(parent, attr_name, attrValue);
                         LogUtil.info(getClass().getName(), "Task attribute value insert from assetattrid same");
@@ -242,7 +252,7 @@ public class validateTaskAttribute {
         String id = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrtype);
         String specification = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_SPECIFICATION", attrtype);
         String netLoc = taskAttrDao.getTaskAttrValue(wonum, "STP_NETWORKLOCATION_LOV");
-        LogUtil.info(getClass().getName(), "STP_ID = " + id + "; STP_SPECIFICATION = " + specification + "; STP_NETWORKLOCATION = " +netLoc);
+        LogUtil.info(getClass().getName(), "STP_ID = " + id + "; STP_SPECIFICATION = " + specification + "; STP_NETWORKLOCATION = " + netLoc);
         try {
             boolean validate = taskAttrDao.updateAttributeSTP(parent, id, specification, netLoc);
             if (validate == true) {
@@ -254,7 +264,7 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void validateAPManufacture(String wonum, String attrValue) {
         try {
             String activity = taskAttrDao.getActivity(wonum);
@@ -271,10 +281,10 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void validateType(String wonum, String attrValue) {
         try {
-            String[] act = { "Pickup AP From SCM Wifi", "Pickup NTE from SCM Wifi" };
+            String[] act = {"Pickup AP From SCM Wifi", "Pickup NTE from SCM Wifi"};
             String activity = taskAttrDao.getActivity(wonum);
             if (Arrays.asList(act).contains(activity)) {
                 if (attrValue.equalsIgnoreCase("NEW")) {
@@ -291,10 +301,10 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void validateAPStatus(String wonum, String attrValue) {
         try {
-            String[] act = { "Pickup AP From SCM Wifi" };
+            String[] act = {"Pickup AP From SCM Wifi"};
             String activity = taskAttrDao.getActivity(wonum);
             if (Arrays.asList(act).contains(activity)) {
                 if (attrValue.equalsIgnoreCase("NEW")) {
@@ -318,65 +328,22 @@ public class validateTaskAttribute {
                     taskAttrDao.updateTaskValue(wonum, "AP_PREPOSISI", "None");
                     taskAttrDao.updateTaskValue(wonum, "AP_SERIALNUMBER", "None");
                 }
+
+//                ##### Skip Dulu
+//                if(attrValue.equalsIgnoreCase("None")){
+////                    assetattrid='AP_STATUS' and wonum in (select wonum from woactivity where parent in ( select parent from woactivity where wonum='"+wonum+"') and detailactcode='Pickup AP From SCM Wifi')  and wonum<> '"+wonum+"'"
+//                    taskAttrDao.updateStatusValue(wonum, "AP_STATUS", attrValue, 'Pickup AP From SCM Wifi');
+//                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    public void validate(String parent, String wonum, String attrName, String attrValue) {
-        try {
-            validateValueNextTask(parent, attrName, attrValue);
-            switch (attrName) {
-                case "ROLE":
-  
-                case "NTE_TYPE":
-                    validateRole(parent, wonum);
-                    break;
-                case "STO":
-                    if (!attrValue.equalsIgnoreCase("NAS")) {
-                        validateSTO(wonum, attrValue);
-                    }
-                    break;
-                case "NTE_AVAILABLE":
-                    nteAvailable(wonum);
-                    break;
-                case "PIC_CONTACTNUMBER":
-                    validatePIC(parent, wonum);
-                    break;
-                case "HOSTNAME SBC":
-                    validateNeuAPIX(parent, wonum, attrValue);
-                    break;
-                case "STP_NETWORKLOCATION_LOV":
-                    validateSTP(parent, wonum, attrValue);
-                    break;
-                case "AP_MANUFACTURE":
-                    validateAPManufacture(wonum, attrValue);
-                    break;
-                case "TYPE":
-                    validateType(wonum, attrValue);
-                    break;
-                case "AP_STATUS":
-                    validateAPStatus(wonum, attrValue);
-                    break;
-                case "NTE_SERIALNUMBER":
-                case "AP_SERIALNUMBER":
-                    validateCpeScmt(wonum, attrValue);
-                    break;
-                default:
-                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
-                    break;
-            }
-            
-            } catch (SQLException ex) {
-                Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
     
         private void validateCpeScmt(String wonum, String attrValue) {
         try {
             String activity = taskAttrDao.getActivity(wonum);
-            
+
             if (Arrays.asList(cpeActivity).contains(activity)) {
                 APIConfig apiConfig = new APIConfig();
                 apiConfig = connUtil.getApiParam("cpe_validation_ebis");
@@ -386,14 +353,14 @@ public class validateTaskAttribute {
                 conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);
-                
+
                 JSONObject laborObj = taskAttrDao.getAssignment(wonum);
                 JSONObject bodyParam = new JSONObject();
                 bodyParam.put("wonum", wonum);
                 bodyParam.put("cpeSerialNumber", attrValue);
                 bodyParam.put("chiefCode", (laborObj.get("laborcode") == null ? "" : laborObj.get("laborcode").toString()));
                 bodyParam.put("amcrew", (laborObj.get("amcrew") == null ? "" : laborObj.get("amcrew").toString()));
-                
+
                 String request = bodyParam.toString();
                 try (OutputStream outputStream = conn.getOutputStream()) {
                     byte[] b = request.getBytes("UTF-8");
@@ -417,13 +384,179 @@ public class validateTaskAttribute {
                     LogUtil.info(this.getClass().getName(), "Failed POST");
                 }
             }
-        } catch (SQLException ex) {
+        } catch (SQLException | IOException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
-        }
         }
     }
+
+    public void validateSatelitName(String wonum, String attrValue){
+        try {
+            String detailactcode = taskAttrDao.getActivity(wonum);
+            if (Arrays.asList(satelitNameType).contains(detailactcode)) {
+                if (attrValue.equalsIgnoreCase("Mpsat/Telkom-4")) {
+                    String setvalue = "c_ownergroup='TELKOMSAT_TRANSPONDER'";
+                    taskAttrDao.updateWO(wonum, "app_fd_workorder",setvalue, "");
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void validateAccessRequired(String wonum, String attrValue){
+        try {
+            String detailactcode = taskAttrDao.getActivity(wonum);
+            if (detailactcode.equalsIgnoreCase("WFMNonCore Review Order TSQ")) {
+                if (attrValue.equalsIgnoreCase("NO")) {
+                    String setvalue = "c_wfmdoctype='REVISED'";
+                    String condition = "AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Activate Access WDM')";
+                    taskAttrDao.updateWO(wonum,"app_fd_workorder", setvalue, condition);
+                }else if(attrValue.equalsIgnoreCase("YES")){
+                    String setvalue = "c_wfmdoctype='NEW'";
+                    String condition = "AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Activate Access WDM')";
+                    taskAttrDao.updateWO(wonum, "app_fd_workorder",  setvalue, condition);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void validateModifyType(String wonum, String attrValue){
+        try {
+            String detailactcode = taskAttrDao.getActivity(wonum);
+            LogUtil.info(getClass().getName(), "Detail act Code: "+detailactcode);
+            if (detailactcode.equalsIgnoreCase("WFMNonCore Review Order Modify Transport")) {
+                LogUtil.info(getClass().getName(), "masuk: "+attrValue);
+                if (attrValue.equalsIgnoreCase("Bandwidth")) {
+                    LogUtil.info(getClass().getName(), "attr value: "+attrValue);
+                    String setvalue = "c_wfmdoctype='REVISED'";
+                    String condition = "AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore Allocate WDM', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM', 'WFMNonCore PassThrough WDM', 'WFMNonCore BER Test WDM')";
+                    taskAttrDao.updateWO(wonum, "app_fd_workorder",  setvalue, condition);
+                }
+                if(attrValue.equalsIgnoreCase("Service (P2P dan P2MP)")||attrValue.equalsIgnoreCase("Port")){
+                    String setvalue = "c_wfmdoctype='REVISED'";
+                    String condition = "AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM')";
+                    taskAttrDao.updateWO(wonum,  "app_fd_workorder", setvalue, condition);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    public void validateTipeModify(String wonum, String attrValue){
+        try {
+            String detailactcode = taskAttrDao.getActivity(wonum);
+            if (detailactcode.equalsIgnoreCase("WFMNonCore Review Order Modify IPPBX")) {
+                if (attrValue.equalsIgnoreCase("Modify Concurrent")) {
+                    String setvalue = "c_wfmdoctype='REVISED'";
+                    String condition = "AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore Allocate WDM', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM', 'WFMNonCore PassThrough WDM', 'WFMNonCore BER Test WDM')";
+                    taskAttrDao.updateWO(wonum, "app_fd_workorder",  setvalue, condition);
+                }
+                if(attrValue.equalsIgnoreCase("Service (P2P dan P2MP)")||attrValue.equalsIgnoreCase("Port")){
+                    String setvalue = "c_wfmdoctype='REVISED'";
+                    String condition = "AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM')";
+                    taskAttrDao.updateWO(wonum, "app_fd_workorder",setvalue, condition);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void validateSTPName(String parent, String wonum, String attrValue){
+        try {
+            STPDao stpdao = new STPDao();
+            String result = stpdao.getSTPPortSoapResponse(wonum, attrValue, "STP");
+            if (result.isEmpty()) result="No device found for network location: "+attrValue;
+
+            LogUtil.info(getClass().getName(), " result: "+result);
+
+            String description = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrValue);
+            if(!description.isEmpty()){
+                taskAttrDao.updateWO(wonum, "app_fd_workorderspec",  "c_value='"+description+"'", " and c_assetattrid='STP_ID'");
+                taskAttrDao.updateWO(wonum, "app_fd_workorderspec",  "c_value='"+attrValue+"'", " and c_assetattrid='STP_NAME_ALN'");
+                taskAttrDao.updateWO(wonum, "app_fd_workorderspec",  "c_value='None'", " and c_assetattrid='STP_PORT_NAME'");
+                taskAttrDao.updateWO(wonum, "app_fd_workorderspec",  "c_value='None'", " and c_assetattrid='STP_PORT_ID'");
+                taskAttrDao.updateWO(wonum, "app_fd_workorderspec",  "c_value='None'", " and c_assetattrid='STP_PORT_NAME_ALN'");
+                LogUtil.info(getClass().getName(), wonum + " Berhasil");
+
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void validate(String parent, String wonum, String attrName, String attrValue) {
+        try {
+            validateValueNextTask(parent, attrName, attrValue);
+            switch (attrName) {
+                case "ROLE":
+                    validateRole(parent, wonum);
+                    break;
+                case "NTE_TYPE":
+                    validateNteType(wonum);
+                    break;
+                case "STO":
+                    if (!attrValue.equalsIgnoreCase("NAS")) {
+                        validateSTO(wonum, attrValue);
+                    }
+                    break;
+                case "NTE_AVAILABLE":
+                    nteAvailable(wonum);
+                    break;
+                case "PIC_CONTACTNUMBER":
+                    validatePIC(parent, wonum);
+                    break;
+                case "HOSTNAME SBC":
+                    validateNeuAPIX(parent, wonum, attrValue);
+                    break;
+                case "STP_NETWORKLOCATION":
+                    validateSTP(parent, wonum, attrValue);
+                    break;
+                case "STP_NETWORKLOCATION_LOV":
+                    validateSTP(parent, wonum, attrValue);
+                    break;
+                case "STP_NAME":
+                    validateSTPName(parent, wonum, attrValue);
+                    break;
+                case "STP_PORT_NAME":
+                    LogUtil.info(this.getClass().getName(), "############## START PROCESS STP_PORT_NAME ###############");
+                    validateSTPPortName(parent, wonum, attrValue);
+                    break;
+                case "AP_MANUFACTURE":
+                    validateAPManufacture(wonum, attrValue); // ok
+                    break;
+                case "TYPE":
+                    validateType(wonum, attrValue); //ok
+                    break;
+                case "AP_STATUS":
+                    validateAPStatus(wonum, attrValue); //ok
+                    break;
+                case "NTE_SERIALNUMBER":
+                case "AP_SERIALNUMBER":
+                    validateCpeScmt(wonum, attrValue);
+                    break;
+                case "SATELIT NAME":
+                    LogUtil.info(this.getClass().getName(), "############## START PROCESS SATELIT NAME ###############");
+                    validateSatelitName(wonum, attrValue);
+                    break;
+                case "ACCESS_REQUIRED":
+                    LogUtil.info(this.getClass().getName(), "############## START PROCESS ACCESS_REQUIRED ###############");
+                    validateAccessRequired(wonum, attrValue);
+                    break;
+                case "MODIFY_TYPE":
+                    LogUtil.info(this.getClass().getName(), "############## START PROCESS MODIFY_TYPE ###############");
+                    validateModifyType(wonum, attrValue);
+                    break;
+                default:
+                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
+                    break;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+}
 

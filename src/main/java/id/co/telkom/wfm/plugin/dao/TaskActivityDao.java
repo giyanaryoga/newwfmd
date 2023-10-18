@@ -80,43 +80,7 @@ public class TaskActivityDao {
         Timestamp ts =  Timestamp.valueOf(zdt.toLocalDateTime().format(format));
         return ts;
     }
-    
-    public String getWorkzone(String wonum) throws SQLException {
-        String workzone = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_workzone FROM app_fd_workorder WHERE c_wonum = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                workzone = rs.getString("c_workzone");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return workzone;
-    }
-    
-    public String getOwnerGroup(String workzone) throws SQLException {
-        String ownerGroup = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_ownergroup, c_classstructureid FROM app_fd_tkmapping WHERE c_workzone = ? AND c_classstructureid IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid = 'WFM_ACTIVITY' AND c_parent IN (SELECT c_classstructureid FROM app_fd_classstructure WHERE c_classificationid='FULFILLMENT'))";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, workzone);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                ownerGroup = rs.getString("c_ownergroup");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return ownerGroup;
-    }
-    
+
     public String getOwnerGroupPerson(String personGroup) throws SQLException {
         String ownerGroup = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -227,73 +191,73 @@ public class TaskActivityDao {
         return taskAttrValue;
     }
     
-    public boolean updateWoCpe(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String wonum){
-//        String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
-        boolean updateCpe = false;    
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
-        StringBuilder update = new StringBuilder();
-        update
-                .append(" UPDATE app_fd_workorder SET ")
-                .append(" c_cpe_model = ?, ")
-                .append(" c_cpe_vendor = ?, ")
-                .append(" c_cpe_serial_number = ?, ")
-                .append(" c_cpe_validation = ?, ")
-                .append(" dateModified = ? ")
-                .append(" WHERE ")
-                .append(" c_wonum = ? ")
-                .append(" AND ")
-                .append(" c_woclass = 'ACTIVITY' ");
-        // change 03
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update.toString());
-                // change 03
-                try {
-                    ps.setString(1, cpeModel);
-                    ps.setString(2, cpeVendor);
-                    ps.setString(3, cpeSerialNumber);
-                    ps.setString(4, cpeValidasi);
-                    ps.setTimestamp(5, getTimeStamp());
-                    // change 03 where clause
-                    ps.setString(6, wonum);
-//                    ps.setString(6, Integer.toString(act.getTaskId()));
-                    // change 03
-                    int exe = ps.executeUpdate();
-                    //Checking insert status
-                    if (exe > 0) {
-                        updateCpe = true;
-                        LogUtil.info(getClass().getName(), " CPE updated succes to " + wonum);
-                    }   
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
-                }
-                if (con != null)
-                    con.close();
-            } catch (Throwable throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        }
-        return updateCpe;
-    }
+//    public boolean updateWoCpe12(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String wonum){
+////        String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
+//        boolean updateCpe = false;    
+//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
+//        StringBuilder update = new StringBuilder();
+//        update
+//                .append(" UPDATE app_fd_workorder SET ")
+//                .append(" c_cpe_model = ?, ")
+//                .append(" c_cpe_vendor = ?, ")
+//                .append(" c_cpe_serial_number = ?, ")
+//                .append(" c_cpe_validation = ?, ")
+//                .append(" dateModified = ? ")
+//                .append(" WHERE ")
+//                .append(" c_wonum = ? ")
+//                .append(" AND ")
+//                .append(" c_woclass = 'ACTIVITY' ");
+//        // change 03
+//        try {
+//            Connection con = ds.getConnection();
+//            try {
+//                PreparedStatement ps = con.prepareStatement(update.toString());
+//                // change 03
+//                try {
+//                    ps.setString(1, cpeModel);
+//                    ps.setString(2, cpeVendor);
+//                    ps.setString(3, cpeSerialNumber);
+//                    ps.setString(4, cpeValidasi);
+//                    ps.setTimestamp(5, getTimeStamp());
+//                    // change 03 where clause
+//                    ps.setString(6, wonum);
+////                    ps.setString(6, Integer.toString(act.getTaskId()));
+//                    // change 03
+//                    int exe = ps.executeUpdate();
+//                    //Checking insert status
+//                    if (exe > 0) {
+//                        updateCpe = true;
+//                        LogUtil.info(getClass().getName(), " CPE updated succes to " + wonum);
+//                    }   
+//                    if (ps != null)
+//                        ps.close();
+//                } catch (SQLException throwable) {
+//                    try {
+//                        if (ps != null)
+//                            ps.close();
+//                    } catch (SQLException throwable1) {
+//                        throwable.addSuppressed(throwable1);
+//                    }
+//                    throw throwable;
+//                }
+//                if (con != null)
+//                    con.close();
+//            } catch (Throwable throwable) {
+//                try {
+//                    if (con != null)
+//                        con.close();
+//                } catch (SQLException throwable1) {
+//                    throwable.addSuppressed(throwable1);
+//                }
+//                throw throwable;
+//            } finally {
+//                ds.getConnection().close();
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+//        }
+//        return updateCpe;
+//    }
     
     public void generateActivityTask(JSONObject taskObj, JSONObject workorder, String ownerGroup) throws SQLException {
         StringBuilder insert = new StringBuilder();
@@ -427,21 +391,15 @@ public class TaskActivityDao {
         insert
                 .append(" INSERT INTO app_fd_workorderspec ")
                 .append(" ( ")
-                //TEMPLATE CONFIGURATION
                 .append(" id, dateCreated, createdBy, createdByName, c_workorderspecid,  ")
-                //TASK ATTRIBUTE
                 .append(" c_wonum, c_assetattrid, c_description, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
-                //PERMISSION
-                .append(" c_readonly, c_isshared, c_mandatory, c_parent, c_value, c_classstructureid, c_domaintype, c_isview ")
+                .append(" c_readonly, c_isshared, c_mandatory, c_parent, c_value, c_classstructureid, c_domaintype ")
                 .append(" ) ")
                 .append(" VALUES ")
                 .append(" ( ")
-                //VALUES TEMPLATE CONFIGURATION
                 .append(" ?, ?, 'admin', 'Admin admin', WORKORDERSPECIDSEQ.NEXTVAL, ")
-                //VALUES TASK ATTRIBUTE
                 .append(" ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
-                //VALUES PERMISSION
-                .append(" ?, ?, ?, ?, ?, ?, ?, ? ")
+                .append(" ?, ?, ?, ?, ?, ?, ? ")
                 .append(" ) ");
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -476,7 +434,6 @@ public class TaskActivityDao {
                     } else {
                         psInsert.setString(18, "");
                     }
-                    psInsert.setInt(19, 1);
                     psInsert.addBatch();
                 }
                 int[] exe = psInsert.executeBatch();
@@ -666,10 +623,12 @@ public class TaskActivityDao {
         }
     }
     
-    public void deleteTask(String parent) throws SQLException {
+    public void revisedTask(String parent) throws SQLException {
         StringBuilder update = new StringBuilder();
         update
-            .append(" DELETE FROM app_fd_workorder ")
+            .append(" UPDATE app_fd_workorder SET ")
+            .append(" c_wfmdoctype = ?, ")
+            .append(" datemodified = sysdate ")
             .append(" WHERE ")
             .append(" c_parent = ? ")
             .append(" AND ")
@@ -677,11 +636,12 @@ public class TaskActivityDao {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(update.toString())) {
-            ps.setString(1, parent);
+            ps.setString(1, "REVISED");
+            ps.setString(2, parent);
             int exe = ps.executeUpdate();
             //Checking insert status
             if (exe > 0) 
-                LogUtil.info(getClass().getName(), "Older activity task has been deleted");
+                LogUtil.info(getClass().getName(), "Older activity task has been revised");
         } catch (SQLException e) {
             LogUtil.error(getClass().getName() + " | generateSchedulingInformation", e, "Trace error here: " + e.getMessage());
             throw e;
@@ -725,14 +685,58 @@ public class TaskActivityDao {
             ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                if (rs.next()) {
-                    JSONObject activityProp = new JSONObject();
-                    activityProp.put("jmsCorrId", rs.getString("c_jmscorrelationid"));
-                    activityProp.put("scorderno", rs.getString("c_scorderno"));
-                    activityProp.put("activity", rs.getString("c_detailactcode"));
-                    activity.add(activityProp);
-//                    LogUtil.info(getClass().getName(), "task = " + activity);
-                }
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("jmsCorrId", rs.getString("c_jmscorrelationid"));
+                activityProp.put("scorderno", rs.getString("c_scorderno"));
+                activityProp.put("activity", rs.getString("c_detailactcode"));
+                activity.add(activityProp);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return activity;
+    }
+    
+    public JSONArray getOssItem(String parent) throws SQLException {
+        JSONArray activity = new JSONArray();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT oss.c_ossitemid, oss.c_itemname, oss.c_correlationid, wo.c_parent "
+                + "FROM app_fd_ossitem oss, app_fd_workorder wo "
+                + "WHERE oss.c_wonum = wo.c_wonum AND wo.c_parent = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, parent);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("ossitemid", rs.getInt("c_ossitemid"));
+                activityProp.put("corrid", rs.getString("c_correlationid"));
+                activityProp.put("activity", rs.getString("c_itemname"));
+                activity.add(activityProp);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return activity;
+    }
+    
+    public JSONArray getOssItemAttr(int ossitemid) throws SQLException {
+        JSONArray activity = new JSONArray();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_attr_name, c_attr_value FROM app_fd_ossitemattribute WHERE c_ossitemid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, ossitemid);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject activityProp = new JSONObject();
+                activityProp.put("ATTR_NAME", rs.getString("c_attr_name"));
+                activityProp.put("ATTR_VALUE", rs.getString("c_attr_value") == null ? "" : rs.getString("c_attr_value"));
+                activity.add(activityProp);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());

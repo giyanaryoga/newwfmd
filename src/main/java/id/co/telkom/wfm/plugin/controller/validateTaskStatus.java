@@ -256,9 +256,11 @@ public class validateTaskStatus {
             String taskAttrValue;
             String woAttrName;
             String woAttrValue;
+//            LogUtil.info(getClass().getName(), "task attribute =" +taskAttribute);
+//            LogUtil.info(getClass().getName(), "workorder attribute =" +workorderAttribute);
             for (Object obj : taskAttribute) {
                 JSONObject taskAttrObj = (JSONObject)obj;
-                taskAttrName = taskAttrObj.get("task_attr_name").toString();
+                taskAttrName = (taskAttrObj.get("task_attr_name") == null ? "" : taskAttrObj.get("task_attr_name").toString());
                 taskAttrValue = (taskAttrObj.get("task_attr_value") == null ? "" : taskAttrObj.get("task_attr_value").toString());
                 for (Object obj2 : workorderAttribute) {
                     JSONObject woAttrObj = (JSONObject)obj2;
@@ -457,6 +459,16 @@ public class validateTaskStatus {
                         response.put("code", 200);
                         response.put("message", "Berhasil mengupdate status Compwa!");
                     }
+                    break;
+                case "Pickup NTE from SCM Manual":
+                case "Pickup NTE from SCM Wifi":
+                case "Pickup AP From SCM Wifi":
+                case "Pickup NTE from SCM":
+                case "Install NTE Manual":
+                case "Install NTE Wifi":
+                case "Install NTE":
+                case "Install AP":
+                    
                     break;
                 default:
                     // Define the next move
