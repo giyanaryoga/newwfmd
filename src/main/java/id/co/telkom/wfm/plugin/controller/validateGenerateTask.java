@@ -81,6 +81,7 @@ public class validateGenerateTask {
                 defineTask(oss_item, workorder, duration);
                 sortedTask();
                 generateTask(workorder, counter, orderId);
+                LogUtil.info(getClass().getName(), "duration = "+ duration);
             } else {
                 LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
             }
@@ -186,7 +187,7 @@ public class validateGenerateTask {
                 }
                 task.put("task_attr", taskAttrList);
                 
-                totalDuration += (float) task.get("duration");
+                totalDuration = (float) task.get("duration");
                 workorder.put("duration", totalDuration);
                 
                 taskList.add(task);
@@ -202,7 +203,6 @@ public class validateGenerateTask {
             sortedTask.put("wonum", wonumChild);
             sortedTask.put("parent", workorder.get("wonum").toString());
             sortedTask.put("taskid", counter*10);
-//            String ownerGroupWO = "";
 
             if (sortedTask.get("ownerGroup").toString().equalsIgnoreCase("")) {
                 //jika ownergroup di table detailactivity null
@@ -258,8 +258,6 @@ public class validateGenerateTask {
     public boolean generateButton(String parent) {
         boolean generate = false;
         try {
-//            JSONObject product = dao2.getProduct(parent);
-//            int isNonCoreProduct = nonCoreDao.isNonCoreProduct(product.get("prodName").toString());
 //            JSONArray taskNonCore = dao2.getDetailTaskNonCore(product.get("prodName").toString(), product.get("crmOrderType").toString());
             JSONArray taskWO = dao2.getTaskWo(parent);
 //            int taskProductNonCore = taskNonCore.size();
@@ -372,6 +370,19 @@ public class validateGenerateTask {
         }
     }
     
+    private void updateWOAttr(JSONObject workorder) {
+        try {
+            String serviceId = generateDao.getValueWorkorderAttribute(workorder.get("parent").toString(), "Service_ID");
+            
+            if (serviceId.equalsIgnoreCase("")) {
+                
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+}
+
 //    private void validateCPE(JSONObject cpeValidate) {
 //        switch (cpeValidate.get("attrName").toString()) {
 //            case "NTE_MODEL":
@@ -418,4 +429,3 @@ public class validateGenerateTask {
 ////            cpeValidated.setUpdateCpeValidate(updateCpe);
 ////        }
 //    }
-}

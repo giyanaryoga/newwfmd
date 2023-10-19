@@ -5,7 +5,8 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
+//import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
+import id.co.telkom.wfm.plugin.kafka.ResponseKafka;
 import id.co.telkom.wfm.plugin.model.ListFormatFallout;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -66,10 +67,11 @@ public class FalloutIncidentDao {
                 falloutMessage = buildFormatMessage(format);
             }
             String kafkaRes = falloutMessage.toJSONString();
-            KafkaProducerTool kaf = new KafkaProducerTool();
-
-            String topic = "WFM_FALLOUT_INCIDENT_" + region;
-            kaf.generateMessage(kafkaRes, topic, "");
+            ResponseKafka responseKafka = new ResponseKafka();
+            //KAFKA DEVELOPMENT
+            responseKafka.FalloutIncidentDev(kafkaRes, region);
+            //KAFKA PRODUCTION
+//            responseKafka.FalloutIncident(kafkaRes, region);
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         } finally {

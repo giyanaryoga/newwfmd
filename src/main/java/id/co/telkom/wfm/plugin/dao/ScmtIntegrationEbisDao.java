@@ -4,7 +4,8 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
+//import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
+import id.co.telkom.wfm.plugin.kafka.ResponseKafka;
 import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.model.ListAttributes;
 import id.co.telkom.wfm.plugin.model.ListScmtIntegrationParam;
@@ -23,7 +24,6 @@ import okhttp3.FormBody;
 import okhttp3.RequestBody;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-import org.joget.commons.util.UuidGenerator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -33,7 +33,8 @@ import org.json.simple.parser.JSONParser;
  * @author User
  */
 public class ScmtIntegrationEbisDao {
-
+    ResponseKafka responseKafka = new ResponseKafka();
+    
     public String getScmtToken() {
         String token = "";
         RequestAPI api = new RequestAPI();
@@ -128,10 +129,13 @@ public class ScmtIntegrationEbisDao {
                 LogUtil.info(getClass().getName(), " " + scmtParam + " keluar!!! ");
             }
             String kafkaRes = installMessage.toJSONString();
-            KafkaProducerTool kaf = new KafkaProducerTool();
-            
-            String topic = "WFM_NEWSCMT_INSTALL_ENTERPRISE_" + scmtParam.getSiteId().replaceAll("\\s+", "");
-            kaf.generateMessage(kafkaRes, topic, "");
+//            KafkaProducerTool kaf = new KafkaProducerTool();
+//            String topic = "WFM_NEWSCMT_INSTALL_ENTERPRISE_" + scmtParam.getSiteId().replaceAll("\\s+", "");
+//            kaf.generateMessage(kafkaRes, topic, "");
+            //KAFKA DEVELOPMENT
+            responseKafka.InstallDismantleScmtDev(kafkaRes, scmtParam.getSiteId());
+            //KAFKA PRODUCTION
+//            responseKafka.InstallDismantleScmt(kafkaRes, scmtParam.getSiteId());
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -275,10 +279,13 @@ public class ScmtIntegrationEbisDao {
                 LogUtil.info(getClass().getName(), " " + scmtParam + " keluar!!! ");
             }
             String kafkaRes = installMessage.toJSONString();
-            KafkaProducerTool kaf = new KafkaProducerTool();
-            
-            String topic = "WFM_NEWSCMT_INSTALL_ENTERPRISE_" + scmtParam.getSiteId().replaceAll("\\s+", "");
-            kaf.generateMessage(kafkaRes, topic, "");
+//            KafkaProducerTool kaf = new KafkaProducerTool();
+//            String topic = "WFM_NEWSCMT_INSTALL_ENTERPRISE_" + scmtParam.getSiteId().replaceAll("\\s+", "");
+//            kaf.generateMessage(kafkaRes, topic, "");
+            //KAFKA DEVELOPMENT
+            responseKafka.InstallDismantleScmtDev(kafkaRes, scmtParam.getSiteId());
+            //KAFKA PRODUCTION
+//            responseKafka.InstallDismantleScmt(kafkaRes, scmtParam.getSiteId());
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {

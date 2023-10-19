@@ -419,7 +419,7 @@ public class TaskActivityDao {
                     psInsert.setString(5, rs.getString("c_description"));
                     psInsert.setString(6, workorder.get("siteId").toString());
                     psInsert.setString(7, rs.getString("c_orgid"));
-                    psInsert.setString(8, rs.getString("c_classspecid"));
+                    psInsert.setInt(8, rs.getInt("c_classspecid"));
                     psInsert.setString(9, orderId);
                     psInsert.setString(10, rs.getString("c_sequence"));
                     psInsert.setString(11, rs.getString("c_domainid"));
@@ -458,7 +458,6 @@ public class TaskActivityDao {
         StringBuilder update = new StringBuilder();
         update
                 .append(" UPDATE app_fd_workorderspec SET ")
-                .append(" c_alnvalue = ?, ")
                 .append(" c_value = ?, ")
                 .append(" dateModified = ? ")
                 .append(" WHERE ")
@@ -474,11 +473,10 @@ public class TaskActivityDao {
                 // change 03
                 try {
                     ps.setString(1, attrValue);
-                    ps.setString(2, attrValue);
-                    ps.setTimestamp(3, getTimeStamp());
+                    ps.setTimestamp(2, getTimeStamp());
                     // change 03 where clause
-                    ps.setString(4, wonum);
-                    ps.setString(5, attrName);
+                    ps.setString(3, wonum);
+                    ps.setString(4, attrName);
                     // change 03
                     int exe = ps.executeUpdate();
                     //Checking insert status
