@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,45 +22,67 @@ import org.json.JSONObject;
  * @author ASUS
  */
 public class GetSIDNetmonkDao {
-     DeviceUtil deviceUtil = new DeviceUtil();
 
-//    private String getAssetattrid(String wonum) throws SQLException, JSONException {
-//        String resultObj = "";
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_assetattrid, c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid IN ('LATITUDE','LONGITUDE')";
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(query)) {
-//            ps.setString(1, wonum);
-//            ResultSet rs = ps.executeQuery();
-//            while (rs.next()) {
-//                resultObj = (rs.getString("c_assetattrid"), rs.getString("c_value"));
-//                LogUtil.info(this.getClass().getName(), "Location : " + resultObj);
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        }
-//        return resultObj;
-//    }
+    DeviceUtil deviceUtil = new DeviceUtil();
 
     private String createSoapRequestGetSIDConn(String orderID) {
         String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
                 + "   <soapenv:Header/>\n"
                 + "   <soapenv:Body>\n"
                 + "      <ent:findServiceByOrderRequest>\n"
-                + "         <OrderID>"+orderID+"</OrderID>\n"
+                + "         <OrderID>" + orderID + "</OrderID>\n"
                 + "      </ent:findServiceByOrderRequest>\n"
                 + "   </soapenv:Body>\n"
                 + "</soapenv:Envelope>";
         return request;
     }
-    
-    private void getSoapResponseNetmonk(String wonum, String orderID) {
+
+    private String getSoapResponseNetmonk(String orderID) {
         String request = createSoapRequestGetSIDConn(orderID);
+        String serviceId = "";
         try {
             org.json.JSONObject temp = deviceUtil.callUIM(request);
-            
+
+            JSONObject envelope = temp.getJSONObject("env:Envelope").getJSONObject("env:Body");
+            JSONObject findServiceOrder = envelope.getJSONObject("ent:findServiceByOrderResponse");
+            int statusCode = findServiceOrder.getInt("statusCode");
+            if (statusCode == 404) {
+                LogUtil.info(getClass().getName(), "Service Not Found");
+            } else if (statusCode == 200) {
+                JSONArray serviceInfo = findServiceOrder.getJSONArray("ServiceInfo");
+                JSONObject data = (JSONObject) serviceInfo.get(0);
+                serviceId = data.getString("id");
+            } else {
+                LogUtil.info(getClass().getName(), "Error here");
+            }
+
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Call Failed." + e);
         }
+        return serviceId;
     }
+
+    public String validateSIDNetmonk(JSONObject attribute) throws SQLException, JSONException {
+        String result = "";
+        String productname = attribute.getString("productname");
+        String flagND = attribute.getString("nd");
+        String scorderno = attribute.getString("scorderno");
+        String serviceID = attribute.getString("ServiceID");
+        String crmordertype = attribute.getString("crmordertype");
+        String[] splitscorder = scorderno.split("_");
+        String orderid = splitscorder[0];
+
+        if (productname.equals("Nadeefa Netmonk") && crmordertype.equals("New Insatall") && flagND.isEmpty()) {
+            String ServiceID = serviceID;
+            if (ServiceID.isEmpty()) {
+                String resultSID = getSoapResponseNetmonk(orderid);
+                result = "get SID Connectivity Successfully, this is your SID : " + resultSID;
+                if (resultSID.isEmpty()) {
+                    result = "Get SID Connectivity Failed";
+                }
+            }
+        }
+        return result;
+    }
+
 }
