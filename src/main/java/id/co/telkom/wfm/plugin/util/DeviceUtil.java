@@ -30,6 +30,8 @@ import org.json.XML;
  */
 public class DeviceUtil {
 
+    ConnUtil connUtil = new ConnUtil();
+
     // GET WORKORDER PARAMS
     public JSONObject getParams(String wonum) throws SQLException, JSONException {
         JSONObject resultObj = new JSONObject();
@@ -192,17 +194,15 @@ public class DeviceUtil {
             throw e;
         }
     }
-    
+
     public JSONObject callUIM(String request) throws MalformedURLException, IOException, JSONException {
 //        URLManager urlManager = new URLManager();
-        ConnUtil util = new ConnUtil();
-        APIConfig api = new APIConfig();
-        
-        util.getApiParam("uim_dev");
-        
-        String urlres = api.getUrl();
+        APIConfig apiConfig = new APIConfig();
+        apiConfig = connUtil.getApiParam("uim_dev");
+
 //        String urlres = urlManager.getURL("UIM");
-        URL url = new URL(urlres);
+        LogUtil.info(this.getClass().getName(), "INI URL : " + apiConfig.getUrl());
+        URL url = new URL(apiConfig.getUrl());
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoOutput(true);
         connection.setRequestMethod("POST");
@@ -230,7 +230,7 @@ public class DeviceUtil {
         org.json.JSONObject temp = XML.toJSONObject(result.toString());
         LogUtil.info(this.getClass().getName(), "INI REQUEST XML : " + request);
         LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
-        
+
         return temp;
     }
 }

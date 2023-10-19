@@ -25,56 +25,20 @@ public class ReserveSTPDao {
     ConnUtil util = new ConnUtil();
     DeviceUtil deviceUtil = new DeviceUtil();
 
-    private JSONObject getParams(String wonum) throws SQLException, JSONException {
-        JSONObject resultObj = new JSONObject();
+    public String getParams(String wonum) throws SQLException, JSONException {
+        String resultObj = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT \n"
-                + "spec.c_classspecid, \n"
-                + "spec.c_sequence, \n"
-                + "spec.c_assetattrid, \n"
-                + "wo2.id, \n"
-                + "wo2.c_classstructureid, \n"
-                + "wo2.c_orgid, \n"
-                + "wo2.c_siteid, \n"
-                + "wo2.c_wonum, \n"
-                + "wo2.c_parent, \n"
-                + "wo1.c_crmordertype, \n"
-                + "wo1.c_productname, \n"
-                + "wo1.c_producttype, \n"
-                + "wo2.c_detailactcode, \n"
-                + "wo2.c_worktype, \n"
-                + "wo1.c_scorderno, \n"
-                + "wo1.c_ownergroup\n"
-                + "FROM app_fd_workorder wo1\n"
-                + "JOIN app_fd_workorder wo2 ON wo1.c_wonum = wo2.c_parent\n"
-                + "JOIN app_fd_classspec spec ON wo2.c_classstructureid = spec.c_classstructureid\n"
-                + "WHERE wo1.c_woclass = 'WORKORDER'\n"
-                + "AND wo2.c_woclass = 'ACTIVITY'\n"
-                + "AND wo2.c_wonum = ?"
-                + "AND wo2.c_status = 'STARTWA'";
+        String query = "select c_detailactcode FROM app_fd_workorder\n"
+                + "WHERE c_wonum = ?\n"
+                + "AND c_status = 'STARTWA'";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
 
-            while (rs.next()) {
-                resultObj.put("classspecid", rs.getString("c_classspecid"));
-                resultObj.put("sequence", rs.getString("c_sequence"));
-                resultObj.put("assetattrid", rs.getString("c_assetattrid"));
-                resultObj.put("id", rs.getString("id"));
-                resultObj.put("classstructureid", rs.getString("c_classstructureid"));
-                resultObj.put("orgid", rs.getString("c_orgid"));
-                resultObj.put("siteid", rs.getString("c_siteid"));
-                resultObj.put("wonum", rs.getString("c_wonum"));
-                resultObj.put("parent", rs.getString("c_parent"));
-                resultObj.put("crmordertype", rs.getString("c_crmordertype"));
-                resultObj.put("productname", rs.getString("c_productname"));
-                resultObj.put("producttype", rs.getString("c_producttype"));
-                resultObj.put("detailactcode", rs.getString("c_detailactcode"));
-                resultObj.put("worktype", rs.getString("c_worktype"));
-                resultObj.put("scorderno", rs.getString("c_scorderno"));
-                resultObj.put("ownergroup", rs.getString("c_ownergroup"));
+            if (rs.next()) {
+                resultObj = rs.getString("c_detailactcode");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -94,12 +58,9 @@ public class ReserveSTPDao {
         return request;
     }
 
-    private JSONObject getSoapResponseUnReserve(String reservationID) throws IOException, MalformedURLException, JSONException {
-        APIConfig api = util.getApiParam("uim_dev");
-        String urlres = api.getUrl();
+    public JSONObject getSoapResponseUnReserve(String reservationID) throws IOException, MalformedURLException, JSONException {
         String request = createSoapRequestUnReserve(reservationID);
         JSONObject temp = deviceUtil.callUIM(request);
-
         return temp;
     }
 
@@ -134,18 +95,18 @@ public class ReserveSTPDao {
         return request;
     }
 
-    private JSONObject getSoapResponseReservation(String odpName, String odpId, String odpPortName, String odpPortId) throws IOException, MalformedURLException, JSONException {
+    public JSONObject getSoapResponseReservation(String odpName, String odpId, String odpPortName, String odpPortId) throws IOException, MalformedURLException, JSONException {
         String request = createSoapRequestReservation(odpName, odpId, odpPortName, odpPortId);
         // call UIM
         JSONObject temp = deviceUtil.callUIM(request);
         return temp;
     }
 
-    private JSONObject getAttributes(String wonum) throws JSONException {
+    public JSONObject getAttributes(String wonum) throws JSONException {
         JSONObject resultObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT C_ASSETATTRID, C_VALUE "
-                + "FROM WORKORDERSPEC "
+                + "FROM APP_FD_WORKORDERSPEC "
                 + "WHERE C_WONUM = ? "
                 + "AND C_ASSETATTRID IN ('STP_NAME_ALN','STP_PORT_NAME_ALN','STP_ID', 'STP_PORT_ID', 'STP_PORT_RESERVATION_ID')";
         try (Connection con = ds.getConnection();
@@ -161,30 +122,34 @@ public class ReserveSTPDao {
         }
         return resultObj;
     }
-
-    public void ReserveSTP(String attrid, String wonum) throws SQLException, JSONException, IOException {
-        String[] listAttrid = {"STP_PORT_NAME_ALN", "STP_PORT_ID"};
-        String[] listDetailActcode = {"Survey-Ondesk Manual", "Site-Survey Manual", "WFMNonCore Site Survey"};
-        JSONObject param = getParams(wonum);
-        JSONObject attribute = getAttributes(wonum);
-
-        String alnValue = "";
-        String odpName = attribute.optString("STP_NAME_ALN");
-        String odpPortName = attribute.optString("STP_PORT_NAME_ALN");
-        String odpId = attribute.optString("STP_ID");
-        String odpPortId = attribute.optString("STP_PORT_ID");
-        String reservationID = attribute.optString("STP_PORT_RESERVATION_ID");
-
-        if (Arrays.asList(listAttrid).contains(attrid) && Arrays.asList(listDetailActcode).contains(param.optString("detailactcode"))) {
-            // Periksa apakah alnValue tidak kosong atau "None"
-            if (!"None".equals(alnValue) && !alnValue.isEmpty()) {
-                // Hapus reservasi jika sudah ada
-                if (!reservationID.isEmpty() && !"Failed to reserved".equals(reservationID)) {
-                    getSoapResponseUnReserve(reservationID);
-                }
-                // Lakukan reservasi
-                getSoapResponseReservation(odpName, odpId, alnValue, odpPortId);
-            }
-        }
-    }
+//
+//    public String ReserveSTP(String attrid, String wonum) throws SQLException, JSONException, IOException {
+//        String[] listAttrid = {"STP_PORT_NAME_ALN", "STP_PORT_ID"};
+//        String[] listDetailActcode = {"Survey-Ondesk Manual", "Site-Survey Manual", "WFMNonCore Site Survey"};
+//        String detailactcode = getParams(wonum);
+//        JSONObject attribute = getAttributes(wonum);
+//
+//        String odpName = attribute.optString("STP_NAME_ALN");
+//        String odpPortName = attribute.optString("STP_PORT_NAME_ALN");
+//        String odpId = attribute.optString("STP_ID");
+//        String odpPortId = attribute.optString("STP_PORT_ID");
+//        String reservationID = attribute.optString("STP_PORT_RESERVATION_ID");
+//
+//        String[] attributes = {odpName, odpPortName, odpId, odpPortId, reservationID};
+//
+//        if (Arrays.asList(listAttrid).contains(attrid) && Arrays.asList(listDetailActcode).contains(detailactcode)) {
+//            // Periksa apakah alnValue tidak kosong atau "None"
+//            for (int i = 0; i < attributes.length; i++) {
+//                if (attributes[i].equals("None") || attributes[i].isEmpty()) {
+//                    // Hapus reservasi jika sudah ada
+//                    if (!reservationID.isEmpty() && !"Failed to reserved".equals(reservationID)) {
+//                        getSoapResponseUnReserve(reservationID);
+//                    }
+//                    // Lakukan reservasi
+//                    getSoapResponseReservation(odpName, odpId, odpPortName, odpPortId);
+//                }
+//            }
+//        }
+//        return null;
+//    }
 }

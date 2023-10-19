@@ -2,6 +2,7 @@ package id.co.telkom.wfm.plugin.dao;
 
 import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
+import id.co.telkom.wfm.plugin.util.DeviceUtil;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.UuidGenerator;
@@ -22,14 +23,16 @@ import java.sql.SQLException;
 
 public class STPDao {
 
+    DeviceUtil util = new DeviceUtil();
+
     public String getSTPPortSoapResquest(String node1, String node1_value, String detail, String role) {
         String request = "<soapenv:Envelope xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\"\n"
                 + "                  xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n"
                 + "    <soapenv:Body>\n"
                 + "        <ent:findDeviceByCriteriaRequest>\n"
                 + "            <DeviceInfo>\n"
-                + "                 <"+node1+">" + node1_value + "</"+node1+">\n"
-                + "                 <detail>"+detail+"</detail>\n"
+                + "                 <" + node1 + ">" + node1_value + "</" + node1 + ">\n"
+                + "                 <detail>" + detail + "</detail>\n"
                 + "                 <role>" + role + "</role>\n"
                 + "            </DeviceInfo>\n"
                 + "        </ent:findDeviceByCriteriaRequest>\n"
@@ -41,43 +44,10 @@ public class STPDao {
     public String getSTPPortSoapResponse(String wonum, String network_location, String role) {
         String msg = "";
         try {
-//            ConnUtil connUtil = new ConnUtil();
-//            APIConfig urluim = new APIConfig();
-//            connUtil.getApiParam("uim_dev");
-//            String urlres = urluim.getUrl();
-            String urlres = "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
+            String request = getSTPPortSoapResquest("name", network_location, "true", role);
+            // Hit API UIM Dev
+            JSONObject temp = util.callUIM(request);
 
-            LogUtil.info(this.getClass().getName(), "INI URL : " + urlres);
-
-            URL url = new URL(urlres);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoOutput(true);
-            connection.setRequestMethod("POST");
-            // Set Headers
-            connection.setRequestProperty("Accept", "application/xml");
-            connection.setRequestProperty("SOAPAction", "http://xmlns.oracle.com/communications/inventory/webservice/FindDeviceByCriteria");
-            connection.setRequestProperty("Content-Type", "text/xml; charset=UTF-8");
-            try ( // Write XML
-                  OutputStream outputStream = connection.getOutputStream()) {
-                byte[] b = getSTPPortSoapResquest("name",network_location,"true", role).getBytes("UTF-8");
-                outputStream.write(b);
-                outputStream.flush();
-            }
-
-            StringBuilder response;
-            try ( // Read XML
-                  InputStream inputStream = connection.getInputStream()) {
-                byte[] res = new byte[2048];
-                int i = 0;
-                response = new StringBuilder();
-                while ((i = inputStream.read(res)) != -1) {
-                    response.append(new String(res, 0, i));
-                }
-            }
-            StringBuilder result = response;
-            org.json.JSONObject temp = XML.toJSONObject(result.toString());
-            System.out.println("temp " + temp.toString());
-            LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
             //Parsing response data
             LogUtil.info(this.getClass().getName(), "############ Parsing Data Response ##############");
 
@@ -85,7 +55,6 @@ public class STPDao {
             LogUtil.info(this.getClass().getName(), "envelope : " + envelope);
             JSONObject service = envelope.getJSONObject("ent:findDeviceByCriteriaResponse");
             int statusCode = service.getInt("statusCode");
-
 
             LogUtil.info(this.getClass().getName(), "StatusCode : " + statusCode);
 //            ListGenerateAttributes listGenerate = new ListGenerateAttributes();
@@ -119,8 +88,6 @@ public class STPDao {
                     LogUtil.info(this.getClass().getName(), "Insert STP ID TK Device : " + insertStpID);
                 }
 
-
-
             }
         } catch (Exception e) {
             LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
@@ -152,7 +119,7 @@ public class STPDao {
         String insert = "INSERT INTO APP_FD_TK_DEVICEATTRIBUTE (ID, C_REF_NUM, C_ATTR_NAME, C_ATTR_TYPE, C_DESCRIPTION) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(insert.toString())) {
+                PreparedStatement ps = con.prepareStatement(insert.toString())) {
 
             ps.setString(1, uuId);
             ps.setString(2, wonum);
@@ -180,7 +147,7 @@ public class STPDao {
         String query = "SELECT c_value FROM APP_FD_WORKORDERSPEC WHERE c_wonum=? AND c_assetattrid='ROLE'";
 
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -196,7 +163,6 @@ public class STPDao {
         String result = "";
         String role = getRole(wonum);
         LogUtil.info(this.getClass().getName(), "Role :" + role);
-
 
         if (role != null) {
             if (role.equals("STP")) {
