@@ -1,7 +1,5 @@
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.model.APIConfig;
-import id.co.telkom.wfm.plugin.util.ConnUtil;
 import id.co.telkom.wfm.plugin.util.DeviceUtil;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -9,13 +7,7 @@ import org.joget.commons.util.UuidGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.XML;
-
 import javax.sql.DataSource;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
