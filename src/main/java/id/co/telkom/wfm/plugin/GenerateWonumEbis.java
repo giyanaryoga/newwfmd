@@ -4,17 +4,12 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
-import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -73,13 +68,11 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         //@@Start.. 
         TimeUtil time = new TimeUtil();
-//        JsonUtil json = new JsonUtil();
         final JSONObject res = new JSONObject(); 
         //@Authorization
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
         validateGenerateTask validateTask = new validateGenerateTask();
-//        validateOwnerGroup validateOwnerGroup = new validateOwnerGroup();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;
@@ -166,7 +159,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //Store attribute
                     woAttribute.put("woAttrName", (attr_arrayObj.get("ATTR_NAME") == null ? "" : attr_arrayObj.get("ATTR_NAME").toString()));
                     woAttribute.put("woAttrValue", (attr_arrayObj.get("ATTR_VALUE") == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString()));
-                    woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE").toString()));
+                    woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE")));
                     AttributeWO.add(woAttribute);
                     //Insert attribute
                     dao.insertToWoAttrTable(workorder.get("wonum").toString(), woAttribute);
@@ -193,7 +186,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 }
                 
                 workorder.put("duration", duration);
-                final boolean insertWoStatus = dao.insertToWoTable2(workorder);
+                final boolean insertWoStatus = dao.insertToWoTable(workorder);
                 
                 //@@End
                 //@Response
@@ -219,10 +212,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         res1.put("message", statusRequest);
                         res1.put("data", data);
                         res1.writeJSONString(hsr1.getWriter());
-                        //Response to Kafka
-//                        String kafkaRes = outer3.toJSONString();
-//                        KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
-//                        kafkaProducerTool.generateMessage(kafkaRes, "WFM_WONUM", "");
                     } catch (IOException e) {
                         LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
                     }  
@@ -230,8 +219,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
             }catch (ParseException e){
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
-            //Authorization failed
-            
         //Authorization failed    
         } else if (!methodStatus) {
             try {

@@ -194,7 +194,7 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
                 }
                 
                 workorder.put("duration", duration);
-                final boolean insertWoStatus = dao.insertToWoTable2(workorder);
+                final boolean insertWoStatus = dao.insertToWoTable(workorder);
                 
                 //@@End
                 //@Response

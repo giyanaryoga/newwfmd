@@ -493,32 +493,32 @@ public class TaskAttributeUpdateDao {
         }
     }
 
-    public void updateTaskAttrView(String wonum, String assetattrid, int isview) throws SQLException {
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        StringBuilder update = new StringBuilder();
-        update
-                .append("UPDATE app_fd_workorderspec SET ")
-                .append("c_isview = ?, ")
-                .append("datemodified = ? ")
-                .append("WHERE ")
-                .append("c_wonum = ?")
-                .append("AND c_assetattrid = ?");
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(update.toString())) {
-            ps.setInt(1, isview);
-            ps.setTimestamp(2, getTimeStamp());
-            ps.setString(3, wonum);
-            ps.setString(4, assetattrid);
-            int exe = ps.executeUpdate();
-            if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-    }
+//    public void updateTaskAttrView1(String wonum, String assetattrid, int isview) throws SQLException {
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        StringBuilder update = new StringBuilder();
+//        update
+//                .append("UPDATE app_fd_workorderspec SET ")
+//                .append("c_isview = ?, ")
+//                .append("datemodified = ? ")
+//                .append("WHERE ")
+//                .append("c_wonum = ?")
+//                .append("AND c_assetattrid = ?");
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(update.toString())) {
+//            ps.setInt(1, isview);
+//            ps.setTimestamp(2, getTimeStamp());
+//            ps.setString(3, wonum);
+//            ps.setString(4, assetattrid);
+//            int exe = ps.executeUpdate();
+//            if (exe > 0) {
+//                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+//            }
+//        } catch (SQLException e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//    }
 
     public void updateWO(String wonum, String table, String setvalue, String condition) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
