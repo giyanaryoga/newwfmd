@@ -6,6 +6,7 @@
 package id.co.telkom.wfm.plugin.dao;
 
 import id.co.telkom.wfm.plugin.util.DeviceUtil;
+import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,6 +25,7 @@ import org.json.JSONObject;
 public class GetSIDNetmonkDao {
 
     DeviceUtil deviceUtil = new DeviceUtil();
+    TaskAttributeUpdateDao daoAttr = new TaskAttributeUpdateDao();
 
     private String createSoapRequestGetSIDConn(String orderID) {
         String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ent=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
@@ -64,17 +66,19 @@ public class GetSIDNetmonkDao {
 
     public String validateSIDNetmonk(JSONObject attribute) throws SQLException, JSONException {
         String result = "";
+        String flagND = daoAttr.getWoAttrValue(attribute.getString("wonum"), "ND");
+        String serviceID = daoAttr.getWoAttrValue(attribute.getString("wonum"), "Service_ID");
         String productname = attribute.getString("prodName");
-        String flagND = attribute.getString("nd");
+//        String flagND = attribute.getString("nd");
         String scorderno = attribute.getString("scOrderNo");
-        String serviceID = attribute.getString("ServiceID");
+//        String serviceID = attribute.getString("ServiceID");
         String crmordertype = attribute.getString("crmOrderType");
         String[] splitscorder = scorderno.split("_");
         String orderid = splitscorder[0];
 
-        if (productname.equals("Nadeefa Netmonk") && crmordertype.equals("New Insatall") && flagND.isEmpty()) {
+        if (productname.equals("Nadeefa Netmonk") && crmordertype.equals("New Insatall") && flagND.equalsIgnoreCase("")) {
             String ServiceID = serviceID;
-            if (ServiceID.isEmpty()) {
+            if (ServiceID.equalsIgnoreCase("")) {
                 String resultSID = getSoapResponseNetmonk(orderid);
                 result = "get SID Connectivity Successfully, this is your SID : " + resultSID;
                 if (resultSID.isEmpty()) {
@@ -84,5 +88,4 @@ public class GetSIDNetmonkDao {
         }
         return result;
     }
-
 }
