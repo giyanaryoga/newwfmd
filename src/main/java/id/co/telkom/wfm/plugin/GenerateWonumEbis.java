@@ -159,7 +159,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //Store attribute
                     woAttribute.put("woAttrName", (attr_arrayObj.get("ATTR_NAME") == null ? "" : attr_arrayObj.get("ATTR_NAME").toString()));
                     woAttribute.put("woAttrValue", (attr_arrayObj.get("ATTR_VALUE") == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString()));
-                    woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE")));
+                    woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? 0 : Integer.valueOf(attr_arrayObj.get("SEQUENCE").toString())));
                     AttributeWO.add(woAttribute);
                     //Insert attribute
                     dao.insertToWoAttrTable(workorder.get("wonum").toString(), woAttribute);

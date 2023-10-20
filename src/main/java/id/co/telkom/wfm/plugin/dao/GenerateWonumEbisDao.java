@@ -389,7 +389,7 @@ public class GenerateWonumEbisDao {
                     ps.setString(2, wonum);
                     ps.setString(3, woAttr.get("woAttrName").toString());
                     ps.setString(4, woAttr.get("woAttrValue").toString());
-                    ps.setInt(5, (int) woAttr.get("woAttrSequence"));
+                    ps.setInt(5, (int)woAttr.get("woAttrSequence"));
                     ps.setTimestamp(6, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
