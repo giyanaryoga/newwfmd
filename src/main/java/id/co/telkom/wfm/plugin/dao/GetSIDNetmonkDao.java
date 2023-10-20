@@ -64,11 +64,11 @@ public class GetSIDNetmonkDao {
 
     public String validateSIDNetmonk(JSONObject attribute) throws SQLException, JSONException {
         String result = "";
-        String productname = attribute.getString("productname");
+        String productname = attribute.getString("prodName");
         String flagND = attribute.getString("nd");
-        String scorderno = attribute.getString("scorderno");
+        String scorderno = attribute.getString("scOrderNo");
         String serviceID = attribute.getString("ServiceID");
-        String crmordertype = attribute.getString("crmordertype");
+        String crmordertype = attribute.getString("crmOrderType");
         String[] splitscorder = scorderno.split("_");
         String orderid = splitscorder[0];
 
