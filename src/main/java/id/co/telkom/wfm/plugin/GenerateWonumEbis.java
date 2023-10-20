@@ -103,7 +103,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
                 //Parse JSON String to JSONObject
-//                String id = UuidGenerator.getInstance().getUuid();//generating uuid
                 String bodyParam = jb.toString();
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject)parser.parse(bodyParam);
@@ -198,15 +197,9 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                         String statusHeaders = "200";
                         String statusRequest = "Success";
                         //Create response
-                        JSONObject outer1 = new JSONObject();
-                        JSONObject outer2 = new JSONObject();
-                        JSONObject outer3 = new JSONObject();
                         JSONObject data = new JSONObject();
                         data.put("WONUM", wonum);
                         data.put("SITEID", workorder.get("siteId").toString());
-                        outer1.put("WORKORDER", data);
-                        outer2.put("WORKORDERMboKeySet", outer1);
-                        outer3.put("CreateMXTELKOWOResponse", outer2);
                         JSONObject res1 = new JSONObject();
                         res1.put("code", statusHeaders);
                         res1.put("message", statusRequest);
