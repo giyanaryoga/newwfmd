@@ -165,13 +165,13 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 }
                 
                 JSONArray oss_item = new JSONArray();
-                LogUtil.info(getClass().getName(), "OSS ITEM = " +ossitem_arrayObj);
+//                LogUtil.info(getClass().getName(), "OSS ITEM = " +ossitem_arrayObj);
                 
                 if (ossitem_arrayObj == null) {
-                    LogUtil.info(getClass().getName(), "OSS ITEM IS NULL");
+//                    LogUtil.info(getClass().getName(), "OSS ITEM IS NULL");
                     validateTask.generateTaskNonCore(oss_item, workorder, duration);
                 } else {
-                    LogUtil.info(getClass().getName(), "OSS ITEM IS NOT NULL");
+//                    LogUtil.info(getClass().getName(), "OSS ITEM IS NOT NULL");
                     validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, duration);
                 }
                 
@@ -193,7 +193,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     try {
                         //Success response
                         LogUtil.info(getClassName(), "Process End - Wonum Generated [" + wonum + "]");
-                        LogUtil.info(getClassName(), "Send response to 'Engine' and 'WFM Kafka'");
+//                        LogUtil.info(getClassName(), "Send response to 'Engine' and 'WFM Kafka'");
                         String statusHeaders = "200";
                         String statusRequest = "Success";
                         //Create response

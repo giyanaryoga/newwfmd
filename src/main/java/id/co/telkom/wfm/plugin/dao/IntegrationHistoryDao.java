@@ -49,7 +49,7 @@ public class IntegrationHistoryDao {
                 .append(") ")
                 .append("VALUES ")
                 .append("(?, ")
-                .append("WFMDBDEV01.INTEGRATION_HISTORYIDSEQ.NEXTVAL, ")
+                .append("INTEGRATION_HISTORYIDSEQ.NEXTVAL, ")
                 .append("?, ")
                 .append("?, ")
                 .append("?, ")

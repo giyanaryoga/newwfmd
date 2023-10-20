@@ -143,7 +143,7 @@ public class TaskActivityDao {
                 activityProp.put("sequence", rs.getInt("c_sequence"));
                 activityProp.put("crmOrderType", rs.getString("c_crmordertype"));
                 taskArray.add(activityProp);
-                LogUtil.info(getClass().getName(), "taskNonCore = " +taskArray);
+//                LogUtil.info(getClass().getName(), "taskNonCore = " +taskArray);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -342,7 +342,7 @@ public class TaskActivityDao {
             int exe = ps.executeUpdate();
             //Checking insert status
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), "'" + taskObj.get("description") + "' generated as task");
+//                LogUtil.info(getClass().getName(), "'" + taskObj.get("description") + "' generated as task");
             }
         } catch(SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -482,7 +482,7 @@ public class TaskActivityDao {
                     //Checking insert status
                     if (exe > 0) {
                         updateValue = true;
-                        LogUtil.info(getClass().getName(), " Task Attribute updated to " + wonum);
+//                        LogUtil.info(getClass().getName(), " Task Attribute updated to " + wonum);
                     }   
                     if (ps != null)
                         ps.close();
@@ -557,7 +557,7 @@ public class TaskActivityDao {
                         int exe = ps.executeUpdate();
                         //Checking insert status
                         if (exe > 0) {
-                            LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
+//                            LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
                         }
                         con.commit();
                     } else con.rollback();

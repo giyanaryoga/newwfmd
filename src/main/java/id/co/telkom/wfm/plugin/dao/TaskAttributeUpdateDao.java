@@ -335,7 +335,7 @@ public class TaskAttributeUpdateDao {
     public String getWoAttrValue(String parent, String attrName) throws SQLException {
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "UPDATE app_fd_workorderattribute SET c_attr_value = ?, datemodified = sysdate WHERE c_wonum = ? AND c_attr_name = ?";
+        String query = "SELECT c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_attr_name = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);

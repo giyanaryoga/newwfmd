@@ -18,9 +18,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
+import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.*;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
+import org.joget.workflow.model.service.WorkflowUserManager;
 import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -75,7 +77,9 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
         //@@Start..
         LogUtil.info(getClass().getName(), "Start Process: Update Task Status");
         //@Authorization
-        if ("POST".equals(hsr.getMethod())) {
+        WorkflowUserManager userMgr = (WorkflowUserManager) AppUtil.getApplicationContext().getBean("workflowUserManager");
+        boolean anonUser = userMgr.isCurrentUserAnonymous();
+        if (!anonUser && "POST".equals(hsr.getMethod())) {
             try {
                 //@Parsing message
                 //HttpServletRequest get JSON Post data

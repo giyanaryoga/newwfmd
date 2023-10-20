@@ -4,7 +4,7 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.model.ListAttributes;
+//import id.co.telkom.wfm.plugin.model.ListAttributes;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -236,7 +236,7 @@ public class GenerateWonumEbisDao {
                     //Checking insert status
                     if (exe > 0) {
                         insertStatus = true;
-                        LogUtil.info(getClass().getName(), "Work Order param for '" + param.get("wonum").toString() + "' inserted to DB");
+//                        LogUtil.info(getClass().getName(), "Work Order param for '" + param.get("wonum").toString() + "' inserted to DB");
                     }
                     if (ps != null)
                         ps.close();
@@ -272,7 +272,7 @@ public class GenerateWonumEbisDao {
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_ossitem (id, c_ossitemid, c_wonum, c_action, c_correlationid, c_itemname, dateCreated) VALUES (?, WFMDBDEV01.OSSITEMIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
+        String insert = "INSERT INTO app_fd_ossitem (id, c_ossitemid, c_wonum, c_action, c_correlationid, c_itemname, dateCreated) VALUES (?, OSSITEMIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -288,7 +288,7 @@ public class GenerateWonumEbisDao {
                     //Checking insert status
                     if (exe > 0) {
                         insertStatus = true;
-                        LogUtil.info(getClass().getName(), "ADD | OSS Item : " + taskObj.get("activity").toString() + ", CorrelationId : " + taskObj.get("correlation").toString() + ", insert to DB");
+//                        LogUtil.info(getClass().getName(), "ADD | OSS Item : " + taskObj.get("activity").toString() + ", CorrelationId : " + taskObj.get("correlation").toString() + ", insert to DB");
                     }   
                     if (ps != null)
                         ps.close();
@@ -324,7 +324,7 @@ public class GenerateWonumEbisDao {
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String getOssItemId = "SELECT c_ossitemid FROM app_fd_ossitem WHERE c_wonum = ?";
-        String insert = "INSERT INTO app_fd_ossitemattribute (id, c_ossitemattributeid, c_ossitemid, c_attr_name, c_attr_value, c_wonum, dateCreated) VALUES (?, WFMDBDEV01.OSSITEMATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
+        String insert = "INSERT INTO app_fd_ossitemattribute (id, c_ossitemattributeid, c_ossitemid, c_attr_name, c_attr_value, c_wonum, dateCreated) VALUES (?, OSSITEMATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -343,7 +343,7 @@ public class GenerateWonumEbisDao {
                         int exe = ps.executeUpdate();
                         //Checking insert status
                         if (exe > 0) {
-                            LogUtil.info(getClass().getName(), "Add | OssAttr : " + ossItem.get("attrName").toString() + ", Value: " + ossItem.get("attrValue").toString());
+//                            LogUtil.info(getClass().getName(), "Add | OssAttr : " + ossItem.get("attrName").toString() + ", Value: " + ossItem.get("attrValue").toString());
                         }   
                         if (ps != null)
                             ps.close();
@@ -379,7 +379,7 @@ public class GenerateWonumEbisDao {
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_workorderattribute (id, c_workorderattributeid, c_wonum, c_attr_name, c_attr_value, c_sequence, dateCreated) VALUES (?, WFMDBDEV01.WORKORDERATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
+        String insert = "INSERT INTO app_fd_workorderattribute (id, c_workorderattributeid, c_wonum, c_attr_name, c_attr_value, c_sequence, dateCreated) VALUES (?, WORKORDERATTRIBUTEIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -395,7 +395,7 @@ public class GenerateWonumEbisDao {
                     //Checking insert status
                     if (exe > 0) {
                         insertStatus = true;
-                        LogUtil.info(getClass().getName(), "Add | Attr : " + woAttr.get("woAttrName").toString() + ", Value: " + woAttr.get("woAttrValue").toString() + ", sequence: " + woAttr.get("woAttrSequence").toString());
+//                        LogUtil.info(getClass().getName(), "Add | Attr : " + woAttr.get("woAttrName").toString() + ", Value: " + woAttr.get("woAttrValue").toString() + ", sequence: " + woAttr.get("woAttrSequence").toString());
                     }   
                     if (ps != null)
                         ps.close();
