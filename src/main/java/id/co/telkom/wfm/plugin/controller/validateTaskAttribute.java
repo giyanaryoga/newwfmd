@@ -512,10 +512,8 @@ public class validateTaskAttribute {
             String[] attributes = {odpName, odpPortName, odpId, odpPortId, reservationID};
 
             if (Arrays.asList(listAttrid).contains(attrName) && Arrays.asList(listDetailActcode).contains(detailactcode)) {
-                // Periksa apakah alnValue tidak kosong atau "None"
                 for (int i = 0; i < attributes.length; i++) {
                     if (attributes[i].equals("None") || attributes[i].isEmpty()) {
-                        // Hapus reservasi jika sudah ada
                         if (!reservationID.isEmpty() && !"Failed to reserved".equals(reservationID)) {
                             reservestp.getSoapResponseUnReserve(reservationID);
                         }
