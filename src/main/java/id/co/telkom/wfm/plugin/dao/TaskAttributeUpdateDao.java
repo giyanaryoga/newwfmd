@@ -657,10 +657,10 @@ public class TaskAttributeUpdateDao {
                 + "SET c_value = CASE c_assetattrid "
                 + "WHEN 'STP_ID' THEN ? "
                 + "WHEN 'STP_SPECIFICATION' THEN ? "
-                + "WHEN 'STP_NETWORKLOCATION_LOV' THEN ? "
+                + "WHEN 'STP_NETWORKLOCATION' THEN ? "
                 + "ELSE 'Missing' END "
                 + "WHERE c_parent = ? "
-                + "AND c_assetattrid IN ('STP_ID', 'STP_SPECIFICATION', 'STP_NETWORKLOCATION_LOV')";
+                + "AND c_assetattrid IN ('STP_ID', 'STP_SPECIFICATION', 'STP_NETWORKLOCATION')";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(updateQuery)) {
