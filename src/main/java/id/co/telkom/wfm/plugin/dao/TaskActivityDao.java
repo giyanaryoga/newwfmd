@@ -5,6 +5,7 @@
 package id.co.telkom.wfm.plugin.dao;
 
 //import id.co.telkom.wfm.plugin.model.ActivityTask;
+import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
@@ -342,7 +343,7 @@ public class TaskActivityDao {
             int exe = ps.executeUpdate();
             //Checking insert status
             if (exe > 0) {
-//                LogUtil.info(getClass().getName(), "'" + taskObj.get("description") + "' generated as task");
+                LogUtil.info(getClass().getName(), "'" + taskObj.get("description") + "' generated as task");
             }
         } catch(SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
@@ -552,7 +553,10 @@ public class TaskActivityDao {
                         ps.setString(6, rs.getString("c_description"));
                         ps.setString(7, "WFM");
                         ps.setString(8, "ACTIVITY");
-                        ps.setString(9, workorder.get("schedStart").toString());
+                        TimeUtil time = new TimeUtil();
+                        String dateChange = time.parseDate(workorder.get("schedStart").toString(), "yyyy:MM:dd HH:mm:ss");
+                        ps.setTimestamp(9, dateChange == "" ? null : Timestamp.valueOf(dateChange));
+//                        ps.setTimestamp(9, Timestamp.valueOf(workorder.get("schedStart").toString()));
 
                         int exe = ps.executeUpdate();
                         //Checking insert status
@@ -700,9 +704,9 @@ public class TaskActivityDao {
     public JSONArray getOssItem(String parent) throws SQLException {
         JSONArray activity = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT oss.c_ossitemid, oss.c_itemname, oss.c_correlationid, wo.c_parent "
-                + "FROM app_fd_ossitem oss, app_fd_workorder wo "
-                + "WHERE oss.c_wonum = wo.c_wonum AND wo.c_parent = ?";
+        String query = "SELECT c_ossitemid, c_itemname, c_correlationid, c_parent "
+                + "FROM app_fd_ossitem oss "
+                + "WHERE c_parent = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);

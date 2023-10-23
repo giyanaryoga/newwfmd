@@ -272,7 +272,8 @@ public class GenerateWonumEbisDao {
         String uuId = UuidGenerator.getInstance().getUuid();//generating uuid
         boolean insertStatus = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String insert = "INSERT INTO app_fd_ossitem (id, c_ossitemid, c_wonum, c_action, c_correlationid, c_itemname, dateCreated) VALUES (?, OSSITEMIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
+        String insert = "INSERT INTO app_fd_ossitem (id, c_ossitemid, c_wonum, c_parent, c_action, c_correlationid, c_itemname, dateCreated) "
+                + "VALUES (?, OSSITEMIDSEQ.NEXTVAL, ?, ?, ?, ?, ?, ?)";
         try {
             Connection con = ds.getConnection();
             try {
@@ -280,10 +281,11 @@ public class GenerateWonumEbisDao {
                 try {
                     ps.setString(1, uuId);
                     ps.setString(2, taskObj.get("wonum").toString());
-                    ps.setString(3, "ADD");
-                    ps.setString(4, taskObj.get("correlation").toString());
-                    ps.setString(5, taskObj.get("activity").toString());
-                    ps.setTimestamp(6, getTimeStamp());
+                    ps.setString(3, taskObj.get("parent").toString());
+                    ps.setString(4, "ADD");
+                    ps.setString(5, taskObj.get("correlation").toString());
+                    ps.setString(6, taskObj.get("activity").toString());
+                    ps.setTimestamp(7, getTimeStamp());
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) {
