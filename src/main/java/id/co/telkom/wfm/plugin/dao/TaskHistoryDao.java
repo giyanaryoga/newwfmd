@@ -51,7 +51,7 @@ public class TaskHistoryDao {
                 .append("?, ")
                 .append("?, ")
                 .append("?, ")
-                .append("WFMDBDEV01.WOSTATUSIDSEQ.NEXTVAL, ")
+                .append("WOSTATUSIDSEQ.NEXTVAL, ")
                 .append("?, ")
                 .append("?, ")
                 .append("?, ")

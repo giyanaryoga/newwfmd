@@ -45,20 +45,21 @@ public class validateTaskAttribute {
         "Install NTE Wifi", "Pickup NTE from SCM", "Pickup NTE from SCM Manual",
         "Install NTE", "Install NTE Manual"
     };
-
+    
     public void validateSTPPortName(String parent, String wonum, String attrValue) {
         try {
             String stpPortId = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_PORT_ID", attrValue);
             LogUtil.info(this.getClass().getName(), "STP PORT ID" + stpPortId);
 
             if (!stpPortId.isEmpty()) {
-                taskAttrDao.updateWO(wonum, "app_fd_workorderspec", "c_value='" + stpPortId + "'", "and c_assetattrid='STP_PORT_ID'");
-                taskAttrDao.updateWO(wonum, "app_fd_workorderspec", "c_value='" + attrValue + "'", "and c_assetattrid='STP_PORT_NAME_ALN'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpPortId + "'", "c_wonum='"+wonum+"' AND c_assetattrid='STP_PORT_ID'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='"+wonum+"' AND c_assetattrid='STP_PORT_NAME_ALN'");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 
     private void validateRole(String parent, String wonum) {
         try {
@@ -398,7 +399,8 @@ public class validateTaskAttribute {
             if (Arrays.asList(satelitNameType).contains(detailactcode)) {
                 if (attrValue.equalsIgnoreCase("Mpsat/Telkom-4")) {
                     String setvalue = "c_ownergroup='TELKOMSAT_TRANSPONDER'";
-                    taskAttrDao.updateWO(wonum, "app_fd_workorder", setvalue, "");
+                    String condition = "c_wonum='"+wonum+"'";
+                    taskAttrDao.updateWO("app_fd_workorder", setvalue, condition);
                 }
             }
         } catch (SQLException ex) {
@@ -406,18 +408,18 @@ public class validateTaskAttribute {
         }
     }
 
-    public void validateAccessRequired(String wonum, String attrValue) {
+    public void validateAccessRequired(String parent, String wonum, String attrValue) {
         try {
             String detailactcode = taskAttrDao.getActivity(wonum);
             if (detailactcode.equalsIgnoreCase("WFMNonCore Review Order TSQ")) {
                 if (attrValue.equalsIgnoreCase("NO")) {
                     String setvalue = "c_wfmdoctype='REVISED'";
-                    String condition = "AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Activate Access WDM')";
-                    taskAttrDao.updateWO(wonum, "app_fd_workorder", setvalue, condition);
+                    String condition = "c_parent='"+parent+"'AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Activate Access WDM')";
+                    taskAttrDao.updateWO("app_fd_workorder", setvalue, condition);
                 } else if (attrValue.equalsIgnoreCase("YES")) {
                     String setvalue = "c_wfmdoctype='NEW'";
-                    String condition = "AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Activate Access WDM')";
-                    taskAttrDao.updateWO(wonum, "app_fd_workorder", setvalue, condition);
+                    String condition = "c_parent='"+parent+"' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Activate Access WDM')";
+                    taskAttrDao.updateWO( "app_fd_workorder", setvalue, condition);
                 }
             }
         } catch (SQLException ex) {
@@ -425,7 +427,7 @@ public class validateTaskAttribute {
         }
     }
 
-    public void validateModifyType(String wonum, String attrValue) {
+    public void validateModifyType(String parent, String wonum, String attrValue) {
         try {
             String detailactcode = taskAttrDao.getActivity(wonum);
             LogUtil.info(getClass().getName(), "Detail act Code: " + detailactcode);
@@ -434,13 +436,13 @@ public class validateTaskAttribute {
                 if (attrValue.equalsIgnoreCase("Bandwidth")) {
                     LogUtil.info(getClass().getName(), "attr value: " + attrValue);
                     String setvalue = "c_wfmdoctype='REVISED'";
-                    String condition = "AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore Allocate WDM', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM', 'WFMNonCore PassThrough WDM', 'WFMNonCore BER Test WDM')";
-                    taskAttrDao.updateWO(wonum, "app_fd_workorder", setvalue, condition);
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore Allocate WDM', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM', 'WFMNonCore PassThrough WDM', 'WFMNonCore BER Test WDM')";
+                    taskAttrDao.updateWO("app_fd_workorder", setvalue, condition);
                 }
                 if (attrValue.equalsIgnoreCase("Service (P2P dan P2MP)") || attrValue.equalsIgnoreCase("Port")) {
                     String setvalue = "c_wfmdoctype='REVISED'";
-                    String condition = "AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM')";
-                    taskAttrDao.updateWO(wonum, "app_fd_workorder", setvalue, condition);
+                    String condition = "c_parent='"+parent+"' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM')";
+                    taskAttrDao.updateWO("app_fd_workorder", setvalue, condition);
                 }
             }
         } catch (SQLException ex) {
@@ -448,19 +450,62 @@ public class validateTaskAttribute {
         }
     }
 
-    public void validateTipeModify(String wonum, String attrValue) {
+    public void validateTipeModify(String parent,String wonum, String attrValue) {
         try {
             String detailactcode = taskAttrDao.getActivity(wonum);
             if (detailactcode.equalsIgnoreCase("WFMNonCore Review Order Modify IPPBX")) {
-                if (attrValue.equalsIgnoreCase("Modify Concurrent")) {
-                    String setvalue = "c_wfmdoctype='REVISED'";
-                    String condition = "AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore Allocate WDM', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM', 'WFMNonCore PassThrough WDM', 'WFMNonCore BER Test WDM')";
-                    taskAttrDao.updateWO(wonum, "app_fd_workorder", setvalue, condition);
+                String setRevised = "c_wfmdoctype='REVISED'";
+                if(!attrValue.equalsIgnoreCase("")){
+
                 }
-                if (attrValue.equalsIgnoreCase("Service (P2P dan P2MP)") || attrValue.equalsIgnoreCase("Port")) {
-                    String setvalue = "c_wfmdoctype='REVISED'";
-                    String condition = "AND c_detailactcode in ('WFMNonCore Allocate Access', 'WFMNonCore PassThrough ACCESS', 'WFMNonCore BER Test ACCESS', 'WFMNonCore Modify Access WDM')";
-                    taskAttrDao.updateWO(wonum, "app_fd_workorder", setvalue, condition);
+                if (attrValue.equalsIgnoreCase("Modify Concurrent")) {
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Modify Access IPPBX', 'WFMNonCore Allocate Number', 'WFMNonCore Registration Number To CRM', 'WFMNonCore Allocate Service IPPBX', 'WFMNonCore Modify Softswitch', 'WFMNonCore Modify Metro IPPBX')";
+                    taskAttrDao.updateWO( "app_fd_workorder", setRevised, condition);
+                }
+                if (attrValue.equalsIgnoreCase("Modify IP")) {
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Modify Access IPPBX', 'WFMNonCore Allocate Number', 'WFMNonCore Registration Number To CRM', 'WFMNonCore Modify Softswitch', 'WFMNonCore Modify Metro IPPBX')";
+                    taskAttrDao.updateWO( "app_fd_workorder", setRevised, condition);
+                }
+                if (attrValue.equalsIgnoreCase("Modify Number")) {
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='NEW' AND c_detailactcode in  ('WFMNonCore Allocate Service IPPBX', 'WFMNonCore Modify Access IPPBX', 'WFMNonCore Modify Metro IPPBX')";
+                    taskAttrDao.updateWO("app_fd_workorder", setRevised, condition);
+                }
+                if (attrValue.equalsIgnoreCase("Modify Bandwidth") || attrValue.equalsIgnoreCase("Modify Address")) {
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='NEW' AND c_detailactcode in ('WFMNonCore Allocate Number', 'WFMNonCore Registration Number To CRM', 'WFMNonCore Allocate Service IPPBX', 'WFMNonCore Modify SBC', 'WFMNonCore Modify Softswitch')";
+                    taskAttrDao.updateWO( "app_fd_workorder", setRevised, condition);
+                }
+                if (attrValue.equalsIgnoreCase("Modify Concurrent Dan Bandwidth")) {
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='NEW' AND c_detailactcode in  ('WFMNonCore Allocate Number', 'WFMNonCore Registration Number To CRM', 'WFMNonCore Allocate Service IPPBX', 'WFMNonCore Modify Softswitch')";
+                    taskAttrDao.updateWO("app_fd_workorder", setRevised, condition);
+                }
+                if (attrValue.equalsIgnoreCase("Modify Number, Concurrent, Bandwidth")) {
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='NEW' AND c_detailactcode in  ('WFMNonCore Allocate Service IPPBX')";
+                    taskAttrDao.updateWO("app_fd_workorder", setRevised, condition);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void validateApproval(String parent, String wonum, String attrValue) {
+        try {
+            String detailactcode = taskAttrDao.getActivity(wonum);
+
+//          woactivitySet.setWhere("parent in (select parent from workorder where wonum='"+wonum+"') and wfmdoctype='NEW' and wosequence >  (select wosequence from woActivity where WONUM='"+wonum+"')");
+//          maksud sequence disini apa
+            if (detailactcode.equalsIgnoreCase("WFMNonCore Review Order")||detailactcode.equalsIgnoreCase("REVIEW_ORDER")||detailactcode.equalsIgnoreCase("Survey LME")) {
+                if(attrValue.equalsIgnoreCase("REJECTED")){
+                    String setRevised = "c_wfmdoctype='REVISED'";
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='NEW' AND c_wosequence > (select c_wosequence from app_fd_workorder where c_parent='"+parent+"')";
+                    taskAttrDao.updateWO("app_fd_workorder", setRevised, condition);
+                }
+                String tempApproved[] = {"WFMNonCore Review Order TSQ IPPBX","WFMNonCore Review Order DSO"};
+                if(attrValue.equalsIgnoreCase("APPROVED") && Arrays.asList(tempApproved).contains(taskAttrDao.getActivity(wonum))){
+                    String setNEW = "c_wfmdoctype='NEW'";
+                    String condition = "c_parent='"+parent+"' AND c_wfmdoctype='REVISED' AND c_wosequence > (select c_wosequence from app_fd_workorder where c_parent='"+parent+"') AND c_status in ('APPR', 'LABASSIGN')";
+                    taskAttrDao.updateWO("app_fd_workorder", setNEW, condition);
+
                 }
             }
         } catch (SQLException ex) {
@@ -472,19 +517,17 @@ public class validateTaskAttribute {
         try {
             STPDao stpdao = new STPDao();
             String result = stpdao.getSTPPortSoapResponse(wonum, attrValue, "STP");
-            if (result.isEmpty()) {
-                result = "No device found for network location: " + attrValue;
-            }
+            if (result.isEmpty()) result = "No device found for network location: " + attrValue;
 
             LogUtil.info(getClass().getName(), " result: " + result);
 
             String description = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrValue);
             if (!description.isEmpty()) {
-                taskAttrDao.updateWO(wonum, "app_fd_workorderspec", "c_value='" + description + "'", " and c_assetattrid='STP_ID'");
-                taskAttrDao.updateWO(wonum, "app_fd_workorderspec", "c_value='" + attrValue + "'", " and c_assetattrid='STP_NAME_ALN'");
-                taskAttrDao.updateWO(wonum, "app_fd_workorderspec", "c_value='None'", " and c_assetattrid='STP_PORT_NAME'");
-                taskAttrDao.updateWO(wonum, "app_fd_workorderspec", "c_value='None'", " and c_assetattrid='STP_PORT_ID'");
-                taskAttrDao.updateWO(wonum, "app_fd_workorderspec", "c_value='None'", " and c_assetattrid='STP_PORT_NAME_ALN'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + description + "'", "c_wonum='"+wonum+"' AND c_assetattrid='STP_ID'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='"+wonum+"' AND c_assetattrid='STP_NAME_ALN'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='"+wonum+"' AND c_assetattrid='STP_PORT_NAME'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='"+wonum+"' AND c_assetattrid='STP_PORT_ID'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='"+wonum+"' AND c_assetattrid='STP_PORT_NAME_ALN'");
                 LogUtil.info(getClass().getName(), wonum + " Berhasil");
 
             }
@@ -492,6 +535,7 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 
     public void reserveSTP(String wonum, String attrName) {
         try {
@@ -591,11 +635,19 @@ public class validateTaskAttribute {
                     break;
                 case "ACCESS_REQUIRED":
                     LogUtil.info(this.getClass().getName(), "############## START PROCESS ACCESS_REQUIRED ###############");
-                    validateAccessRequired(wonum, attrValue);
+                    validateAccessRequired(parent, wonum, attrValue);
                     break;
                 case "MODIFY_TYPE":
                     LogUtil.info(this.getClass().getName(), "############## START PROCESS MODIFY_TYPE ###############");
-                    validateModifyType(wonum, attrValue);
+                    validateModifyType(parent, wonum, attrValue);
+                    break;
+                case "TIPE MODIFY":
+                    LogUtil.info(this.getClass().getName(), "############## START PROCESS TIPE MODIFY ###############");
+                    validateTipeModify(parent, wonum, attrValue);
+                    break;
+                case "APPROVAL":
+                    LogUtil.info(this.getClass().getName(), "############## START PROCESS APPROVAL ###############");
+                    validateApproval(parent,wonum, attrValue);
                     break;
                 default:
                     LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");

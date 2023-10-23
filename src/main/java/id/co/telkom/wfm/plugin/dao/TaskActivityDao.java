@@ -5,6 +5,7 @@
 package id.co.telkom.wfm.plugin.dao;
 
 //import id.co.telkom.wfm.plugin.model.ActivityTask;
+import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
@@ -143,7 +144,7 @@ public class TaskActivityDao {
                 activityProp.put("sequence", rs.getInt("c_sequence"));
                 activityProp.put("crmOrderType", rs.getString("c_crmordertype"));
                 taskArray.add(activityProp);
-                LogUtil.info(getClass().getName(), "taskNonCore = " +taskArray);
+//                LogUtil.info(getClass().getName(), "taskNonCore = " +taskArray);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -482,7 +483,7 @@ public class TaskActivityDao {
                     //Checking insert status
                     if (exe > 0) {
                         updateValue = true;
-                        LogUtil.info(getClass().getName(), " Task Attribute updated to " + wonum);
+//                        LogUtil.info(getClass().getName(), " Task Attribute updated to " + wonum);
                     }   
                     if (ps != null)
                         ps.close();
@@ -552,12 +553,15 @@ public class TaskActivityDao {
                         ps.setString(6, rs.getString("c_description"));
                         ps.setString(7, "WFM");
                         ps.setString(8, "ACTIVITY");
-                        ps.setString(9, workorder.get("schedStart").toString());
+                        TimeUtil time = new TimeUtil();
+                        String dateChange = time.parseDate(workorder.get("schedStart").toString(), "yyyy:MM:dd HH:mm:ss");
+                        ps.setTimestamp(9, dateChange == "" ? null : Timestamp.valueOf(dateChange));
+//                        ps.setTimestamp(9, Timestamp.valueOf(workorder.get("schedStart").toString()));
 
                         int exe = ps.executeUpdate();
                         //Checking insert status
                         if (exe > 0) {
-                            LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
+//                            LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
                         }
                         con.commit();
                     } else con.rollback();
@@ -700,9 +704,9 @@ public class TaskActivityDao {
     public JSONArray getOssItem(String parent) throws SQLException {
         JSONArray activity = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT oss.c_ossitemid, oss.c_itemname, oss.c_correlationid, wo.c_parent "
-                + "FROM app_fd_ossitem oss, app_fd_workorder wo "
-                + "WHERE oss.c_wonum = wo.c_wonum AND wo.c_parent = ?";
+        String query = "SELECT c_ossitemid, c_itemname, c_correlationid, c_parent "
+                + "FROM app_fd_ossitem oss "
+                + "WHERE c_parent = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);

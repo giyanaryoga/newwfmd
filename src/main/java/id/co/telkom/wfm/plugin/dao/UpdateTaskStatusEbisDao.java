@@ -779,7 +779,7 @@ public class UpdateTaskStatusEbisDao {
                 .append(" ) ")
                 .append(" VALUES ")
                 .append(" ( ")
-                .append(" WFMDBDEV01.WFMMILESTONEIDSEQ.NEXTVAL, ")
+                .append(" WFMMILESTONEIDSEQ.NEXTVAL, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")

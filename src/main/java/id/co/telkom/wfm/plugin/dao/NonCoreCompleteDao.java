@@ -145,7 +145,7 @@ public class NonCoreCompleteDao {
                 + " c_description,"
                 + " c_orgid"
                 + " ) VALUES ("
-                + "?, WFMDBDEV01.SERVICEADDRESSIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
+                + "?, SERVICEADDRESSIDSEQ.NEXTVAL, ?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -198,7 +198,7 @@ public class NonCoreCompleteDao {
                 + " c_status\n"
                 + " )\n"
                 + " VALUES\n"
-                + " (?, WFMDBDEV01.ASSETIDSEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?)";
+                + " (?, ASSETIDSEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -248,7 +248,7 @@ public class NonCoreCompleteDao {
                 + "VALUES "
                 + "(?, ?, ?, ?, ?, "
                 + "(SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?), "
-                + "?, ?, ?, ?, WFMDBDEV01.ASSETSPECIDSEQ.NEXTVAL)";
+                + "?, ?, ?, ?, ASSETSPECIDSEQ.NEXTVAL)";
 
         try (Connection con = ds.getConnection()) {
             boolean oldAutoCommit = con.getAutoCommit();

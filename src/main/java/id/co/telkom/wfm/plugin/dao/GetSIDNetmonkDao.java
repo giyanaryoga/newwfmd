@@ -64,15 +64,15 @@ public class GetSIDNetmonkDao {
         return serviceId;
     }
 
-    public String validateSIDNetmonk(JSONObject attribute) throws SQLException, JSONException {
+    public String validateSIDNetmonk(org.json.simple.JSONObject attribute) throws SQLException, JSONException {
         String result = "";
-        String flagND = daoAttr.getWoAttrValue(attribute.getString("wonum"), "ND");
-        String serviceID = daoAttr.getWoAttrValue(attribute.getString("wonum"), "Service_ID");
-        String productname = attribute.getString("prodName");
+        String flagND = daoAttr.getWoAttrValue(attribute.get("wonum").toString(), "ND");
+        String serviceID = daoAttr.getWoAttrValue(attribute.get("wonum").toString(), "Service_ID");
+        String productname = attribute.get("prodName").toString();
 //        String flagND = attribute.getString("nd");
-        String scorderno = attribute.getString("scOrderNo");
+        String scorderno = attribute.get("scOrderNo").toString();
 //        String serviceID = attribute.getString("ServiceID");
-        String crmordertype = attribute.getString("crmOrderType");
+        String crmordertype = attribute.get("crmOrderType").toString();
         String[] splitscorder = scorderno.split("_");
         String orderid = splitscorder[0];
 

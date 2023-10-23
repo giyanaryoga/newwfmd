@@ -9,6 +9,7 @@ import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
 import id.co.telkom.wfm.plugin.dao.NonCoreCompleteDao;
+import id.co.telkom.wfm.plugin.dao.GetSIDNetmonkDao;
 import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.SQLException;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.joget.commons.util.LogUtil;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -33,6 +35,7 @@ public class validateGenerateTask {
     TaskActivityDao dao2 = new TaskActivityDao();
     TaskHistoryDao historyDao = new TaskHistoryDao();
     NonCoreCompleteDao nonCoreDao = new NonCoreCompleteDao();
+    GetSIDNetmonkDao SIDNetmonkDao = new GetSIDNetmonkDao();
     validateOwnerGroup validateOwner = new validateOwnerGroup();
     List<JSONObject> taskList = new ArrayList<>();
     TimeUtil time = new TimeUtil();
@@ -85,7 +88,7 @@ public class validateGenerateTask {
             } else {
                 LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
             }
-        } catch (SQLException ex) {
+        } catch (SQLException | JSONException ex) {
             Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -107,7 +110,7 @@ public class validateGenerateTask {
             sortedTask();
             generateTask(workorder, counter, orderId);
             LogUtil.info(getClass().getName(), "duration = "+ duration);
-        } catch (SQLException ex) {
+        } catch (SQLException | JSONException ex) {
             Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -197,7 +200,7 @@ public class validateGenerateTask {
         }
     }
     
-    private void generateTask(JSONObject workorder, int counter, String orderId) throws SQLException {
+    private void generateTask(JSONObject workorder, int counter, String orderId) throws SQLException, JSONException {
         for(JSONObject sortedTask: taskList) {
             String wonumChild = generateDao.getWonum();
             sortedTask.put("wonum", wonumChild);
@@ -221,6 +224,8 @@ public class validateGenerateTask {
                 TaskDescription = sortedTask.get("description").toString();
                 workorder.put("TaskDescription", TaskDescription);
                 workorder.put("ownerGroup", ownerGroup);
+                
+                SIDNetmonkDao.validateSIDNetmonk(workorder);
             }
             
             String schedFinish = schedFinish(sortedTask);
@@ -326,7 +331,7 @@ public class validateGenerateTask {
             defineTaskButton(taskItem, product);
             sortedTask();
             generateTask(product, counter, orderId);
-        } catch (SQLException ex) {
+        } catch (SQLException | JSONException ex) {
             Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

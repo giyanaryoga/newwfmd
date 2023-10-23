@@ -13,10 +13,12 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
+import org.joget.workflow.model.service.WorkflowUserManager;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -69,8 +71,10 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
         TimeUtil time = new TimeUtil();
         //@@Start..
         LogUtil.info(getClass().getName(), "Start Process: Button Generate Task");
+        WorkflowUserManager userMgr = (WorkflowUserManager) AppUtil.getApplicationContext().getBean("workflowUserManager");
+        boolean anonUser = userMgr.isCurrentUserAnonymous();
         //@Authorization
-        if ("POST".equals(hsr.getMethod())) {
+        if (!anonUser && "POST".equals(hsr.getMethod())) {
             try {
                 //@Parsing message
                 //HttpServletRequest get JSON Post data

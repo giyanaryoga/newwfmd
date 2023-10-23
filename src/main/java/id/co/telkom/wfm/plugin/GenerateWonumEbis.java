@@ -103,7 +103,6 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                 }
                 LogUtil.info(getClassName(), "Request Body: " + jb.toString());
                 //Parse JSON String to JSONObject
-//                String id = UuidGenerator.getInstance().getUuid();//generating uuid
                 String bodyParam = jb.toString();
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject)parser.parse(bodyParam);
@@ -159,20 +158,20 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     //Store attribute
                     woAttribute.put("woAttrName", (attr_arrayObj.get("ATTR_NAME") == null ? "" : attr_arrayObj.get("ATTR_NAME").toString()));
                     woAttribute.put("woAttrValue", (attr_arrayObj.get("ATTR_VALUE") == null ? "" : attr_arrayObj.get("ATTR_VALUE").toString()));
-                    woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? "" : attr_arrayObj.get("SEQUENCE")));
+                    woAttribute.put("woAttrSequence", (attr_arrayObj.get("SEQUENCE") == null ? 0 : Integer.valueOf(attr_arrayObj.get("SEQUENCE").toString())));
                     AttributeWO.add(woAttribute);
                     //Insert attribute
                     dao.insertToWoAttrTable(workorder.get("wonum").toString(), woAttribute);
                 }
                 
                 JSONArray oss_item = new JSONArray();
-                LogUtil.info(getClass().getName(), "OSS ITEM = " +ossitem_arrayObj);
+//                LogUtil.info(getClass().getName(), "OSS ITEM = " +ossitem_arrayObj);
                 
                 if (ossitem_arrayObj == null) {
-                    LogUtil.info(getClass().getName(), "OSS ITEM IS NULL");
+//                    LogUtil.info(getClass().getName(), "OSS ITEM IS NULL");
                     validateTask.generateTaskNonCore(oss_item, workorder, duration);
                 } else {
-                    LogUtil.info(getClass().getName(), "OSS ITEM IS NOT NULL");
+//                    LogUtil.info(getClass().getName(), "OSS ITEM IS NOT NULL");
                     validateTask.generateTaskCore(ossitem_arrayObj, oss_item, workorder, duration);
                 }
                 
@@ -194,19 +193,13 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
                     try {
                         //Success response
                         LogUtil.info(getClassName(), "Process End - Wonum Generated [" + wonum + "]");
-                        LogUtil.info(getClassName(), "Send response to 'Engine' and 'WFM Kafka'");
+//                        LogUtil.info(getClassName(), "Send response to 'Engine' and 'WFM Kafka'");
                         String statusHeaders = "200";
                         String statusRequest = "Success";
                         //Create response
-                        JSONObject outer1 = new JSONObject();
-                        JSONObject outer2 = new JSONObject();
-                        JSONObject outer3 = new JSONObject();
                         JSONObject data = new JSONObject();
                         data.put("WONUM", wonum);
                         data.put("SITEID", workorder.get("siteId").toString());
-                        outer1.put("WORKORDER", data);
-                        outer2.put("WORKORDERMboKeySet", outer1);
-                        outer3.put("CreateMXTELKOWOResponse", outer2);
                         JSONObject res1 = new JSONObject();
                         res1.put("code", statusHeaders);
                         res1.put("message", statusRequest);

@@ -335,7 +335,7 @@ public class TaskAttributeUpdateDao {
     public String getWoAttrValue(String parent, String attrName) throws SQLException {
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "UPDATE app_fd_workorderattribute SET c_attr_value = ?, datemodified = sysdate WHERE c_wonum = ? AND c_attr_name = ?";
+        String query = "SELECT c_attr_value FROM app_fd_workorderattribute WHERE c_wonum = ? AND c_attr_name = ?";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
@@ -520,18 +520,16 @@ public class TaskAttributeUpdateDao {
 //        }
 //    }
 
-    public void updateWO(String wonum, String table, String setvalue, String condition) throws SQLException {
+    public void updateWO(String table, String setvalue, String condition) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "UPDATE "+table+" SET "+setvalue+" WHERE c_wonum = ? "+condition;
+        String query = "UPDATE "+table+" SET "+setvalue+" WHERE "+condition;
         try (Connection con = ds.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
-
-            ps.setString(1, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " Update WO Activity , Query :   " + query);
+                LogUtil.info(getClass().getName(), " Update WO Activity , Query :   " + query);
             }else{
-                LogUtil.info(getClass().getName(), wonum + " Update WO Activity FAILED, Query:  " + query);
+                LogUtil.info(getClass().getName(), " Update WO Activity FAILED, Query:  " + query);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -577,7 +575,7 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
     }
-    
+
     public void deleteTaskAttrLike(String wonum, String assetattrid) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
