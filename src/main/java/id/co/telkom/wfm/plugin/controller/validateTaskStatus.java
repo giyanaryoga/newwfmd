@@ -114,7 +114,7 @@ public class validateTaskStatus {
                 // Response to Kafka
                 String kafkaRes = data.toJSONString();
                 //KAFKA DEVELOPMENT
-                responseKafka.MilestoneEbisDev(kafkaRes, param.getSiteId());
+                responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
                 //KAFKA PRODUCTION
 //                responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
             } else {
@@ -222,7 +222,7 @@ public class validateTaskStatus {
             // Response to Kafka
             String kafkaRes = data.toJSONString();
             //KAFKA DEVELOPMENT
-            responseKafka.MilestoneEbisDev(kafkaRes, param.getSiteId());
+            responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
             //KAFKA PRODUCTION
 //            responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
         } catch (SQLException ex) {

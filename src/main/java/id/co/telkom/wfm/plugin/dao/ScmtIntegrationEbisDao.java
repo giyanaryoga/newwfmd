@@ -133,7 +133,7 @@ public class ScmtIntegrationEbisDao {
 //            String topic = "WFM_NEWSCMT_INSTALL_ENTERPRISE_" + scmtParam.getSiteId().replaceAll("\\s+", "");
 //            kaf.generateMessage(kafkaRes, topic, "");
             //KAFKA DEVELOPMENT
-            responseKafka.InstallDismantleScmtDev(kafkaRes, scmtParam.getSiteId());
+            responseKafka.InstallDismantleScmt(kafkaRes, scmtParam.getSiteId());
             //KAFKA PRODUCTION
 //            responseKafka.InstallDismantleScmt(kafkaRes, scmtParam.getSiteId());
         } catch (SQLException e) {
@@ -283,7 +283,7 @@ public class ScmtIntegrationEbisDao {
 //            String topic = "WFM_NEWSCMT_INSTALL_ENTERPRISE_" + scmtParam.getSiteId().replaceAll("\\s+", "");
 //            kaf.generateMessage(kafkaRes, topic, "");
             //KAFKA DEVELOPMENT
-            responseKafka.InstallDismantleScmtDev(kafkaRes, scmtParam.getSiteId());
+            responseKafka.InstallDismantleScmt(kafkaRes, scmtParam.getSiteId());
             //KAFKA PRODUCTION
 //            responseKafka.InstallDismantleScmt(kafkaRes, scmtParam.getSiteId());
         } catch (SQLException e) {

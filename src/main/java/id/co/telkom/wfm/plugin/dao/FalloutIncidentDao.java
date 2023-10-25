@@ -69,7 +69,7 @@ public class FalloutIncidentDao {
             String kafkaRes = falloutMessage.toJSONString();
             ResponseKafka responseKafka = new ResponseKafka();
             //KAFKA DEVELOPMENT
-            responseKafka.FalloutIncidentDev(kafkaRes, region);
+            responseKafka.FalloutIncident(kafkaRes, region);
             //KAFKA PRODUCTION
 //            responseKafka.FalloutIncident(kafkaRes, region);
         } catch (SQLException e) {

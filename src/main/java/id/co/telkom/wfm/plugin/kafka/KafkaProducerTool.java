@@ -13,7 +13,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.joget.apps.app.model.AppDefinition;
+//import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
