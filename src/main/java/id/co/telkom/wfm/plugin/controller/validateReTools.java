@@ -7,7 +7,7 @@ package id.co.telkom.wfm.plugin.controller;
 import id.co.telkom.wfm.plugin.model.ListReTools;
 import id.co.telkom.wfm.plugin.model.ListScmtIntegrationParam;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
-import id.co.telkom.wfm.plugin.controller.InsertIntegrationHistory;
+import id.co.telkom.wfm.plugin.controller.IntegrationHistory;
 import id.co.telkom.wfm.plugin.dao.ReToolDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
@@ -30,7 +30,7 @@ import org.json.simple.JSONObject;
 public class validateReTools {
     GenerateWonumEbisDao woDao = new GenerateWonumEbisDao();
     ReToolDao reDao = new ReToolDao();
-    InsertIntegrationHistory integrationDao = new InsertIntegrationHistory();
+    IntegrationHistory integrationHistory = new IntegrationHistory();
     ConnUtil connUtil = new ConnUtil();
     
     private void sendUrl(ListReTools param) {
@@ -74,11 +74,15 @@ public class validateReTools {
                 response.append(new String(res, 0, i));
             }
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
+            JSONObject responseObj = new JSONObject();
+            responseObj.put("body", response);
             
             if (responseCode == 200) {
                 LogUtil.info(this.getClass().getName(), "Success POST");
+                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_OBL_SEND_URL", "SUCCESS", bodyParam, responseObj);
             } else {
                 LogUtil.info(this.getClass().getName(), "Failed POST");
+                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_OBL_SEND_URL", "FAILED", bodyParam, responseObj);
             }
             
             conn.disconnect();
@@ -101,7 +105,7 @@ public class validateReTools {
             conn.setRequestProperty("Authorization", apiConfig.getClientSecret());
             conn.setDoOutput(true);
             JSONObject bodyParam = new JSONObject();
-            //requestnya belum
+
             bodyParam.put("customer_code", paramScmt.getCustomerCode());
             bodyParam.put("customer_name", paramScmt.getCustomerName());
             bodyParam.put("service_id", paramScmt.getServiceId());
@@ -127,19 +131,21 @@ public class validateReTools {
                 response.append(new String(res, 0, i));
             }
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
+            JSONObject responseObj = new JSONObject();
+            responseObj.put("body", response);
             
             if (responseCode == 200) {
                 LogUtil.info(this.getClass().getName(), "Success POST");
+                integrationHistory.insertKafka(paramScmt.getServiceId(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "SUCCESS", bodyParam, responseObj);
             } else {
                 LogUtil.info(this.getClass().getName(), "Failed POST");
+                integrationHistory.insertKafka(paramScmt.getServiceId(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "FAILED", bodyParam, responseObj);
             }
-            integrationDao.insertIntegrationHistory(paramScmt.getWonum(), "CRT_CST_SCM", request, response.toString(), "CreateCustomerSCMT");
+            
             conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
             Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

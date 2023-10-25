@@ -5,7 +5,9 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.controller.InsertIntegrationHistory;
+import id.co.telkom.wfm.plugin.controller.IntegrationHistory;
+import id.co.telkom.wfm.plugin.model.APIConfig;
+import id.co.telkom.wfm.plugin.util.ConnUtil;
 import java.io.*;
 import java.net.*;
 import java.net.URL;
@@ -310,7 +312,10 @@ public class NonCoreCompleteDao {
     
     // Reserve Resource UIM
     public JSONObject reserveResource(String serviceId) throws MalformedURLException, IOException, JSONException {
-        InsertIntegrationHistory dao = new InsertIntegrationHistory();
+        IntegrationHistory dao = new IntegrationHistory();
+        ConnUtil connUtil = new ConnUtil();
+        APIConfig apiConfig = new APIConfig();
+        
         try {
             JSONArray attributes = getAttributeNoncore(serviceId);
             String attrName = "";
@@ -343,10 +348,13 @@ public class NonCoreCompleteDao {
             }
 
             String finalRequest = request + repeatedRequest.toString() + request3;
+            JSONObject requestObj = new JSONObject();
+            requestObj.put("body", finalRequest);
 
             LogUtil.info(getClass().getName(), "Reserve Request : " + finalRequest);
-            String urlres = "http://10.60.170.43:7051/EnterpriseFeasibilityUim/EnterpriseFeasibilityUimHTTP";
-            URL url = new URL(urlres);
+
+            apiConfig = connUtil.getApiParam("uim_dev");
+            URL url = new URL(apiConfig.getUrl());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
             connection.setRequestMethod("POST");
@@ -370,12 +378,20 @@ public class NonCoreCompleteDao {
                     response.append(new String(res, 0, i));
                 }
             }
+            JSONObject responseObj = new JSONObject();
+            responseObj.put("body", response);
+            
+            int responseCode = connection.getResponseCode();
             StringBuilder result = response;
             org.json.JSONObject temp = XML.toJSONObject(result.toString());
             System.out.println("temp " + temp.toString());
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
             
-            dao.insertIntegrationHistory(serviceId, "COMPLETENONCORE", "COMPLETENONCORE", finalRequest, temp.toString());
+            if (responseCode == 200) {
+                dao.insertKafka(serviceId, apiConfig.getUrl(), "COMPLETENONCORE", "SUCCESS", requestObj, responseObj);
+            } else {
+                dao.insertKafka(serviceId, apiConfig.getUrl(), "COMPLETENONCORE", "FAILED", requestObj, responseObj);
+            }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Call Failed." + e);
         }

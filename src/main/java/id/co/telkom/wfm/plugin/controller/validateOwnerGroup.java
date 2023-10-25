@@ -235,19 +235,6 @@ public class validateOwnerGroup {
                     ownerGroupSet = vendorTSA;
                 }
             } else {
-                //Connectivity mapping
-                ownerGroupSet = tkMapping.getOwnerGroupConn1(workzone, classstructureid, dcType);
-                if (ownerGroupSet.equalsIgnoreCase("")) {
-                    LogUtil.info(getClass().getName(), "Validate OwnerGroup1 = "+ownerGroupSet);
-                    if (!supplier.equalsIgnoreCase("")) {
-                        String ownerGroupSupplier = tkMapping.getOwnerGroupConn3(workzone, supplier, classstructureid);
-                        ownerGroupSet = ownerGroupSupplier;
-                    } else {
-                        ownerGroupSet = tkMapping.getOwnerGroupConn2(workzone, classstructureid);
-                    }
-                }
-                LogUtil.info(getClass().getName(), "Validate OwnerGroup2 = "+ownerGroupSet);
-
                 //IP Transit
                 if (prodName.equalsIgnoreCase("IP Transit")) {
                     if (workzone.equalsIgnoreCase("NAS")) {
@@ -262,6 +249,19 @@ public class validateOwnerGroup {
                         }
                     }
                 }
+                
+                //Connectivity mapping
+                ownerGroupSet = tkMapping.getOwnerGroupConn1(workzone, classstructureid, dcType);
+                if (ownerGroupSet.equalsIgnoreCase("")) {
+                    LogUtil.info(getClass().getName(), "Validate OwnerGroup1 = "+ownerGroupSet);
+                    if (!supplier.equalsIgnoreCase("")) {
+                        String ownerGroupSupplier = tkMapping.getOwnerGroupConn3(workzone, supplier, classstructureid);
+                        ownerGroupSet = ownerGroupSupplier;
+                    } else {
+                        ownerGroupSet = tkMapping.getOwnerGroupConn2(workzone, classstructureid);
+                    }
+                }
+                LogUtil.info(getClass().getName(), "Validate OwnerGroup2 = "+ownerGroupSet);
             }
         }
         
