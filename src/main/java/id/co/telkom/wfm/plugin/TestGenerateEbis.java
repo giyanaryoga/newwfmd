@@ -6,8 +6,8 @@ package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
-import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
-import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
+import id.co.telkom.wfm.plugin.controller.ValidateGenerateTask;
+import id.co.telkom.wfm.plugin.controller.ValidateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -75,8 +75,8 @@ public class TestGenerateEbis extends Element implements PluginWebSupport {
         //@Authorization
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
-        validateGenerateTask validateTask = new validateGenerateTask();
-        validateOwnerGroup validateOwnerGroup = new validateOwnerGroup();
+        ValidateGenerateTask validateTask = new ValidateGenerateTask();
+        ValidateOwnerGroup validateOwnerGroup = new ValidateOwnerGroup();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;

@@ -26,7 +26,7 @@ import org.json.simple.JSONObject;
  *
  * @author Giyanaryoga Puguh
  */
-public class validateReTools {
+public class ValidateReTools {
     GenerateWonumEbisDao woDao = new GenerateWonumEbisDao();
     ReToolDao reDao = new ReToolDao();
     IntegrationHistory integrationHistory = new IntegrationHistory();
@@ -86,9 +86,9 @@ public class validateReTools {
             
             conn.disconnect();
         } catch (MalformedURLException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -143,9 +143,9 @@ public class validateReTools {
             
             conn.disconnect();
         } catch (MalformedURLException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -201,7 +201,7 @@ public class validateReTools {
             //Send URL document to ReTools
             sendUrl(param);
         } catch (SQLException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

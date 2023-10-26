@@ -5,7 +5,7 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
-import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
+import id.co.telkom.wfm.plugin.controller.ValidateGenerateTask;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -72,7 +72,7 @@ public class GenerateWonumEbis extends Element implements PluginWebSupport {
         //@Authorization
         //Plugin API configuration
         GenerateWonumEbisDao dao = new GenerateWonumEbisDao();
-        validateGenerateTask validateTask = new validateGenerateTask();
+        ValidateGenerateTask validateTask = new ValidateGenerateTask();
         dao.getApiAttribute();
         String apiIdPlugin = dao.apiId;
         String apiKeyPlugin = dao.apiKey;

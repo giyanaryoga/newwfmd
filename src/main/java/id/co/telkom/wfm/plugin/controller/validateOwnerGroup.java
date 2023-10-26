@@ -24,7 +24,7 @@ import org.json.simple.JSONObject;
  *
  * @author User
  */
-public class validateOwnerGroup {
+public class ValidateOwnerGroup {
     NonCoreCompleteDao productNonCore = new NonCoreCompleteDao();
     GenerateWonumEbisDao generateDao = new GenerateWonumEbisDao();
     UpdateTaskStatusEbisDao product = new UpdateTaskStatusEbisDao();

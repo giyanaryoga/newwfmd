@@ -8,7 +8,7 @@ package id.co.telkom.wfm.plugin;
 //import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
-import id.co.telkom.wfm.plugin.controller.validateTaskStatus;
+import id.co.telkom.wfm.plugin.controller.ValidateTaskStatus;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import java.io.*;
@@ -102,7 +102,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 JSONObject envelope2 = (JSONObject) envelope.get("MXTELKOWOSet");
                 JSONObject body = (JSONObject) envelope2.get("WORKORDER");
 
-                validateTaskStatus validateTask = new validateTaskStatus();
+                ValidateTaskStatus validateTask = new ValidateTaskStatus();
                 UpdateTaskStatusEbisDao daoUpdate = new UpdateTaskStatusEbisDao();
                 UpdateStatusParam param = new UpdateStatusParam();
                 ResponseAPI responseTemplete = new ResponseAPI();

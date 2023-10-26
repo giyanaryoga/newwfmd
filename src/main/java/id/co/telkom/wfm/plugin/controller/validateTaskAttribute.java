@@ -30,7 +30,6 @@ import org.json.simple.JSONObject;
  * @author Giyanaryoga Puguh
  */
 public class validateTaskAttribute {
-
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
     TaskActivityDao taskDao = new TaskActivityDao();
     ConnUtil connUtil = new ConnUtil();

@@ -10,7 +10,7 @@ import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
 import id.co.telkom.wfm.plugin.dao.NonCoreCompleteDao;
 import id.co.telkom.wfm.plugin.dao.GetSIDNetmonkDao;
-import id.co.telkom.wfm.plugin.controller.validateOwnerGroup;
+import id.co.telkom.wfm.plugin.controller.ValidateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -29,14 +29,14 @@ import org.json.simple.JSONObject;
  *
  * @author User
  */
-public class validateGenerateTask {
+public class ValidateGenerateTask {
     GenerateWonumEbisDao generateDao = new GenerateWonumEbisDao();
     TestGenerateDao dao = new TestGenerateDao();
     TaskActivityDao dao2 = new TaskActivityDao();
     TaskHistoryDao historyDao = new TaskHistoryDao();
     NonCoreCompleteDao nonCoreDao = new NonCoreCompleteDao();
     GetSIDNetmonkDao SIDNetmonkDao = new GetSIDNetmonkDao();
-    validateOwnerGroup validateOwner = new validateOwnerGroup();
+    ValidateOwnerGroup validateOwner = new ValidateOwnerGroup();
     List<JSONObject> taskList = new ArrayList<>();
     TimeUtil time = new TimeUtil();
     String TaskDescription = "";
@@ -89,7 +89,7 @@ public class validateGenerateTask {
                 LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
             }
         } catch (SQLException | JSONException ex) {
-            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -111,7 +111,7 @@ public class validateGenerateTask {
             generateTask(workorder, counter, orderId);
             LogUtil.info(getClass().getName(), "duration = "+ duration);
         } catch (SQLException | JSONException ex) {
-            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -141,7 +141,7 @@ public class validateGenerateTask {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
         return isTrue;
     }
@@ -195,7 +195,7 @@ public class validateGenerateTask {
                 
                 taskList.add(task);
             } catch (SQLException ex) {
-                Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -282,7 +282,7 @@ public class validateGenerateTask {
             }
             LogUtil.info(getClass().getName(), "Task :" +taskWO);
         } catch (SQLException ex) {
-            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
         return generate;
     }
@@ -332,7 +332,7 @@ public class validateGenerateTask {
             sortedTask();
             generateTask(product, counter, orderId);
         } catch (SQLException | JSONException ex) {
-            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -370,7 +370,7 @@ public class validateGenerateTask {
                 task.put("task_attr", taskAttrList);
                 taskList.add(task);
             } catch (SQLException ex) {
-                Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -383,7 +383,7 @@ public class validateGenerateTask {
                 
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

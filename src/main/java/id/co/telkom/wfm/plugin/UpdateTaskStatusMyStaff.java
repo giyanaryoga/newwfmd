@@ -4,7 +4,7 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.controller.validateTaskStatus;
+import id.co.telkom.wfm.plugin.controller.ValidateTaskStatus;
 import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
@@ -103,7 +103,7 @@ public class UpdateTaskStatusMyStaff extends Element implements PluginWebSupport
                 JSONParser parser = new JSONParser();
                 JSONObject body = (JSONObject) parser.parse(bodyParam);//JSON Object
                 
-                validateTaskStatus validateTask = new validateTaskStatus();
+                ValidateTaskStatus validateTask = new ValidateTaskStatus();
                 UpdateStatusParam param = new UpdateStatusParam();
                 ResponseAPI responseTemplete = new ResponseAPI();
                 JSONObject res = new JSONObject();
