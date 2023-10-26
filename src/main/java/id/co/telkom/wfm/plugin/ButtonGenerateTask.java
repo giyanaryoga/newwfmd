@@ -113,7 +113,7 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
-        } else if (!"POST".equals(hsr.getMethod())) {
+        } else if (anonUser || !"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
             } catch (IOException e) {

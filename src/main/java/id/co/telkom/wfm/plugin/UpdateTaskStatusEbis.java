@@ -179,7 +179,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
             } catch (JSONException ex) {
                 Logger.getLogger(UpdateTaskStatusEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else if (!"POST".equals(hsr.getMethod())) {
+        } else if (anonUser || !"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
             } catch (IOException e) {
