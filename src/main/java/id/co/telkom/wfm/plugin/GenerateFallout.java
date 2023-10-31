@@ -82,7 +82,9 @@ public class GenerateFallout extends Element implements PluginWebSupport {
 
         String headerApiId = hsr.getHeader("api_id");
         String headerApiKey = hsr.getHeader("api_key");
-
+        LogUtil.info(getClassName(), "API ID" + apiIdPlugin);
+        LogUtil.info(getClassName(), "API KEY" + apiKeyPlugin);
+        
         boolean methodStatus = false;
         boolean authStatus = false;
         //Checking
