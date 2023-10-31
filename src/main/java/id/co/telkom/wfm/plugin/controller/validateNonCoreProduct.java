@@ -27,7 +27,7 @@ import org.json.JSONObject;
  *
  * @author ASUS
  */
-public class validateNonCoreProduct {
+public class ValidateNonCoreProduct {
 
     TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     TaskHistoryDao daoHistory = new TaskHistoryDao();

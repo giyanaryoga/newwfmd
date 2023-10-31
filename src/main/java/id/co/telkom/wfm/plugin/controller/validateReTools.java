@@ -5,9 +5,8 @@
 package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.model.ListReTools;
-import id.co.telkom.wfm.plugin.model.ListScmtIntegrationParam;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
-import id.co.telkom.wfm.plugin.controller.InsertIntegrationHistory;
+import id.co.telkom.wfm.plugin.controller.IntegrationHistory;
 import id.co.telkom.wfm.plugin.dao.ReToolDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
@@ -27,10 +26,10 @@ import org.json.simple.JSONObject;
  *
  * @author Giyanaryoga Puguh
  */
-public class validateReTools {
+public class ValidateReTools {
     GenerateWonumEbisDao woDao = new GenerateWonumEbisDao();
     ReToolDao reDao = new ReToolDao();
-    InsertIntegrationHistory integrationDao = new InsertIntegrationHistory();
+    IntegrationHistory integrationHistory = new IntegrationHistory();
     ConnUtil connUtil = new ConnUtil();
     
     private void sendUrl(ListReTools param) {
@@ -74,22 +73,26 @@ public class validateReTools {
                 response.append(new String(res, 0, i));
             }
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
+            JSONObject responseObj = new JSONObject();
+            responseObj.put("body", response);
             
             if (responseCode == 200) {
                 LogUtil.info(this.getClass().getName(), "Success POST");
+                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_OBL_SEND_URL", "SUCCESS", bodyParam, responseObj);
             } else {
                 LogUtil.info(this.getClass().getName(), "Failed POST");
+                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_OBL_SEND_URL", "FAILED", bodyParam, responseObj);
             }
             
             conn.disconnect();
         } catch (MalformedURLException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    private void createCustomerSCMT(ListScmtIntegrationParam paramScmt) {
+    private void createCustomerSCMT(ListReTools param) {
         try {
             APIConfig apiConfig = new APIConfig();
             apiConfig = connUtil.getApiParam("create_customer_obl");
@@ -101,15 +104,15 @@ public class validateReTools {
             conn.setRequestProperty("Authorization", apiConfig.getClientSecret());
             conn.setDoOutput(true);
             JSONObject bodyParam = new JSONObject();
-            //requestnya belum
-            bodyParam.put("customer_code", paramScmt.getCustomerCode());
-            bodyParam.put("customer_name", paramScmt.getCustomerName());
-            bodyParam.put("service_id", paramScmt.getServiceId());
-            bodyParam.put("install_loc", paramScmt.getInstallLoc());
-            bodyParam.put("address", paramScmt.getServiceAddress());
-            bodyParam.put("longitude", paramScmt.getLongitude());
-            bodyParam.put("latitude", paramScmt.getLatitude());
-            bodyParam.put("work_zone", paramScmt.getWorkzone());
+
+            bodyParam.put("customer_code", param.getCustCode());
+            bodyParam.put("customer_name", param.getCustName());
+            bodyParam.put("service_id", param.getServiceId());
+            bodyParam.put("install_loc", param.getInstallLoc());
+            bodyParam.put("address", param.getAddress());
+            bodyParam.put("longitude", param.getLongitude());
+            bodyParam.put("latitude", param.getLatitude());
+            bodyParam.put("work_zone", param.getWorkzone());
             
             String request = bodyParam.toString();
             try (OutputStream outputStream = conn.getOutputStream()) {
@@ -127,27 +130,28 @@ public class validateReTools {
                 response.append(new String(res, 0, i));
             }
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
+            JSONObject responseObj = new JSONObject();
+            responseObj.put("body", response);
             
             if (responseCode == 200) {
                 LogUtil.info(this.getClass().getName(), "Success POST");
+                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "SUCCESS", bodyParam, responseObj);
             } else {
                 LogUtil.info(this.getClass().getName(), "Failed POST");
+                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "FAILED", bodyParam, responseObj);
             }
-            integrationDao.insertIntegrationHistory(paramScmt.getWonum(), "CRT_CST_SCM", request, response.toString(), "CreateCustomerSCMT");
+            
             conn.disconnect();
         } catch (MalformedURLException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     public void validateOBL(String wonum) {
         try {
             ListReTools param = new ListReTools();
-            ListScmtIntegrationParam paramScmt = new ListScmtIntegrationParam();
             JSONObject workorder = reDao.getWorkorder(wonum);
             String docName = reDao.docName(wonum, "SERVICE_DETAIL");
             
@@ -183,21 +187,21 @@ public class validateReTools {
             param.setNamaMitra(namaMitra);
             param.setInstallDate(statusDate);
             
-            paramScmt.setLatitude(latitude);
-            paramScmt.setLongitude(longitude);
-            paramScmt.setCustomerCode(customerCode);
-            paramScmt.setCustomerName(customerName);
-            paramScmt.setServiceId(serviceId);
-            paramScmt.setInstallLoc(serviceId);
-            paramScmt.setServiceAddress(address);
-            paramScmt.setWorkzone(workzone);
+            param.setLatitude(latitude);
+            param.setLongitude(longitude);
+            param.setCustCode(customerCode);
+            param.setCustName(customerName);
+            param.setServiceId(serviceId);
+            param.setInstallLoc(serviceId);
+            param.setAddress(address);
+            param.setWorkzone(workzone);
             
             //Create Customer to SCMT tool
-            createCustomerSCMT(paramScmt);
-            
+            createCustomerSCMT(param);
+            //Send URL document to ReTools
             sendUrl(param);
         } catch (SQLException ex) {
-            Logger.getLogger(validateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

@@ -4,11 +4,18 @@
  */
 package id.co.telkom.wfm.plugin.kafka;
 
+import id.co.telkom.wfm.plugin.model.KafkaConfiguration;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Properties;
+import javax.sql.DataSource;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.joget.apps.app.model.AppDefinition;
+//import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppUtil;
+import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PluginThread;
 
 /**
@@ -16,39 +23,6 @@ import org.joget.commons.util.PluginThread;
  * @author Giyanaryoga Puguh
  */
 public class KafkaProducerTool {
-    public void generateMessage(String kafkaRes, String topik, String kunci){
-        //Define param
-        String bootstrapServers = "10.62.61.102:19092";
-        String topic = topik;
-        String key = kunci;
-        String message = kafkaRes;
-        Properties producerProperties = getClientConfig(bootstrapServers);
-        //Set classloader for OSGI
-        Thread currentThread = Thread.currentThread();
-        ClassLoader threadContextClassLaoder = currentThread.getContextClassLoader();
-        try {
-            currentThread.setContextClassLoader(this.getClass().getClassLoader());
-            //Start producer thread
-            ProducerRunnable producerRunnable = new ProducerRunnable(producerProperties, topic, key, message);
-            PluginThread producerThread = new PluginThread(producerRunnable);
-            producerThread.start();
-        }finally {
-            //Reset classloader
-            currentThread.setContextClassLoader(threadContextClassLaoder);
-        }
-    }
-    
-    //get connection properties
-    public Properties getClientConfig(String bootstrapServers){
-        Properties configs = new Properties();
-        //Common properties
-        configs.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        //Producer properties
-        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
-        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
-        return configs;
-    }
-    
     public void generateConfluentMessage(String kafkaRes, String topik, String kunci){
         //Define param
         String topic = topik;
@@ -72,31 +46,72 @@ public class KafkaProducerTool {
     
     public Properties getConfluentClientConfig() {
         Properties configs = new Properties();
+        //Get kafka config
+        KafkaConfiguration kafkaConf = getKafkaConfig();
         //Common properties
-        AppDefinition AppDef = AppUtil.getCurrentAppDefinition();
-        String kafkaBs = "#envVariable.kafkaBs#";
-        kafkaBs = AppUtil.processHashVariable(kafkaBs, null, null, null, AppDef);
-        configs.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, kafkaBs);
+        configs.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, kafkaConf.getBootstrap());
         //Producer properties
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
-        //Get SASL Config
-        String kafkaSec = "#envVariable.kafkaSec#";
-        String kafkaTsLoc = "#envVariable.kafkaTsLoc#";
-        String kafkaTsPwd = "#envVariable.kafkaTsPwd#";
-        String kafkaMec = "#envVariable.kafkaMec#";
-        String kafkaJaas = "#envVariable.kafkaJaas#";
-        kafkaSec = AppUtil.processHashVariable(kafkaSec, null, null, null, AppDef);
-        kafkaTsLoc = AppUtil.processHashVariable(kafkaTsLoc, null, null, null, AppDef);
-        kafkaTsPwd = AppUtil.processHashVariable(kafkaTsPwd, null, null, null, AppDef);
-        kafkaMec = AppUtil.processHashVariable(kafkaMec, null, null, null, AppDef);
-        kafkaJaas = AppUtil.processHashVariable(kafkaJaas, null, null, null, AppDef);
         //SASL
-        configs.put("security.protocol", kafkaSec);
-        configs.put("ssl.truststore.location", kafkaTsLoc);
-        configs.put("ssl.truststore.password", kafkaTsPwd);
-        configs.put("sasl.mechanism", kafkaMec);
-        configs.put("sasl.jaas.config", kafkaJaas);  
+        configs.put("security.protocol", kafkaConf.getSecurity());
+        configs.put("ssl.truststore.location", kafkaConf.getTsloc());
+        configs.put("ssl.truststore.password", kafkaConf.getTspwd());
+        configs.put("sasl.mechanism", kafkaConf.getMechanism());
+        configs.put("sasl.jaas.config", kafkaConf.getJaas());  
         return configs;
+    }
+    
+    private KafkaConfiguration getKafkaConfig() {
+        KafkaConfiguration.Builder kafBuilder = new KafkaConfiguration.Builder();
+        StringBuilder query  = new StringBuilder();
+        query
+                .append(" SELECT ")
+                .append(" configname, ")
+                .append(" configvalue ")
+                .append(" FROM ")
+                .append(" envconfig ")
+                .append(" WHERE ")
+                .append(" configname IN ")
+                .append(" ( ")
+                .append(" 'bootstrap', ")
+                .append(" 'jaas', ")
+                .append(" 'mechanism', ")
+                .append(" 'security', ")
+                .append(" 'tsloc', ")
+                .append(" 'tspwd' ")
+                .append(" ) ");
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query.toString())) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String name = rs.getString("configname");
+                String value = rs.getString("configvalue");
+                switch (name) {
+                    case "bootstrap":
+                        kafBuilder.bootstrap(value);
+                        break;
+                    case "jaas":
+                        kafBuilder.jaas(value);
+                        break;
+                    case "mechanism":
+                        kafBuilder.mechanism(value);
+                        break;
+                    case "security":
+                        kafBuilder.security(value);
+                        break;
+                    case "tsloc":
+                        kafBuilder.tsloc(value);
+                        break;
+                    case "tspwd":
+                        kafBuilder.tspwd(value);
+                        break;
+                }
+            }
+        } catch(SQLException e) {
+            LogUtil.info(getClass().getName(), "Trace error here: " + e.getMessage());
+        }
+        return kafBuilder.build();
     }
 }

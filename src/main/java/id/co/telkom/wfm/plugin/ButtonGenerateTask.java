@@ -4,7 +4,7 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.controller.validateGenerateTask;
+import id.co.telkom.wfm.plugin.controller.ValidateGenerateTask;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
@@ -97,7 +97,7 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
                 ResponseAPI responseTemplete = new ResponseAPI();
                 JSONObject res = new JSONObject();
                 String message = "";
-                validateGenerateTask validateGenerate = new validateGenerateTask();
+                ValidateGenerateTask validateGenerate = new ValidateGenerateTask();
                 
                 String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
                 boolean validate = validateGenerate.generateButton(parent);
@@ -113,7 +113,7 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }
-        } else if (!"POST".equals(hsr.getMethod())) {
+        } else if (anonUser || !"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
             } catch (IOException e) {

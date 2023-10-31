@@ -35,28 +35,4 @@ public class ResponseKafka {
         String topic = "usrwfm_new_wfm_integration_history";
         kafkaProducerTool.generateConfluentMessage(response, topic, "");
     }
-    
-    public void MilestoneEbisDev(String response, String siteid) {
-        KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
-        String topic = "WFM_MILESTONE_ENTERPRISE_"+siteid;
-        kafkaProducerTool.generateMessage(response, topic, "");
-    }
-    
-    public void FalloutIncidentDev(String response, String siteid) {
-        KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
-        String topic = "WFM_FALLOUT_INCIDENT_"+siteid;
-        kafkaProducerTool.generateMessage(response, topic, "");
-    }
-    
-    public void InstallDismantleScmtDev(String response, String siteid) {
-        KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
-        String topic = "WFM_NEWSCMT_INSTALL_ENTERPRISE_"+siteid;
-        kafkaProducerTool.generateMessage(response, topic, "");
-    }
-    
-    public void IntegrationHistoryDev(String response) {
-        KafkaProducerTool kafkaProducerTool = new KafkaProducerTool();
-        String topic = "WFM_INTEGRATION_HISTORY";
-        kafkaProducerTool.generateMessage(response, topic, "");
-    }
 }

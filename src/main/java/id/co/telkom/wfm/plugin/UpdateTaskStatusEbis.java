@@ -5,14 +5,14 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
+//import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
-import id.co.telkom.wfm.plugin.controller.validateTaskStatus;
+import id.co.telkom.wfm.plugin.controller.ValidateTaskStatus;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import java.io.*;
-import java.sql.SQLException;
+//import java.sql.SQLException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +24,7 @@ import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
 import org.joget.workflow.model.service.WorkflowUserManager;
 import org.json.JSONException;
-import org.json.simple.JSONArray;
+//import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
 
@@ -102,7 +102,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 JSONObject envelope2 = (JSONObject) envelope.get("MXTELKOWOSet");
                 JSONObject body = (JSONObject) envelope2.get("WORKORDER");
 
-                validateTaskStatus validateTask = new validateTaskStatus();
+                ValidateTaskStatus validateTask = new ValidateTaskStatus();
                 UpdateTaskStatusEbisDao daoUpdate = new UpdateTaskStatusEbisDao();
                 UpdateStatusParam param = new UpdateStatusParam();
                 ResponseAPI responseTemplete = new ResponseAPI();
@@ -179,7 +179,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
             } catch (JSONException ex) {
                 Logger.getLogger(UpdateTaskStatusEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else if (!"POST".equals(hsr.getMethod())) {
+        } else if (anonUser || !"POST".equals(hsr.getMethod())) {
             try {
                 hsr1.sendError(405, "Method Not Allowed");
             } catch (IOException e) {

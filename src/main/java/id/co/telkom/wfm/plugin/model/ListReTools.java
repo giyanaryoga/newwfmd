@@ -22,12 +22,13 @@ public class ListReTools {
     private String namaMitra;
     private String installDate;
     private String siteId;
-//    private String custCode;
-//    private String custName;
-//    private String installLoc;
-//    private String latitude;
-//    private String longitude;
-//    private String workzone;
+    private String custCode;
+    private String custName;
+    private String installLoc;
+    private String latitude;
+    private String longitude;
+    private String workzone;
+    private String address;
 
     public String getParent() {
         return parent;
@@ -133,51 +134,59 @@ public class ListReTools {
         this.siteId = siteId;
     }
 
-//    public String getCustCode() {
-//        return custCode;
-//    }
-//
-//    public void setCustCode(String custCode) {
-//        this.custCode = custCode;
-//    }
-//
-//    public String getCustName() {
-//        return custName;
-//    }
-//
-//    public void setCustName(String custName) {
-//        this.custName = custName;
-//    }
-//
-//    public String getInstallLoc() {
-//        return installLoc;
-//    }
-//
-//    public void setInstallLoc(String installLoc) {
-//        this.installLoc = installLoc;
-//    }
-//
-//    public String getLatitude() {
-//        return latitude;
-//    }
-//
-//    public void setLatitude(String latitude) {
-//        this.latitude = latitude;
-//    }
-//
-//    public String getLongitude() {
-//        return longitude;
-//    }
-//
-//    public void setLongitude(String longitude) {
-//        this.longitude = longitude;
-//    }
-//
-//    public String getWorkzone() {
-//        return workzone;
-//    }
-//
-//    public void setWorkzone(String workzone) {
-//        this.workzone = workzone;
-//    }
+    public String getCustCode() {
+        return custCode;
+    }
+
+    public void setCustCode(String custCode) {
+        this.custCode = custCode;
+    }
+
+    public String getCustName() {
+        return custName;
+    }
+
+    public void setCustName(String custName) {
+        this.custName = custName;
+    }
+
+    public String getInstallLoc() {
+        return installLoc;
+    }
+
+    public void setInstallLoc(String installLoc) {
+        this.installLoc = installLoc;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getWorkzone() {
+        return workzone;
+    }
+
+    public void setWorkzone(String workzone) {
+        this.workzone = workzone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
 }

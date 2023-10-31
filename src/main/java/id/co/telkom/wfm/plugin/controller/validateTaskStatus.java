@@ -5,8 +5,8 @@
 package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
-import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
-import id.co.telkom.wfm.plugin.controller.validateReTools;
+import id.co.telkom.wfm.plugin.controller.ValidateNonCoreProduct;
+import id.co.telkom.wfm.plugin.controller.ValidateReTools;
 import id.co.telkom.wfm.plugin.dao.*;
 //import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.kafka.ResponseKafka;
@@ -25,15 +25,15 @@ import org.json.simple.JSONObject;
  *
  * @author Giyanaryoga Puguh
  */
-public class validateTaskStatus {
+public class ValidateTaskStatus {
     GenerateWonumEbisDao woDao = new GenerateWonumEbisDao();
     UpdateTaskStatusEbisDao daoUpdate = new UpdateTaskStatusEbisDao();
     ScmtIntegrationEbisDao daoScmt = new ScmtIntegrationEbisDao();
     TaskHistoryDao daoHistory = new TaskHistoryDao();
 //    TestUpdateStatusEbisDao daoTestUpdate = new TestUpdateStatusEbisDao();
     FailwaDao failDao = new FailwaDao();
-    validateNonCoreProduct validateNonCoreProduct = new validateNonCoreProduct();
-    validateReTools validateRE = new validateReTools();
+    ValidateNonCoreProduct validateNonCoreProduct = new ValidateNonCoreProduct();
+    ValidateReTools validateRE = new ValidateReTools();
     NonCoreCompleteDao daoNonCore = new NonCoreCompleteDao();
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
     ResponseKafka responseKafka = new ResponseKafka();
@@ -64,7 +64,7 @@ public class validateTaskStatus {
             }
             LogUtil.info(getClass().getName(), "result startwa : " + startwa);
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
         return startwa;
     }
@@ -86,7 +86,7 @@ public class validateTaskStatus {
                 compwa = "false";
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
         return compwa;
     }
@@ -114,7 +114,7 @@ public class validateTaskStatus {
                 // Response to Kafka
                 String kafkaRes = data.toJSONString();
                 //KAFKA DEVELOPMENT
-                responseKafka.MilestoneEbisDev(kafkaRes, param.getSiteId());
+                responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
                 //KAFKA PRODUCTION
 //                responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
             } else {
@@ -122,7 +122,7 @@ public class validateTaskStatus {
             }
             LogUtil.info(getClass().getName(), "result status : " + failwa);
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
         return failwa;
     }
@@ -171,9 +171,9 @@ public class validateTaskStatus {
             }
             LogUtil.info(getClass().getName(), "result startwa product : " + startwa);
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         } catch (JSONException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
         return startwa;
     }
@@ -222,11 +222,11 @@ public class validateTaskStatus {
             // Response to Kafka
             String kafkaRes = data.toJSONString();
             //KAFKA DEVELOPMENT
-            responseKafka.MilestoneEbisDev(kafkaRes, param.getSiteId());
+            responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
             //KAFKA PRODUCTION
 //            responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -254,7 +254,7 @@ public class validateTaskStatus {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -312,7 +312,7 @@ public class validateTaskStatus {
                     } catch (SQLException e) {
                         LogUtil.info(getClass().getName(), "ERROR : " + e);
                     } catch (JSONException ex) {
-                        Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 break;
                 case "WFMNonCore Review Order TSQ IP Transit":
@@ -473,7 +473,7 @@ public class validateTaskStatus {
                     break;
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
         return response;
     }
