@@ -212,7 +212,8 @@ public class ValidateGenerateTask {
                 String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
                 ownerGroup = owner_group;
             } else {
-                String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+//                String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+                String owner_group = sortedTask.get("ownerGroup").toString();
                 ownerGroup = owner_group;
             }
             
@@ -373,31 +374,23 @@ public class ValidateGenerateTask {
         }
     }
     
-    private void updateWOAttr(JSONObject workorder) {
-        try {
-            String serviceId = generateDao.getValueWorkorderAttribute(workorder.get("parent").toString(), "Service_ID");
-            
-            if (serviceId.equalsIgnoreCase("")) {
-                
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
     private void generateTaskButton(JSONObject workorder, int counter, String orderId) throws SQLException, JSONException {
         for(JSONObject sortedTask: taskList) {
             String wonumChild = generateDao.getWonum();
             sortedTask.put("wonum", wonumChild);
             sortedTask.put("parent", workorder.get("wonum").toString());
-            sortedTask.put("taskid", counter*10);
+            
+            JSONArray taskIdArray = dao2.getTaskId(workorder.get("wonum").toString());
+            int sizeTask = taskIdArray.size();
+            sortedTask.put("taskid", sizeTask+(counter*10));
 
             if (sortedTask.get("ownerGroup").toString().equalsIgnoreCase("")) {
                 //jika ownergroup di table detailactivity null
                 String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
                 ownerGroup = owner_group;
             } else {
-                String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+//                String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+                String owner_group = sortedTask.get("ownerGroup").toString();
                 ownerGroup = owner_group;
             }
             
@@ -437,6 +430,18 @@ public class ValidateGenerateTask {
                 dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
             }
             counter = counter + 1;
+        }
+    }
+    
+    private void updateWOAttr(JSONObject workorder) {
+        try {
+            String serviceId = generateDao.getValueWorkorderAttribute(workorder.get("parent").toString(), "Service_ID");
+            
+            if (serviceId.equalsIgnoreCase("")) {
+                
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
