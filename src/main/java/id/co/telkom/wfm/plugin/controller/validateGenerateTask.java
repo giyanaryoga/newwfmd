@@ -263,16 +263,14 @@ public class ValidateGenerateTask {
     public boolean generateButton(String parent) {
         boolean generate = false;
         try {
-//            JSONArray taskNonCore = dao2.getDetailTaskNonCore(product.get("prodName").toString(), product.get("crmOrderType").toString());
             JSONArray taskWO = dao2.getTaskWo(parent);
-//            int taskProductNonCore = taskNonCore.size();
             int taskWo = taskWO.size();
             LogUtil.info(getClass().getName(), "Task :" +taskWO);
             if (taskWo != 0) {
                 generate = true;
+                generateTaskButton(parent);
                 //revised task
                 dao2.revisedTask(parent);
-                generateTaskButton(parent);
             } else if (taskWo == 0) {
                 //generate new task
                 generate = true;
@@ -330,7 +328,7 @@ public class ValidateGenerateTask {
             
             defineTaskButton(taskItem, product);
             sortedTask();
-            generateTask(product, counter, orderId);
+            generateTaskButton(product, counter, orderId);
         } catch (SQLException | JSONException ex) {
             Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -384,6 +382,61 @@ public class ValidateGenerateTask {
             }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void generateTaskButton(JSONObject workorder, int counter, String orderId) throws SQLException, JSONException {
+        for(JSONObject sortedTask: taskList) {
+            String wonumChild = generateDao.getWonum();
+            sortedTask.put("wonum", wonumChild);
+            sortedTask.put("parent", workorder.get("wonum").toString());
+            sortedTask.put("taskid", counter*10);
+
+            if (sortedTask.get("ownerGroup").toString().equalsIgnoreCase("")) {
+                //jika ownergroup di table detailactivity null
+                String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
+                ownerGroup = owner_group;
+            } else {
+                String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
+                ownerGroup = owner_group;
+            }
+            
+            LogUtil.info(getClass().getName(), "OwnerGroup = "+ownerGroup);
+            if ((int) sortedTask.get("taskid") != 10) {
+                sortedTask.put("status", "APPR"); 
+            } else {
+                sortedTask.put("status", "LABASSIGN");   
+                TaskDescription = sortedTask.get("description").toString();
+                workorder.put("TaskDescription", TaskDescription);
+                workorder.put("ownerGroup", ownerGroup);
+                
+                SIDNetmonkDao.validateSIDNetmonk(workorder);
+            }
+            
+            String schedFinish = schedFinish(sortedTask);
+            sortedTask.put("schedfinish", schedFinish);
+
+            //GENERATE OSS ITEM
+//            generateDao.insertToOssItem(sortedTask);
+            JSONArray taskAttrArray = (JSONArray) sortedTask.get("task_attr");
+            //TASK ATTRIBUTE GENERATE
+            dao2.GenerateTaskAttribute(sortedTask, workorder, orderId);
+            //GENERATE TASK
+            dao2.generateActivityTask(sortedTask, workorder, ownerGroup);
+            //GENERATE ASSIGNMENT
+            dao2.generateAssignment(sortedTask, workorder);
+            //GENERATE TASK HISTORY
+            historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum OSM", "OSM", "OSM");
+            //GENERATE TASK ATTRIBUTE
+            for (Object taskAttrArrayObj: taskAttrArray) {
+                JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;
+                String attrName = taskAttrObj.get("attrName").toString();
+                String attrValue = (taskAttrObj.get("attrValue") == null ? "" : taskAttrObj.get("attrValue").toString());
+                //@insert Oss Item Attribute
+//                generateDao.insertToOssAttribute(taskAttrObj, sortedTask.get("wonum").toString());
+                dao2.updateValueTaskAttribute((String) sortedTask.get("wonum"), attrName, attrValue);
+            }
+            counter = counter + 1;
         }
     }
 }

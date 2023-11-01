@@ -7,6 +7,7 @@ package id.co.telkom.wfm.plugin.controller;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeDao2;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.joget.commons.util.LogUtil;
@@ -16,66 +17,244 @@ import org.joget.commons.util.LogUtil;
  * @author Giyanaryoga Puguh
  */
 public class ValidateTaskAttribute2 {
-    TaskAttributeDao2 taskAttrDao = new TaskAttributeDao2();
-    TaskAttributeUpdateDao attrDao = new TaskAttributeUpdateDao();
+    TaskAttributeUpdateDao taskAttrDao1 = new TaskAttributeUpdateDao();
+    TaskAttributeDao2 taskAttrDao2 = new TaskAttributeDao2();
+    private static final String taskTSEL[] = {
+        "WFMNonCore Review Order OSS ISP TSEL Regional", "WFMNonCore Review Order OSS OSP TSEL Regional"
+    };
+    private static final String taskBlokNomor[] = {
+        "Populate Number", "Populate SBC", "Allocate Softswitch","Review Order SIP Trunk",
+        "Validate Softswitch","Deactivate Softswitch", "Populate Number Modify", "Activate Softswitch"
+    };
     
     public void validate(String parent, String wonum, String attrName, String attrValue) {
         try {
-            String task = attrDao.getActivity(wonum);
+            String task = taskAttrDao1.getActivity(wonum);
             switch (attrName) {
                 case "ARNET PASSTHROUGH PORT WDM 1":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 1", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 1", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 2":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 2", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 2", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 3":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 3", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 3", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 4":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 4", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 4", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 5":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 5", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 5", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 6":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 6", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 6", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 7":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 7", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 7", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 8":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 8", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 8", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 9":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 9", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 9", attrValue);
                     }
                     break;
                 case "ARNET PASSTHROUGH PORT WDM 10":
                     if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                        taskAttrDao.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 10", attrValue);
+                        taskAttrDao2.updateOwnerGroup(wonum, "WFMNonCore PassThrough Port WDM 10", attrValue);
                     }
+                    break;
+                case "PACKAGE":
+                    validatePackage(wonum, task, attrValue);
+                    break;
+                case "SID_ASTINET_LOV":
+                    taskAttrDao1.updateTaskValue(wonum, "SID ASTINET", attrValue);
+                    break;
+                case "SID_OTHER 1_LOV":
+                    taskAttrDao1.updateTaskValue(wonum, "SID OTHER 1", attrValue);
+                    break;
+                case "SID_OTHER 2_LOV":
+                    taskAttrDao1.updateTaskValue(wonum, "SID OTHER 2", attrValue);
+                    break;
+                case "SID_VPN IP_LOV":
+                    taskAttrDao1.updateTaskValue(wonum, "SID VPN IP", attrValue);
+                    break;
+                case "NAMA_VENDOR":
+                    setWoAttrVendor(parent, task, attrValue);
+                    break;
+                case "MITRA_TSA":
+                    setWoAttrMitra(parent, task, attrValue);
+                    break;
+                case "AN_MANUFACTUR":
+                    validateAnManufacture(parent, wonum, task, attrValue);
+                    break;
+                case "ENCRYPTION_METHOD":
+                    validateEncryptionMethod(parent, wonum, attrValue);
+                    break;
+                case "APPROVAL":
+                    validateApprovalWMS(parent, wonum, task);
+                    break;
+                case "JUMLAH_BLOK_NOMOR":
+                    validateBlokNomor(wonum, task, attrValue);
                     break;
                 default:
                     LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
                     break;
+            }
+            
+            switch(task) {
+                case "Survey-Ondesk_Backup":
+                    break;
+                case "Site-Survey_Backup":
+                    break;
+                default:
+                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
+                    break;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validateBlokNomor(String wonum, String task, String attrValue) throws SQLException {
+        if (Arrays.asList(taskBlokNomor).contains(task)) {
+            if (!attrValue.equalsIgnoreCase("None") || !attrValue.equalsIgnoreCase("")) {
+                int intValue = Integer.parseInt(attrValue);
+                if (intValue>20 && intValue<1) {
+                    
+                } else {
+                    for (int l = 1; l <= 20; l++) {
+                        String attrName = "ND"+l+".START-END";
+                        taskAttrDao2.deleteTaskAttr(wonum, attrName);
+                    }
+                }
+            }
+        } else if (task.equalsIgnoreCase("Activate Softswitch")) {
+            if (!attrValue.equalsIgnoreCase("None") || !attrValue.equalsIgnoreCase("")) {
+                int intValue = Integer.parseInt(attrValue);
+                if (intValue>20 && intValue<1) {
+                    
+                } else {
+                    for (int l = 1; l <= 20; l++) {
+                        String attrName = "ND"+l+".PREFIX";
+                        taskAttrDao2.deleteTaskAttr(wonum, attrName);
+                    }
+                }
+            }
+        }
+    }
+    
+    private void validatePackage(String wonum, String task, String attrValue) throws SQLException {
+        if (task.equalsIgnoreCase("Allocate IP Address") && attrValue.equalsIgnoreCase("IP Transit Beda Bandwidth")) {
+            taskAttrDao1.updateMandatory(wonum, "WAN-SERVICEIP-DOMESTIK", 1);
+            taskAttrDao1.updateMandatory(wonum, "WAN-SUBNETMASK-DOMESTIK", 1);
+            taskAttrDao1.updateMandatory(wonum, "WAN-IPDOMAIN-DOMESTK", 1);
+            taskAttrDao1.updateMandatory(wonum, "WAN-NETWORKADDRESS-DOMESTIK", 1);
+            taskAttrDao1.updateMandatory(wonum, "WAN-GATEWAYADDRESS-DOMESTIK", 1);
+            taskAttrDao1.updateMandatory(wonum, "WAN-RESERVATIONID-DOMESTIK", 1);
+            
+            taskAttrDao1.updateTaskValue(wonum, "WAN-SERVICEIP-DOMESTIK", "None");
+            taskAttrDao1.updateTaskValue(wonum, "WAN-SUBNETMASK-DOMESTIK", "None");
+            taskAttrDao1.updateTaskValue(wonum, "WAN-IPDOMAIN-DOMESTK", "None");
+            taskAttrDao1.updateTaskValue(wonum, "WAN-NETWORKADDRESS-DOMESTIK", "None");
+            taskAttrDao1.updateTaskValue(wonum, "WAN-GATEWAYADDRESS-DOMESTIK", "None");
+            taskAttrDao1.updateTaskValue(wonum, "WAN-RESERVATIONID-DOMESTIK", "None");
+        }
+    }
+    
+    private void setWoAttrVendor(String parent, String task, String attrValue) throws SQLException {
+        if (Arrays.asList(taskTSEL).contains(task)) {
+            if (!attrValue.equalsIgnoreCase("")) {
+                taskAttrDao1.updateWO("app_fd_workorderattribute", "c_attr_value='"+attrValue+"'", "c_wonum='"+parent+"' AND c_attr_name = 'NAMA_VENDOR'");
+            }
+        }
+    }
+    
+    private void setWoAttrMitra(String parent, String task, String attrValue) throws SQLException {
+        if (Arrays.asList(taskTSEL).contains(task)) {
+            if (!attrValue.equalsIgnoreCase("")) {
+                taskAttrDao1.updateWO("app_fd_workorderattribute", "c_attr_value='"+attrValue+"'", "c_wonum='"+parent+"' AND c_attr_name = 'MITRA_TSA'");
+            }
+        }
+    }
+    
+    private void validateAnManufacture(String parent, String wonum, String task, String attrValue) {
+        try {
+            String product = taskAttrDao1.getProductName(parent);
+            if (product.equalsIgnoreCase("Wifi Managed Service") && task.equalsIgnoreCase("Pull Drop Cable Wifi")) {
+                if (attrValue.equalsIgnoreCase("ZTE")) {
+                    taskAttrDao1.updateMandatory(wonum, "AN_DEVICE_ID", 0);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validateEncryptionMethod(String parent, String wonum, String attrValue) {
+        try {
+            String product = taskAttrDao1.getProductName(parent);
+            String orderType = taskAttrDao2.getCrmOrderType(parent);
+            
+            if (product.equalsIgnoreCase("SMS_A2P") && orderType.equalsIgnoreCase("Modify")) {
+                String woAttrValue = taskAttrDao1.getWoAttrValue(parent, "Encryption_Method");
+                if (attrValue != woAttrValue) {
+                    taskAttrDao1.updateTaskValue(wonum, "ENCRYPTION_METHOD", woAttrValue);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private String getScOrderNo(String parent) {
+        String segment = "";
+        try {
+            String scOrderNo = taskAttrDao2.getScOrderNo(parent);
+            if (scOrderNo.matches("1-(.*)")) {
+                segment = "DES";
+            } else if (scOrderNo.matches("2-(.*)")) {
+                segment = "DWS";
+            } else if (scOrderNo.matches("SC(.*)") || scOrderNo.matches("MYI(.*)")) {
+                segment = "DCS";
+            } else {
+                segment = "";
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return segment;
+    }
+    
+    private void validateApprovalWMS(String parent, String wonum, String task) {
+        String[] taskList = {"Pull Drop Cable Wifi","Pickup NTE from SCM Wifi"};
+        String[] segment = {"DES","DGS","DBS"};
+        try {
+            String product = taskAttrDao1.getProductName(parent);
+            String dcType = taskAttrDao1.getWoAttrValue(parent, "DC_Type");
+            String[] splittedDcType = dcType.split(" ");
+            String dcTypeSplit = splittedDcType[0];
+            if (product.equalsIgnoreCase("Wifi Managed Service") && Arrays.asList(taskList).contains(task) && getScOrderNo(parent).equalsIgnoreCase("DES")) {
+                if (Arrays.asList(segment).contains(dcTypeSplit)) {
+                    taskAttrDao2.updateReadOnly(wonum, "APPROVAL", 1);
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);

@@ -6,6 +6,7 @@ package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.controller.validateRevised;
 import id.co.telkom.wfm.plugin.controller.validateTaskAttribute;
+import id.co.telkom.wfm.plugin.controller.ValidateTaskAttribute2;
 import java.util.*;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -23,6 +24,8 @@ public class TaskAttribute extends DefaultApplicationPlugin {
     public Object execute(Map map) {
         validateRevised logicValidate = new validateRevised();
         validateTaskAttribute logicTaskAttr = new validateTaskAttribute();
+        ValidateTaskAttribute2 logicTaskAttr2 = new ValidateTaskAttribute2();
+                
         String parent = getPropertyString("parent");
         String task = getPropertyString("task");
         String taskId = getPropertyString("taskid");
@@ -35,7 +38,9 @@ public class TaskAttribute extends DefaultApplicationPlugin {
         LogUtil.info(this.getClassName(), "TASK: " + task);
         LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: " + attrName);
         LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: " + attrValue);
+        
         logicTaskAttr.validate(parent, wonum, attrName, attrValue);
+        logicTaskAttr2.validate(parent, wonum, attrName, attrValue);
         logicValidate.validate(parent, wonum, attrName, attrValue, task);
         return null;
     }
