@@ -4,7 +4,7 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.TaskAttribute;
+//import id.co.telkom.wfm.plugin.TaskAttribute;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,8 +13,8 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -36,7 +36,7 @@ public class RevisedTaskDao {
     
     public void reviseTask(String parent) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ?";
+        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ? AND c_wfmdoctype = 'NEW'";
         try {
             Connection con = ds.getConnection();
             try {
@@ -78,7 +78,7 @@ public class RevisedTaskDao {
         }
     }
     
-    public void reviseTaskDocType(String wonum, String docType) throws SQLException {
+        public void reviseTaskDocType(String wonum, String docType) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_wonum = ? AND c_woclass = 'ACTIVITY'";
         try {
@@ -122,9 +122,9 @@ public class RevisedTaskDao {
         }
     }
     
-    public void updateWfmDocType(String wonum, String doctype) throws SQLException {
+    public void updateWfmDocType(String parent, String doctype, String condition) throws SQLException {
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_wonum = ?";
+        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ? "+condition;
         try {
             Connection con = ds.getConnection();
             try {
@@ -132,11 +132,12 @@ public class RevisedTaskDao {
                 try {
                     ps.setString(1, doctype);
                     ps.setTimestamp(2, getTimeStamp());
-                    ps.setString(3, wonum);
+                    ps.setString(3, parent);
+                    ps.setString(4, condition);
                     int exe = ps.executeUpdate();
                     //Checking insert status
                     if (exe > 0) 
-                        LogUtil.info(getClass().getName(), "Updated wfmdoctype success : " +doctype+ "\n wonum : " +wonum);
+                        LogUtil.info(getClass().getName(), "Updated wfmdoctype success : " +doctype+ "\n parent : " +parent);
                     if (ps != null)
                         ps.close();
                 } catch (SQLException throwable) {

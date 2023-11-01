@@ -23,7 +23,6 @@ import org.json.simple.JSONObject;
  * @author Giyanaryoga Puguh
  */
 public class TaskAttributeUpdateDao {
-
     private Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
@@ -358,7 +357,6 @@ public class TaskAttributeUpdateDao {
         update
                 .append("UPDATE app_fd_workorderspec SET ")
                 .append(" c_mandatory = ?, ")
-                //            .append(" c_isrequired = ?, ")
                 .append(" datemodified = ? ")
                 .append(" WHERE ")
                 .append(" c_wonum = ? ")
@@ -366,7 +364,6 @@ public class TaskAttributeUpdateDao {
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setInt(1, mandatory);
-//            ps.setInt(2, mandatory);
             ps.setTimestamp(2, getTimeStamp());
             ps.setString(3, wonum);
             ps.setString(4, assetattrid);

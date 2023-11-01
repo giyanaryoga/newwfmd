@@ -681,10 +681,11 @@ public class TaskActivityDao {
     public JSONArray getTaskWo(String parent) throws SQLException {
         JSONArray activity = new JSONArray();
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_jmscorrelationid, c_scorderno, c_detailactcode FROM app_fd_workorder WHERE c_parent = ?";
+        String query = "SELECT c_jmscorrelationid, c_scorderno, c_detailactcode FROM app_fd_workorder WHERE c_parent = ? AND c_wfmdoctype = ?";
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
+            ps.setString(2, "NEW");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 JSONObject activityProp = new JSONObject();
@@ -699,6 +700,26 @@ public class TaskActivityDao {
             ds.getConnection().close();
         }
         return activity;
+    }
+    
+    public JSONArray getTaskId(String parent) throws SQLException {
+        JSONArray taskid = new JSONArray();
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_taskid FROM app_fd_workorder WHERE c_parent = ? AND c_woclass = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, parent);
+            ps.setString(2, "ACTIVITY");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                taskid.add(rs.getInt("c_taskid"));
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return taskid;
     }
     
     public JSONArray getOssItem(String parent) throws SQLException {

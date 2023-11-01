@@ -99,7 +99,13 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
                 String message = "";
                 ValidateGenerateTask validateGenerate = new ValidateGenerateTask();
                 
+                String button = (body.get("button") == null ? "" : body.get("button").toString());
                 String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
+                
+                if (button.equalsIgnoreCase("")) {
+                    
+                }
+                    
                 boolean validate = validateGenerate.generateButton(parent);
                 if (validate) {
                     message = "Successfully update task";

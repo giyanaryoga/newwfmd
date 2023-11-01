@@ -35,58 +35,7 @@ public class ConnUtil {
         } 
         return resultObj;
     }
-
-//    public APIConfig getApiParam (String apiFor){
-//        APIConfig apiConfig = new APIConfig();
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String query = "SELECT c_url, c_grant_type, c_client_id, c_client_secret FROM app_fd_api_wfm WHERE c_use_of_api = ?";
-//        try {
-//            Connection con = ds.getConnection();
-//            try {               
-//                PreparedStatement ps = con.prepareStatement(query);
-//                try {
-//                    try {
-//                        ps.setString(1, apiFor);
-//                        ResultSet rs = ps.executeQuery();
-//                        if (rs.next()){
-//                            apiConfig.setUrl(rs.getString("c_url"));  
-//                            apiConfig.setGrantType(rs.getString("c_grant_type"));
-//                            apiConfig.setClientId(rs.getString("c_client_id"));
-//                            apiConfig.setClientSecret(rs.getString("c_client_secret"));
-//                        }
-//                    } catch(SQLException e){
-//                        LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-//                    }
-//                    if (ps !=null)
-//                        ps.close();
-//                } catch (Throwable throwable) {
-//                    if (ps !=null)
-//                        try {
-//                            ps.close();
-//                        } catch (Throwable throwable1) {
-//                            throwable.addSuppressed(throwable1);
-//                        }    
-//                    throw throwable;
-//                }
-//                if (con !=null)
-//                    con.close();    
-//            } catch (Throwable throwable) {
-//                if (con !=null)
-//                    try {
-//                        con.close();
-//                    }catch(Throwable throwable1){
-//                        throwable.addSuppressed(throwable1);
-//                    }
-//                throw throwable;
-//            } finally {
-//                ds.getConnection().close();
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-//        }    
-//        return apiConfig;
-//    }
-//    
+    
     public APIConfig getApiParam(String apiFor) {
         APIConfig apiConfig = new APIConfig();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");

@@ -29,6 +29,7 @@ public class ListReTools {
     private String longitude;
     private String workzone;
     private String address;
+    private String objectName;
 
     public String getParent() {
         return parent;
@@ -188,5 +189,13 @@ public class ListReTools {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public void setObjectName(String objectName) {
+        this.objectName = objectName;
     }
 }
