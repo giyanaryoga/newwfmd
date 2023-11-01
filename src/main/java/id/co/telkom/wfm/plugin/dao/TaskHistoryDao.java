@@ -90,7 +90,7 @@ public class TaskHistoryDao {
                 LogUtil.info(getClass().getName(), "No data found for " + wonum);
             }
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here taskhistory: " + e.getMessage());
         }
     }
 

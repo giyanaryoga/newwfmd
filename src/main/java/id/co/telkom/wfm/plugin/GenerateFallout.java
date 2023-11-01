@@ -90,9 +90,11 @@ public class GenerateFallout extends Element implements PluginWebSupport {
         //Checking
         if ("POST".equals(hsr.getMethod())) {
             methodStatus = true;
+            LogUtil.info(getClassName(), "METHOD STATUS : " + methodStatus);
         }
         if (apiIdPlugin.equals(headerApiId) && apiKeyPlugin.equals(headerApiKey)) {
             authStatus = true;
+            LogUtil.info(getClassName(), "AUTH STATUS : " + authStatus);
         }
         //Authorization success
         if (methodStatus && authStatus) {
