@@ -553,10 +553,10 @@ public class TaskActivityDao {
                         ps.setString(6, rs.getString("c_description"));
                         ps.setString(7, "WFM");
                         ps.setString(8, "ACTIVITY");
-                        TimeUtil time = new TimeUtil();
-                        String dateChange = time.parseDate(workorder.get("schedStart").toString(), "yyyy:MM:dd HH:mm:ss");
-                        ps.setTimestamp(9, dateChange == "" ? null : Timestamp.valueOf(dateChange));
-//                        ps.setTimestamp(9, Timestamp.valueOf(workorder.get("schedStart").toString()));
+//                        TimeUtil time = new TimeUtil();
+//                        String dateChange = time.parseDate(workorder.get("schedStart").toString(), "yyyy:MM:dd HH:mm:ss");
+//                        ps.setTimestamp(9, dateChange == "" ? null : Timestamp.valueOf(dateChange));
+                        ps.setTimestamp(9, Timestamp.valueOf(workorder.get("schedStart").toString()));
 
                         int exe = ps.executeUpdate();
                         //Checking insert status
