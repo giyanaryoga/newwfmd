@@ -5,11 +5,15 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.controller.ValidateGenerateTask;
+import id.co.telkom.wfm.plugin.controller.ValidateMilestone;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -98,26 +102,41 @@ public class ButtonGenerateTask extends Element implements PluginWebSupport {
                 JSONObject res = new JSONObject();
                 String message = "";
                 ValidateGenerateTask validateGenerate = new ValidateGenerateTask();
-                
+                ValidateMilestone validateMilestone = new ValidateMilestone();
+
                 String button = (body.get("button") == null ? "" : body.get("button").toString());
                 String parent = (body.get("parent") == null ? "" : body.get("parent").toString());
-                
-                if (button.equalsIgnoreCase("")) {
-                    
+                String siteid = (body.get("siteid") == null ? "" : body.get("siteid").toString());
+
+                if (button.equalsIgnoreCase("regenTask")) {
+                    boolean validate = validateGenerate.generateButton(parent);
+                    if (validate) {
+                        message = "Successfully update task";
+                        res.put("code", 200);
+                        res.put("message", message);
+                        res.writeJSONString(hsr1.getWriter());
+                    } else {
+                        message = "Task is not generate!";
+                        hsr1.sendError(422, message);
+                    }
+                } else if (button.equalsIgnoreCase("triggerMilestone")) {
+                    boolean validate = validateMilestone.triggerMilestone(parent, siteid);
+                    LogUtil.info(getClass().getName(), "Trigger Milestone : " + validate);
+                    if (validate) {
+                        res.put("code", 200);
+                        res.put("message", "Milestone COMPLETE Berhasil Dikirim Ulang");
+                        res.writeJSONString(hsr1.getWriter());
+                    } else {
+                        res.put("code", 422);
+                        res.put("message", "Milestone COMPLETE tidak dapat dikirim ulang, hanya milestone berikut yang diperbolehkan: COMPLETE.");
+                        res.writeJSONString(hsr1.getWriter());
+                    }
                 }
-                    
-                boolean validate = validateGenerate.generateButton(parent);
-                if (validate) {
-                    message = "Successfully update task";
-                    res.put("code", 200);
-                    res.put("message", message);
-                    res.writeJSONString(hsr1.getWriter());
-                } else {
-                    message = "Task is not generate!";
-                    hsr1.sendError(422, message);
-                }
+
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
+            } catch (SQLException ex) {
+                Logger.getLogger(ButtonGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (anonUser || !"POST".equals(hsr.getMethod())) {
             try {
