@@ -56,8 +56,6 @@ public class ReToolDao {
                 activityProp.put("serviceAddress", rs.getString("parent.C_SERVICEADDRESS"));
                 activityProp.put("productName", rs.getString("parent.C_PRODUCTNAME"));
                 activityProp.put("statusDate", rs.getString("parent.C_STATUSDATE"));
-                activityProp.put("objectName", rs.getString("doc.C_OBJECTNAME"));
-                activityProp.put("url", rs.getString("doc.C_URL"));
             } else {
                 activityProp = null;
             }
@@ -129,47 +127,47 @@ public class ReToolDao {
         return isAttachedFile;
     }
     
-    public String docName(String wonum, String documentName) throws SQLException {
-        String file = "";
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String selectQuery = "SELECT DISTINCT c_documentname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ?";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(selectQuery)) {
-            ps.setString(1, wonum);
-            ps.setString(2, documentName);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                if (rs.getString("c_documentname") != null) {
-                    file = rs.getString("c_documentname").toString();
-                    LogUtil.info(getClass().getName(), "File = " + file);
-                }
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        }
-        return file;
-    }
-    
-//    public String getObjectName(String wonum, String documentName) throws SQLException {
-//        String objName = "";
+//    public String docName(String wonum, String documentName) throws SQLException {
+//        String file = "";
 //        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String selectQuery = "SELECT DISTINCT c_objectname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ? AND c_filename like '%.csv'";
+//        String selectQuery = "SELECT DISTINCT c_documentname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ?";
 //        try (Connection con = ds.getConnection();
 //                PreparedStatement ps = con.prepareStatement(selectQuery)) {
 //            ps.setString(1, wonum);
 //            ps.setString(2, documentName);
 //            ResultSet rs = ps.executeQuery();
 //            while (rs.next()) {
-//                if (rs.getString("c_objectname") != null) {
-//                    objName = rs.getString("c_objectname").toString();
-//                    LogUtil.info(getClass().getName(), "Object Name = " + objName);
-//                } else {
-//                    objName = "";
+//                if (rs.getString("c_documentname") != null) {
+//                    file = rs.getString("c_documentname").toString();
+//                    LogUtil.info(getClass().getName(), "File = " + file);
 //                }
 //            }
 //        } catch (SQLException e) {
 //            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
 //        }
-//        return objName;
+//        return file;
 //    }
+    
+    public String getObjectName(String wonum, String documentName) throws SQLException {
+        String objName = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String selectQuery = "SELECT DISTINCT c_objectname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ? OR c_filename like '%.csv'";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(selectQuery)) {
+            ps.setString(1, wonum);
+            ps.setString(2, documentName);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                if (rs.getString("c_objectname") != null) {
+                    objName = rs.getString("c_objectname").toString();
+                    LogUtil.info(getClass().getName(), "Object Name = " + objName);
+                } else {
+                    objName = "";
+                }
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return objName;
+    }
 }

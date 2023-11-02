@@ -45,14 +45,15 @@ public class validateTaskAttribute {
             "Install NTE Wifi", "Pickup NTE from SCM", "Pickup NTE from SCM Manual",
             "Install NTE", "Install NTE Manual"
     };
+    
     public void validateSTPPortName(String parent, String wonum, String attrValue) {
         try {
             String stpPortId = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_PORT_ID", attrValue);
             LogUtil.info(this.getClass().getName(), "STP PORT ID" + stpPortId);
 
             if (!stpPortId.isEmpty()) {
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpPortId + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpPortId + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_PORT_ID'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -817,7 +818,7 @@ public class validateTaskAttribute {
                     break;
                 case "STP_NETWORKLOCATION_LOV":
                     if(!attrValue.equalsIgnoreCase("None")){
-                        taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_wonum='"+wonum+"' AND c_assetattrid='STP_NETWORKLOCATION'");
+                        taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_parent='"+parent+"' AND c_assetattrid='STP_NETWORKLOCATION'");
                     }
                     validateSTP(parent, wonum, attrValue);
                     break;
