@@ -31,6 +31,7 @@ public class ValidateReTools {
     ReToolDao reDao = new ReToolDao();
     IntegrationHistory integrationHistory = new IntegrationHistory();
     ConnUtil connUtil = new ConnUtil();
+    ListReTools param = new ListReTools();
     
     private void sendUrl(ListReTools param) {
         try {
@@ -55,7 +56,7 @@ public class ValidateReTools {
             bodyParam.put("service_id", param.getServiceId());
             bodyParam.put("supplier_code", param.getSupplierCode());
             bodyParam.put("partner_name", param.getNamaMitra());
-            bodyParam.put("INSTALL_DATE", param.getInstallDate());
+//            bodyParam.put("INSTALL_DATE", param.getInstallDate());
             bodyParam.put("site_id", param.getSiteId());
             
             String request = bodyParam.toString();
@@ -148,7 +149,7 @@ public class ValidateReTools {
         }
     }
     
-    private void generateUrlMinio(ListReTools param) {
+    private void generateUrlMinio(String parent, String objectName) {
         try {
             APIConfig apiConfig = new APIConfig();
             apiConfig = connUtil.getApiParam("generate_url_minio");
@@ -162,8 +163,8 @@ public class ValidateReTools {
             conn.setDoOutput(true);
             JSONObject bodyParam = new JSONObject();
             
-            bodyParam.put("wonum", param.getWonum());
-            bodyParam.put("objectname", param.getObjectName());
+            bodyParam.put("wonum", parent);
+            bodyParam.put("objectname", objectName);
             bodyParam.put("expiration", 7);
             bodyParam.put("timeunit", "DAYS");
             
@@ -188,10 +189,8 @@ public class ValidateReTools {
             
             if (responseCode == 200) {
                 LogUtil.info(this.getClass().getName(), "Success POST");
-//                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "SUCCESS", bodyParam, responseObj);
             } else {
                 LogUtil.info(this.getClass().getName(), "Failed POST");
-//                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "FAILED", bodyParam, responseObj);
             }
             conn.disconnect();
         } catch (MalformedURLException ex) {
@@ -203,13 +202,15 @@ public class ValidateReTools {
     
     public void validateOBL(String wonum) {
         try {
-            ListReTools param = new ListReTools();
             JSONObject workorder = reDao.getWorkorder(wonum);
-            JSONObject doclink = reDao.getDocLinks(workorder.get("parent").toString());
-            String docName = reDao.docName(wonum, "SERVICE_DETAIL");
+            param.setParent(workorder.get("parent").toString());
+            String objName = reDao.getObjectName(param.getParent(), "SERVICE_DETAIL");
+            String productName = workorder.get("productName").toString();
+            //Generate URL Minio
+            generateUrlMinio(param.getParent(), objName);
+            JSONObject doclink = reDao.getDocLinks(param.getParent());
             
             param.setWonum(workorder.get("wonum").toString());
-            param.setParent(workorder.get("parent").toString());
             String oblTrcNo = param.getWonum(); //wonum parent
             String namaMitra = workorder.get("ownerGroup").toString();
             String customerCode = woDao.getValueWorkorderAttribute(wonum, "CustomerID");
@@ -217,24 +218,23 @@ public class ValidateReTools {
             String address = workorder.get("serviceAddress").toString();
             String workzone = workorder.get("workzone").toString();
             String extOrderNo = workorder.get("scOrderNo").toString();
-            String nomorKb = woDao.getValueWorkorderAttribute(wonum, "AgreementName");
-            String nomorKl = woDao.getValueWorkorderAttribute(wonum, "ContractName");
-            String serviceId = woDao.getValueWorkorderAttribute(wonum, "Service_ID");
-            String latitude = woDao.getValueWorkorderAttribute(wonum, "Lat");
-            String longitude = woDao.getValueWorkorderAttribute(wonum, "Long");
-            String supplierCode = "OBL"+ "|"+customerCode;
             String siteid = workorder.get("siteid").toString();
             String statusDate = workorder.get("statusDate").toString();
-            String objectName = doclink.get("objectName").toString();
+            String supplierCode = "OBL"+ "|"+customerCode;
+            
+            String contractName = woDao.getValueWorkorderAttribute(wonum, "ContractName");
+            String nomorKb = woDao.getValueWorkorderAttribute(wonum, "AgreementName");
+            String nomorKl = (contractName == null ? productName : contractName);
+            String serviceId = woDao.getValueWorkorderAttribute(wonum, "Service_ID");
+            String latitude = woDao.getValueWorkorderAttribute(wonum, "Latitude");
+            String longitude = woDao.getValueWorkorderAttribute(wonum, "Longitude");
             String url = doclink.get("url").toString();
+            String docName = doclink.get("documentName").toString();
             
-            //Kurang docName sama URL document
             param.setDocName(docName);
-            param.setObjectName(objectName);
             param.setUrlDoc(url);
-            
             param.setNomorKb(nomorKb == null ? "" : nomorKb);
-            param.setNomorKl(nomorKl == null ? workorder.get("productName").toString() : nomorKl);
+            param.setNomorKl(nomorKl);
             param.setExtOrderNo(extOrderNo);
             param.setOblTrcNo(oblTrcNo);
             param.setServiceId(serviceId);
@@ -252,8 +252,6 @@ public class ValidateReTools {
             param.setAddress(address);
             param.setWorkzone(workzone);
             
-            //Generate URL Minio
-            generateUrlMinio(param);
             //Create Customer to SCMT tool
             createCustomerSCMT(param);
             //Send URL document to ReTools

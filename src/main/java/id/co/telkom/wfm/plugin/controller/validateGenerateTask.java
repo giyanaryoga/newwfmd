@@ -269,9 +269,9 @@ public class ValidateGenerateTask {
             LogUtil.info(getClass().getName(), "Task :" +taskWO);
             if (taskWo != 0) {
                 generate = true;
-                generateTaskButton(parent);
                 //revised task
                 dao2.revisedTask(parent);
+                generateTaskButton(parent);
             } else if (taskWo == 0) {
                 //generate new task
                 generate = true;
@@ -382,7 +382,10 @@ public class ValidateGenerateTask {
             
             JSONArray taskIdArray = dao2.getTaskId(workorder.get("wonum").toString());
             int sizeTask = taskIdArray.size();
-            sortedTask.put("taskid", sizeTask+(counter*10));
+            LogUtil.info(getClass().getName(), "SIZE TASK = "+ sizeTask);
+            int taskId = (sizeTask+counter)*10;
+            LogUtil.info(getClass().getName(), "TASK ID = "+ taskId);
+            sortedTask.put("taskid", taskId);
 
             if (sortedTask.get("ownerGroup").toString().equalsIgnoreCase("")) {
                 //jika ownergroup di table detailactivity null
@@ -395,7 +398,7 @@ public class ValidateGenerateTask {
             }
             
             LogUtil.info(getClass().getName(), "OwnerGroup = "+ownerGroup);
-            if ((int) sortedTask.get("taskid") != 10) {
+            if ((int) sortedTask.get("taskid") != (sizeTask+1)*10) {
                 sortedTask.put("status", "APPR"); 
             } else {
                 sortedTask.put("status", "LABASSIGN");   

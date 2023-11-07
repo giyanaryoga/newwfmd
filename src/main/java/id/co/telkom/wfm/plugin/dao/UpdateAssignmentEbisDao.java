@@ -4,7 +4,6 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-import id.co.telkom.wfm.plugin.model.ListLabor;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,13 +12,9 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 /**
  *
@@ -37,7 +32,6 @@ public class UpdateAssignmentEbisDao {
         boolean status = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_status FROM app_fd_workorder WHERE c_wonum = ? AND c_woclass = 'ACTIVITY'";
-        // change 04
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -51,8 +45,7 @@ public class UpdateAssignmentEbisDao {
                     status = false;
                     LogUtil.info(getClass().getName(), "Status laborname = " +status);
                 }
-            } 
-//            else con.rollback();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -64,9 +57,8 @@ public class UpdateAssignmentEbisDao {
     public String getLaborName(String laborcode) throws SQLException {
         String laborname = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT l.c_laborcode, p.c_displayname "
-                + "FROM app_fd_labor l, app_fd_person2 p WHERE l.c_personid = p.c_personid and c_laborcode = ? ";
-        // change 04
+        String query = "SELECT c_laborcode, c_displayname "
+                + "FROM app_fd_labor WHERE c_laborcode = ? ";
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, laborcode);
@@ -74,8 +66,7 @@ public class UpdateAssignmentEbisDao {
             if (rs.next()){
                 laborname = rs.getString("c_displayname");
                 LogUtil.info(getClass().getName(), "laborname = " +laborname);
-            } 
-//            else con.rollback();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -87,17 +78,15 @@ public class UpdateAssignmentEbisDao {
     public boolean validateLabor(String laborcode) throws SQLException {
         boolean validateLabor = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT l.c_laborcode, l.c_personid, p.c_displayname "
-                + "FROM app_fd_labor l, app_fd_person2 p WHERE l.c_personid = p.c_personid and c_laborcode = ? ";
-        // change 04
+        String query = "SELECT c_laborcode, c_personid, c_displayname "
+                + "FROM app_fd_labor WHERE c_laborcode = ? ";
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, laborcode);
             ResultSet rs = ps.executeQuery();
             if (rs.next()){
                 validateLabor = true;
-            } 
-//            else con.rollback();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -109,17 +98,15 @@ public class UpdateAssignmentEbisDao {
     public boolean validateCrew(String amcrew) throws SQLException {
         boolean validateCrew = false;
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT a.c_amcrew, a.c_amcrewtype, a.c_description, a.c_orgid, a.c_status "
-                + "FROM app_fd_amcrew a WHERE c_amcrew = ? ";
-        // change 04
+        String query = "SELECT c_amcrew, c_amcrewtype, a.c_description, a.c_orgid, a.c_status "
+                + "FROM app_fd_amcrew WHERE c_amcrew = ? ";
         try(Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, amcrew);
             ResultSet rs = ps.executeQuery();
             if (rs.next()){
                 validateCrew = true;
-            } 
-//            else con.rollback();
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {

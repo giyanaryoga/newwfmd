@@ -52,8 +52,8 @@ public class validateTaskAttribute {
             LogUtil.info(this.getClass().getName(), "STP PORT ID" + stpPortId);
 
             if (!stpPortId.isEmpty()) {
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpPortId + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpPortId + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_PORT_ID'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -754,7 +754,7 @@ public class validateTaskAttribute {
         }
     }
 
-    public void validate(String parent, String wonum, String attrName, String attrValue) {
+    public void validate(String parent, String wonum, String attrName, String attrValue) throws SQLException {
         try {
             validateValueNextTask(parent, attrName, attrValue);
             String detailactcode = taskAttrDao.getActivity(wonum);
@@ -827,8 +827,8 @@ public class validateTaskAttribute {
                     validateSTP(parent, wonum, attrValue);
                     break;
                 case "STP_NETWORKLOCATION_LOV":
-                    if (!attrValue.equalsIgnoreCase("None")) {
-                        taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NETWORKLOCATION'");
+                    if(!attrValue.equalsIgnoreCase("None")){
+                        taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_parent='"+parent+"' AND c_assetattrid='STP_NETWORKLOCATION'");
                     }
                     validateSTP(parent, wonum, attrValue);
                     break;

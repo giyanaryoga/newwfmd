@@ -97,6 +97,7 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                 String cpeSerialNumber = data_obj.get("cpeSerialNumber").toString();
                 String chiefCode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
                 String crew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
+                
                 //Get EAI Token for access scmt
                 ScmtIntegrationEbisDao scmtIntegrationDao = new ScmtIntegrationEbisDao();
                 String eaiToken = scmtIntegrationDao.getScmtToken();
@@ -145,6 +146,7 @@ public class CpeValidationEbis extends Element implements PluginWebSupport {
                             isDeviceInTech = true;
                             LogUtil.info(getClassName(), "Device in Crew " + locationCode);
                         }
+                        
                         //Validate CPE
                         JSONObject res = new JSONObject();
                         res.put("cpeVendor", cpeVendor);

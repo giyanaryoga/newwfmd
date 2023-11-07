@@ -7,7 +7,10 @@ package id.co.telkom.wfm.plugin;
 import id.co.telkom.wfm.plugin.controller.validateRevised;
 import id.co.telkom.wfm.plugin.controller.validateTaskAttribute;
 import id.co.telkom.wfm.plugin.controller.ValidateTaskAttribute2;
+import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
@@ -45,7 +48,11 @@ public class TaskAttribute extends DefaultApplicationPlugin {
         LogUtil.info(this.getClassName(), "SITEID VALUE: " + siteid);
         LogUtil.info(this.getClassName(), "ORGID VALUE: " + orgid);
         
-        logicTaskAttr.validate(parent, wonum, attrName, attrValue);
+        try {
+            logicTaskAttr.validate(parent, wonum, attrName, attrValue);
+        } catch (SQLException ex) {
+            Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
         logicTaskAttr2.validate(parent, wonum, attrName, attrValue);
         logicValidate.validate(parent, wonum, attrName, attrValue, task);
         return null;

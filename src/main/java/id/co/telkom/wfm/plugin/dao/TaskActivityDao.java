@@ -192,74 +192,6 @@ public class TaskActivityDao {
         return taskAttrValue;
     }
     
-//    public boolean updateWoCpe12(String cpeModel, String cpeVendor, String cpeSerialNumber, String cpeValidasi, String wonum){
-////        String wonum = parent + " - " + ((act.getTaskId()/10) - 1);
-//        boolean updateCpe = false;    
-//        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");// change 03
-//        StringBuilder update = new StringBuilder();
-//        update
-//                .append(" UPDATE app_fd_workorder SET ")
-//                .append(" c_cpe_model = ?, ")
-//                .append(" c_cpe_vendor = ?, ")
-//                .append(" c_cpe_serial_number = ?, ")
-//                .append(" c_cpe_validation = ?, ")
-//                .append(" dateModified = ? ")
-//                .append(" WHERE ")
-//                .append(" c_wonum = ? ")
-//                .append(" AND ")
-//                .append(" c_woclass = 'ACTIVITY' ");
-//        // change 03
-//        try {
-//            Connection con = ds.getConnection();
-//            try {
-//                PreparedStatement ps = con.prepareStatement(update.toString());
-//                // change 03
-//                try {
-//                    ps.setString(1, cpeModel);
-//                    ps.setString(2, cpeVendor);
-//                    ps.setString(3, cpeSerialNumber);
-//                    ps.setString(4, cpeValidasi);
-//                    ps.setTimestamp(5, getTimeStamp());
-//                    // change 03 where clause
-//                    ps.setString(6, wonum);
-////                    ps.setString(6, Integer.toString(act.getTaskId()));
-//                    // change 03
-//                    int exe = ps.executeUpdate();
-//                    //Checking insert status
-//                    if (exe > 0) {
-//                        updateCpe = true;
-//                        LogUtil.info(getClass().getName(), " CPE updated succes to " + wonum);
-//                    }   
-//                    if (ps != null)
-//                        ps.close();
-//                } catch (SQLException throwable) {
-//                    try {
-//                        if (ps != null)
-//                            ps.close();
-//                    } catch (SQLException throwable1) {
-//                        throwable.addSuppressed(throwable1);
-//                    }
-//                    throw throwable;
-//                }
-//                if (con != null)
-//                    con.close();
-//            } catch (Throwable throwable) {
-//                try {
-//                    if (con != null)
-//                        con.close();
-//                } catch (SQLException throwable1) {
-//                    throwable.addSuppressed(throwable1);
-//                }
-//                throw throwable;
-//            } finally {
-//                ds.getConnection().close();
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-//        }
-//        return updateCpe;
-//    }
-    
     public void generateActivityTask(JSONObject taskObj, JSONObject workorder, String ownerGroup) throws SQLException {
         StringBuilder insert = new StringBuilder();
         insert
@@ -553,10 +485,10 @@ public class TaskActivityDao {
                         ps.setString(6, rs.getString("c_description"));
                         ps.setString(7, "WFM");
                         ps.setString(8, "ACTIVITY");
-                        TimeUtil time = new TimeUtil();
-                        String dateChange = time.parseDate(workorder.get("schedStart").toString(), "yyyy:MM:dd HH:mm:ss");
-                        ps.setTimestamp(9, dateChange == "" ? null : Timestamp.valueOf(dateChange));
-//                        ps.setTimestamp(9, Timestamp.valueOf(workorder.get("schedStart").toString()));
+//                        TimeUtil time = new TimeUtil();
+//                        String dateChange = time.parseDate(workorder.get("schedStart").toString(), "yyyy:MM:dd HH:mm:ss");
+//                        ps.setTimestamp(9, dateChange == "" ? null : Timestamp.valueOf(dateChange));
+                        ps.setTimestamp(9, Timestamp.valueOf(workorder.get("schedStart").toString()));
 
                         int exe = ps.executeUpdate();
                         //Checking insert status
