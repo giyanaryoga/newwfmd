@@ -108,7 +108,7 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                 String amcrew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
                 String laborhrs = (data_obj.get("laborhrs") == null ? "" : data_obj.get("laborhrs").toString());
                 String laborcode = (data_obj.get("laborcode") == null ? "" : data_obj.get("laborcode").toString());
-//                String chiefcode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
+                String chiefcode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
                 
                 UpdateAssignmentEbisDao dao = new UpdateAssignmentEbisDao();
                 ResponseAPI responseTemplete = new ResponseAPI();

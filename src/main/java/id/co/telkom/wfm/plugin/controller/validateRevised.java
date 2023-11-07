@@ -7,6 +7,8 @@ package id.co.telkom.wfm.plugin.controller;
 import id.co.telkom.wfm.plugin.TaskAttribute;
 import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
+import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
+import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import java.util.Arrays;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -21,28 +23,31 @@ import org.json.simple.JSONObject;
  */
 public class validateRevised {
     RevisedTaskDao dao = new RevisedTaskDao();
+    GenerateWonumEbisDao generateDao = new GenerateWonumEbisDao();
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
+    ResponseAPI response = new ResponseAPI();
     
     public void validate (String parent, String wonum, String attrName, String attrValue, String task) {
         try {
             JSONArray taskArray = dao.getTask(parent);
-//            LogUtil.info(getClass().getName(), "Task => " + taskArray);
             task = taskAttrDao.getActivity(wonum);
             
             switch(attrName){
                 case "APPROVAL_SURVEY":
                     validateApprovalSurvey(parent, task, attrValue);
+                    response.ResponseMessage(200, "Success Revised Task!");
                 break;
                 case "APPROVAL":
                     validateNonConn(parent, wonum, task, attrValue);
                     validateApprovalTSQ(parent, wonum, task, attrValue);
-                    if (attrValue.equalsIgnoreCase("REJECTED")) {
-                        dao.reviseTask(parent);
-                        dao.generateActivityTask(parent);
-                    } else {
-                        LogUtil.info(getClass().getName(), "Approval is not REJECTED");
-                        LogUtil.info(getClass().getName(), "Task" + taskArray);
-                    }
+                    validateApprovalMangoesky(parent, task, attrValue);
+//                    if (attrValue.equalsIgnoreCase("REJECTED")) {
+//                        dao.reviseTask(parent);
+//                        dao.generateActivityTask(parent);
+//                    } else {
+//                        LogUtil.info(getClass().getName(), "Approval is not REJECTED");
+//                        LogUtil.info(getClass().getName(), "Task" + taskArray);
+//                    }
                 break;
                 case "NODE_ID":
                     validateNodeId(parent, task, attrValue);
@@ -102,14 +107,18 @@ public class validateRevised {
         }
     }
     
-    private void validateAccessRequired1(String parent, String task, String attrValue) throws SQLException {
+    private JSONObject validateAccessRequired1(String parent, String task, String attrValue) throws SQLException {
+        JSONObject res = new JSONObject();
         if (task.equalsIgnoreCase("WFMNonCore BER Test WDM Coordination")) {
             if (attrValue.equalsIgnoreCase("NO")) {
                 dao.updateWfmDocType(parent, "REVISED", "AND c_detailactcode IN ('WFMNonCore Allocate Access Cust End 1', 'WFMNonCore Integrasi Access Cust End 1')");
+                res = response.ResponseMessage(200, "Success Revised Task");
             } else {
                 dao.updateWfmDocType(parent, "NEW", "AND c_detailactcode IN ('WFMNonCore Allocate Access Cust End 1', 'WFMNonCore Integrasi Access Cust End 1')");
+                res = response.ResponseMessage(200, "Success Update New Task");
             }
         }
+        return res;
     }
     
     private void validateAccessRequired2(String parent, String task, String attrValue) throws SQLException {
@@ -185,6 +194,22 @@ public class validateRevised {
                 } else {
                     LogUtil.info(getClass().getName(), "Approval TSQ WDM is not REJECTED");
                 }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validateApprovalMangoesky(String parent, String task, String attrValue) {
+        String[] taskMangoesky = {
+            "Approval Project Management Mangoesky", "Approval Project Management Mangoesky Modoroso"
+        };
+        String taskRevised = "'Approval Project Management Mangoesky','Approval Project Management Mangoesky Modoroso',"
+                + "'Validation Mangoesky','Upload Berita Acara Mangoesky'";
+        try {
+            if (attrValue.equalsIgnoreCase("REJECTED") && Arrays.asList(taskMangoesky).contains(task)) {
+                dao.updateWfmDocType(parent, "REVISED", "AND c_parent='"+parent+"' AND c_detailactcode IN ("+taskRevised+")");
+                GenerateTaskNew(parent);
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
@@ -273,6 +298,30 @@ public class validateRevised {
                 }
             } else {
                 
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void GenerateTaskNew(String parent) {
+        try {
+            JSONArray taskTotal = dao.getTask(parent);
+            JSONArray taskRevised = dao.getTaskRevised(parent);
+            int totalTask = taskTotal.size();
+            int x = 1;
+            for (Object obj : taskRevised) {
+                JSONObject taskObj = (JSONObject)obj;
+                int nextTaskId = totalTask+x;
+                taskObj.put("wonum", generateDao.getWonum());
+                taskObj.put("taskid", nextTaskId*10);
+                if (x==1) {
+                    taskObj.put("status", "LABASSIGN");
+                } else {
+                    taskObj.put("status", "APPR");
+                }
+                dao.generateActivityTask(taskObj);
+                x += 1;
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);

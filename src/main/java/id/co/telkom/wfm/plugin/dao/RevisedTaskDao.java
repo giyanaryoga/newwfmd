@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
 import javax.sql.DataSource;
@@ -492,7 +493,7 @@ public class RevisedTaskDao {
                 .append(" c_worktype, ")
                 .append(" c_estdur ")
                 .append(" FROM app_fd_workorder WHERE ")
-                .append(" c_woclass = 'ACTIVITY' AND c_wfmdoctype = 'NEW' AND ")
+                .append(" c_woclass = 'ACTIVITY' AND ")
                 .append(" c_parent = ? ");
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -531,8 +532,6 @@ public class RevisedTaskDao {
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT ")
-                .append(" c_taskid, ")
-                .append(" c_wonum, ")
                 .append(" c_parent, ")
                 .append(" c_orgid, ")
                 .append(" c_detailactcode, ")
@@ -544,10 +543,17 @@ public class RevisedTaskDao {
                 .append(" c_siteid, ")
                 .append(" c_woclass, ")
                 .append(" c_worktype, ")
+                .append(" c_iscpe, ")
+                .append(" c_scorderno, ")
+                .append(" c_jmscorrelationid, ")
+                .append(" c_classstructureid, ")
+                .append(" c_schedstart, ")
+                .append(" c_schedfinish, ")
                 .append(" c_estdur ")
                 .append(" FROM app_fd_workorder WHERE ")
                 .append(" c_woclass = 'ACTIVITY' AND c_wfmdoctype = 'REVISED' AND ")
-                .append(" c_parent = ? ");
+                .append(" c_parent = ? ")
+                .append(" ORDER BY c_wosequence ASC ");
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
@@ -556,20 +562,24 @@ public class RevisedTaskDao {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 JSONObject activityProp = new JSONObject();
-                activityProp.put("taskid", rs.getInt("c_taskid"));
-                activityProp.put("wonum", rs.getString("c_wonum"));
                 activityProp.put("parent", rs.getString("c_parent"));
                 activityProp.put("orgid", rs.getString("c_orgid"));
                 activityProp.put("description", rs.getString("c_description"));
                 activityProp.put("detailActCode", rs.getString("c_detailactcode"));
-                activityProp.put("actPlace", rs.getString("c_actplace"));
+                activityProp.put("actplace", rs.getString("c_actplace"));
                 activityProp.put("woSequence", rs.getInt("c_wosequence"));
                 activityProp.put("correlation", rs.getString("c_correlation"));
                 activityProp.put("ownerGroup", rs.getString("c_ownergroup"));
                 activityProp.put("siteid", rs.getString("c_siteid"));
-                activityProp.put("woClass", rs.getString("c_woclass"));
-                activityProp.put("workType", rs.getString("c_worktype"));
+                activityProp.put("woclass", rs.getString("c_woclass"));
+                activityProp.put("worktype", rs.getString("c_worktype"));
                 activityProp.put("duration", rs.getInt("c_estdur"));
+                activityProp.put("iscpe", rs.getInt("c_iscpe"));
+                activityProp.put("scorderno", rs.getString("c_scorderno"));
+                activityProp.put("jmscorrid", rs.getString("c_jmscorrelationid"));
+                activityProp.put("classstructureid", rs.getString("c_classstructureid"));
+                activityProp.put("schedstart", rs.getString("c_schedstart"));
+                activityProp.put("schedfinish", rs.getString("c_schedfinish"));
                 activity.add(activityProp);
             }
         } catch (SQLException e) {
@@ -656,9 +666,23 @@ public class RevisedTaskDao {
                 .append(" c_woclass, ")
                 .append(" c_taskid, ")
                 .append(" c_correlation, ")
-                .append(" c_ownergroup ")
+                .append(" c_ownergroup, ")
+                .append(" c_iscpe, ")
+                .append(" c_scorderno, ")
+                .append(" c_jmscorrelationid, ")
+                .append(" c_classstructureid, ")
+                .append(" c_schedstart, ")
+                .append(" c_schedfinish, ")
+                .append(" c_estdur ")
                 .append(" ) ")
                 .append(" VALUES ( ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
@@ -692,11 +716,7 @@ public class RevisedTaskDao {
                     ps2.setString(6, rs.getString("c_description"));   //activity
                     ps2.setInt(7, rs.getInt("c_wosequence"));
                     ps2.setString(8, rs.getString("c_actplace"));
-                    if (rs.getInt("c_taskid") == 10) {
-                        ps2.setString(9, "LABASSIGN");
-                    } else {
-                        ps2.setString(9, "APPR");
-                    }
+                    ps2.setString(9, rs.getString("c_status"));
                     ps2.setString(10, "NEW");
                     ps2.setString(11, rs.getString("c_orgid"));     
                     ps2.setString(12, rs.getString("c_siteid"));
@@ -705,6 +725,14 @@ public class RevisedTaskDao {
                     ps2.setInt(15, rs.getInt("c_taskid"));
                     ps2.setString(16, rs.getString("c_correlation"));  
                     ps2.setString(17, rs.getString("c_ownergroup"));
+                    ps2.setString(18, rs.getString("c_iscpe"));
+                    ps2.setString(19, rs.getString("c_scorderno"));
+                    ps2.setString(20, rs.getString("c_jmscorrelationid"));
+                    ps2.setString(21, rs.getString("c_classstructureid"));
+                    ps2.setTimestamp(22, rs.getTimestamp("c_schedstart")); //Timestamp
+                    ps2.setTimestamp(23, rs.getTimestamp("c_schedfinish")); //Timestamp
+                    ps2.setString(24, rs.getString("c_estdur"));
+                    
                     ps2.addBatch();
                 }
 
@@ -713,6 +741,101 @@ public class RevisedTaskDao {
                 if (exe.length > 0) {
                     LogUtil.info(getClass().getName(), "Success generate new task!");
                 }
+        } catch(SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void generateActivityTask(JSONObject taskObj) throws SQLException {
+        StringBuilder insert = new StringBuilder();
+        insert
+                .append(" INSERT INTO app_fd_workorder ( ")
+                .append(" id, ")
+                .append(" dateCreated, ")
+                .append(" c_parent, ")
+                .append(" c_wonum, ")
+                .append(" c_detailactcode, ")
+                .append(" c_description, ")
+                .append(" c_wosequence, ")
+                .append(" c_actplace, ")
+                .append(" c_status, ")
+                .append(" c_wfmdoctype, ")
+                .append(" c_orgid, ")
+                .append(" c_siteId, ")
+                .append(" c_worktype, ")
+                .append(" c_woclass, ")
+                .append(" c_taskid, ")
+                .append(" c_correlation, ")
+                .append(" c_estdur, ")
+                .append(" c_scorderno, ")
+                .append(" c_jmscorrelationid, ")
+                .append(" c_ownergroup, ")
+                .append(" c_schedstart, ")
+                .append(" c_schedfinish, ")
+                .append(" c_iscpe, ")
+                .append(" c_classstructureid ")
+                .append(" ) ")
+                .append(" VALUES ( ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ?, ")
+                .append(" ? ")
+                .append(" ) ");
+            DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(insert.toString());){
+            ps.setString(1, UuidGenerator.getInstance().getUuid());
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, taskObj.get("parent").toString());
+            ps.setString(4, taskObj.get("wonum").toString());
+            ps.setString(5, taskObj.get("activity").toString());
+            ps.setString(6, taskObj.get("description").toString());
+            ps.setString(7, taskObj.get("sequence").toString());
+            ps.setString(8, taskObj.get("actplace").toString());
+            ps.setString(9, taskObj.get("status").toString());
+            ps.setString(10, "NEW");
+            ps.setString(11, taskObj.get("orgid").toString());     
+            ps.setString(12, taskObj.get("siteId").toString());
+            ps.setString(13, taskObj.get("worktype").toString());
+            ps.setString(14, taskObj.get("woclass").toString());       
+            ps.setString(15, taskObj.get("taskid").toString());
+            ps.setString(16, taskObj.get("correlation").toString());
+            ps.setFloat(17, (float) taskObj.get("duration"));
+            ps.setString(18, taskObj.get("scorderno").toString());
+            ps.setString(19, taskObj.get("jmscorrid").toString());
+            ps.setString(20, taskObj.get("ownergroup").toString());
+            ps.setTimestamp(21, Timestamp.valueOf(taskObj.get("schedstart").toString()));
+            ps.setTimestamp(22, Timestamp.valueOf(taskObj.get("schedfinish").toString()));
+            ps.setInt(23, (int) taskObj.get("iscpe"));
+            ps.setString(24, taskObj.get("classstructureid").toString());
+            
+            int exe = ps.executeUpdate();
+            //Checking insert status
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), "'" + taskObj.get("description") + "' generated as task");
+            }
         } catch(SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         } finally {

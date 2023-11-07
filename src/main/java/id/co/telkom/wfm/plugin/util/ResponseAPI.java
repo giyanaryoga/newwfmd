@@ -47,4 +47,12 @@ public class ResponseAPI {
         res.put("data", data);
         return res;
     }
+    
+    public JSONObject ResponseMessage(int code, String message) {
+        //Create response
+        JSONObject res = new JSONObject(); 
+        res.put("code", code);
+        res.put("message", message);
+        return res;
+    }
 }

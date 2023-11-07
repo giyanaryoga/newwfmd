@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
@@ -28,6 +29,11 @@ import org.json.simple.JSONObject;
 public class TaskActivityDao {
     public String apiId = "";
     public String apiKey = "";
+    private static final String cpeActivity[] = {
+            "Pickup AP From SCM Wifi", "Install AP", "Pickup NTE from SCM Wifi",
+            "Install NTE Wifi", "Pickup NTE from SCM", "Pickup NTE from SCM Manual",
+            "Install NTE", "Install NTE Manual"
+    };
     
     public void getApiAttribute (){
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -218,9 +224,11 @@ public class TaskActivityDao {
                 .append(" c_ownergroup, ")
                 .append(" c_schedstart, ")
                 .append(" c_schedfinish, ")
+                .append(" c_iscpe, ")
                 .append(" c_classstructureid ")
                 .append(" ) ")
                 .append(" VALUES ( ")
+                .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
@@ -248,12 +256,15 @@ public class TaskActivityDao {
             DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(insert.toString());){
+            String activity = taskObj.get("activity").toString();
+            String actplace = taskObj.get("actplace").toString();
+            
             ps.setString(1, UuidGenerator.getInstance().getUuid());
             ps.setTimestamp(2, getTimeStamp());
             ps.setString(3, taskObj.get("parent").toString());
             ps.setString(4, taskObj.get("wonum").toString());
-            ps.setString(5, taskObj.get("activity").toString()); //activity
-            ps.setString(6, taskObj.get("description").toString());   //activity
+            ps.setString(5, taskObj.get("activity").toString());
+            ps.setString(6, taskObj.get("description").toString());
             ps.setString(7, taskObj.get("sequence").toString());
             ps.setString(8, taskObj.get("actplace").toString());
             ps.setString(9, taskObj.get("status").toString());
@@ -270,7 +281,12 @@ public class TaskActivityDao {
             ps.setString(20, ownerGroup);
             ps.setTimestamp(21, (taskObj.get("schedstart").toString() == "" ? getTimeStamp() : Timestamp.valueOf(taskObj.get("schedstart").toString())));
             ps.setTimestamp(22, Timestamp.valueOf(taskObj.get("schedfinish").toString()));
-            ps.setString(23, taskObj.get("classstructureid").toString());
+            if (actplace.equalsIgnoreCase("OUTSIDE") && Arrays.asList(cpeActivity).contains(activity)) {
+                ps.setInt(23, 1);
+            } else {
+                ps.setInt(23, 0);
+            }
+            ps.setString(24, taskObj.get("classstructureid").toString());
             
             int exe = ps.executeUpdate();
             //Checking insert status
@@ -313,12 +329,12 @@ public class TaskActivityDao {
                 .append(" c_sequence, ")
                 .append(" c_domainid, ")
                 .append(" c_readonly, ")
-                .append(" c_mandatory, ") //joinan dari classspecusewith
+                .append(" c_mandatory, ")
                 .append(" c_defaultvalue, ")
                 .append(" c_classstructureid, ")
                 .append(" c_isshared ")
                 .append(" FROM app_fd_classspec WHERE ")
-                .append(" c_classstructureid = ? ");  //this is for next patching
+                .append(" c_classstructureid = ? ");
         
         StringBuilder insert = new StringBuilder();
         insert

@@ -382,9 +382,9 @@ public class ValidateGenerateTask {
             
             JSONArray taskIdArray = dao2.getTaskId(workorder.get("wonum").toString());
             int sizeTask = taskIdArray.size();
-            LogUtil.info(getClass().getName(), "SIZE TASK = "+ sizeTask);
+//            LogUtil.info(getClass().getName(), "SIZE TASK = "+ sizeTask);
             int taskId = (sizeTask+counter)*10;
-            LogUtil.info(getClass().getName(), "TASK ID = "+ taskId);
+//            LogUtil.info(getClass().getName(), "TASK ID = "+ taskId);
             sortedTask.put("taskid", taskId);
 
             if (sortedTask.get("ownerGroup").toString().equalsIgnoreCase("")) {
@@ -422,7 +422,7 @@ public class ValidateGenerateTask {
             //GENERATE ASSIGNMENT
             dao2.generateAssignment(sortedTask, workorder);
             //GENERATE TASK HISTORY
-            historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum OSM", "OSM", "OSM");
+            historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum from button", "WFM", "WFM");
             //GENERATE TASK ATTRIBUTE
             for (Object taskAttrArrayObj: taskAttrArray) {
                 JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;

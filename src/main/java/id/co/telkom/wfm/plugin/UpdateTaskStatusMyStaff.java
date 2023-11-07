@@ -5,9 +5,7 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.controller.ValidateTaskStatus;
-import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
-import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
@@ -20,7 +18,6 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.joget.apps.datalist.service.JsonUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
