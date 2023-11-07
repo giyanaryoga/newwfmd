@@ -38,14 +38,15 @@ public class validateTaskAttribute {
     private static final String nteType1[] = {"L2Switch", "DirectME", "DirectPE"};
     private static final String satelitNameType[] = {"WFMNonCore Deactivate Transponder", "WFMNonCore Review Order Transponder", "WFMNonCore Upload BA", "WFMNonCore Modify Bandwidth Transponder", "WFMNonCore Allocate Service Transponder", "WFMNonCore Resume Transponder", "WFMNonCore Suspend Transponder"};
     private static final String taskNTEAvailable[] = {
-            "Survey-Ondesk", "Site-Survey", "Survey-Ondesk Wifi", "Site-Survey Wifi"
+        "Survey-Ondesk", "Site-Survey", "Survey-Ondesk Wifi", "Site-Survey Wifi"
     };
     private static final String cpeActivity[] = {
-            "Pickup AP From SCM Wifi", "Install AP", "Pickup NTE from SCM Wifi",
-            "Install NTE Wifi", "Pickup NTE from SCM", "Pickup NTE from SCM Manual",
-            "Install NTE", "Install NTE Manual"
+        "Pickup AP From SCM Wifi", "Install AP", "Pickup NTE from SCM Wifi",
+        "Install NTE Wifi", "Pickup NTE from SCM", "Pickup NTE from SCM Manual",
+        "Install NTE", "Install NTE Manual"
     };
-    public void validateSTPPortName(String parent, String wonum, String attrValue) {
+
+    private void validateSTPPortName(String parent, String wonum, String attrValue) {
         try {
             String stpPortId = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_PORT_ID", attrValue);
             LogUtil.info(this.getClass().getName(), "STP PORT ID" + stpPortId);
@@ -59,6 +60,19 @@ public class validateTaskAttribute {
         }
     }
 
+    private void validateUplinkPortName(String wonum, String attrValue) {
+        try {
+            String uplinkportid = taskAttrDao.getTkdeviceAttrValue(wonum, "AN_UPLINK_PORTID", attrValue);
+            LogUtil.info(this.getClass().getName(), "AN_UPLINK_PORTID" + uplinkportid);
+
+            if (!uplinkportid.isEmpty()) {
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + uplinkportid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='AN_UPLINK_PORTID'");
+//                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     private void validateRole(String parent, String wonum) {
         try {
@@ -585,21 +599,19 @@ public class validateTaskAttribute {
 
     public void validateSTPName(String parent, String wonum, String attrValue) {
         try {
-            STPDao stpdao = new STPDao();
-            String result = stpdao.getSTPPortSoapResponse(wonum, attrValue, "STP");
-            if (result.isEmpty()) result = "No device found for network location: " + attrValue;
+            String stpnamealn = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_NAME", attrValue);
+            String stpid = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrValue);
+            LogUtil.info(this.getClass().getName(), "STP_NAME_ALN" + stpnamealn);
+            LogUtil.info(this.getClass().getName(), "STP_ID" + stpid);
+            LogUtil.info(this.getClass().getName(), "ATTRIBUTES VALUES : " + attrValue);
+            
 
-            LogUtil.info(getClass().getName(), " result: " + result);
-
-            String description = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrValue);
-            if (!description.isEmpty()) {
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + description + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
+            if (!stpnamealn.isEmpty()) {
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpnamealn + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
-                LogUtil.info(getClass().getName(), wonum + " Berhasil");
-
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -624,7 +636,6 @@ public class validateTaskAttribute {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 
     public void reserveSTP(String wonum, String attrName) {
         try {
@@ -790,13 +801,13 @@ public class validateTaskAttribute {
                     validateNTEManufactur(parent, wonum, attrValue, attrName);
                     break;
                 case "NTE_MODEL":
-                    taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_wonum in (select c_wonum from app_fd_workorder where c_parent='"+parent+"' AND c_detailactcode='Install NTE') AND c_assetattrid='NTE_MODEL'");
+                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Install NTE') AND c_assetattrid='NTE_MODEL'");
                     break;
                 case "NTE_SERIALNUMBER":
-                    taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_wonum in (select c_wonum from app_fd_workorder where c_parent='"+parent+"' AND c_detailactcode='Install NTE') AND c_assetattrid='NTE_SERIALNUMBER'");
+                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Install NTE') AND c_assetattrid='NTE_SERIALNUMBER'");
                     break;
                 case "NTE_IPADDRESS":
-                    taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_wonum in (select c_wonum from app_fd_workorder where c_parent='"+parent+"' AND c_detailactcode='Install NTE') AND c_assetattrid='NTE_IPADDRESS'");
+                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Install NTE') AND c_assetattrid='NTE_IPADDRESS'");
                     break;
                 case "STO":
                     if (!attrValue.equalsIgnoreCase("NAS")) {
@@ -816,8 +827,8 @@ public class validateTaskAttribute {
                     validateSTP(parent, wonum, attrValue);
                     break;
                 case "STP_NETWORKLOCATION_LOV":
-                    if(!attrValue.equalsIgnoreCase("None")){
-                        taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_wonum='"+wonum+"' AND c_assetattrid='STP_NETWORKLOCATION'");
+                    if (!attrValue.equalsIgnoreCase("None")) {
+                        taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NETWORKLOCATION'");
                     }
                     validateSTP(parent, wonum, attrValue);
                     break;
@@ -869,19 +880,22 @@ public class validateTaskAttribute {
                 case "COORDINATE CORRECT":
                     LogUtil.info(this.getClass().getName(), "############## START PROCESS COORDINATE CORRECT ###############");
 
-                    if(attrValue.equalsIgnoreCase("NO")){
-                        taskAttrDao.updateWO("app_fd_workorderspec","c_wfmdoctype='REVISED'","c_wonum!='"+wonum+"' AND c_parent='"+parent+"'");
+                    if (attrValue.equalsIgnoreCase("NO")) {
+                        taskAttrDao.updateWO("app_fd_workorderspec", "c_wfmdoctype='REVISED'", "c_wonum!='" + wonum + "' AND c_parent='" + parent + "'");
                     } else if (attrValue.equalsIgnoreCase("YES")) {
-                        taskAttrDao.updateWO("app_fd_workorderspec","c_wfmdoctype='NEW'","c_wonum!='"+wonum+"' AND c_parent='"+parent+"'");
+                        taskAttrDao.updateWO("app_fd_workorderspec", "c_wfmdoctype='NEW'", "c_wonum!='" + wonum + "' AND c_parent='" + parent + "'");
                     }
                     break;
                 case "LASTMILEEXTENSION_REQUIRED":
-                    if(attrValue.equalsIgnoreCase("YES")){
+                    if (attrValue.equalsIgnoreCase("YES")) {
 
                     }
                     break;
                 case "VRF_NAME_LOV":
-                    taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_wonum='"+wonum+"' AND c_assetattrid='VRF_NAME'");
+                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='VRF_NAME'");
+                    break;
+                case "AN_UPLINK_PORTNAME_LOV":
+                    validateUplinkPortName(wonum, attrValue);
                     break;
                 default:
                     LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");

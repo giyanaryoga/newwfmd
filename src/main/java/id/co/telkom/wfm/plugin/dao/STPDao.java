@@ -78,7 +78,7 @@ public class STPDao {
 
                     LogUtil.info(this.getClass().getName(), "Insert STP Name TK Device : " + insertStpName);
                     LogUtil.info(this.getClass().getName(), "Insert STP ID TK Device : " + insertStpID);
-                }
+                }   
 
             }
         } catch (Exception e) {
