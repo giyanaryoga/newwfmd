@@ -18,44 +18,42 @@ import org.json.simple.JSONObject;
  * @author Giyanaryoga Puguh
  */
 public class ReToolDao {
-    public JSONObject getWorkorder(String wonum) throws SQLException {
+    public JSONObject getWorkorder(String parent) throws SQLException {
         JSONObject activityProp = new JSONObject();
         StringBuilder query = new StringBuilder();
         query
                 .append(" SELECT DISTINCT ")
-                .append(" parent.C_WONUM, ")
+                .append(" child.c_parent, ")
                 .append(" parent.c_workzone, ")
-                .append(" parent.C_SCORDERNO, ")
-                .append(" parent.C_SITEID, ")
-                .append(" parent.C_SERVICEADDRESS, ")
-                .append(" parent.C_PRODUCTNAME, ")
-                .append(" parent.C_STATUSDATE, ")
-                .append(" parent.C_OWNERGROUP, ")
-                .append(" parent.C_CUSTOMER_NAME, ")
-                .append(" child.C_WONUM, ")
-                .append(" child.C_DETAILACTCODE, ")
-                .append(" child.C_WOSEQUENCE ")
-                .append(" FROM app_fd_workorder parent, app_fd_workorder child WHERE ")
-                .append(" parent.C_WONUM = child.C_PARENT ")
-                .append(" AND child.C_DETAILACTCODE = 'Shipment_Delivery' ")
-                .append(" child.c_wonum = ? ");
+                .append(" parent.c_scorderno, ")
+                .append(" parent.c_siteid, ")
+                .append(" parent.c_serviceaddress, ")
+                .append(" parent.c_productname, ")
+                .append(" parent.c_statusdate, ")
+                .append(" parent.c_ownergroup, ")
+                .append(" parent.c_customer_name, ")
+                .append(" child.c_wonum ")
+                .append(" FROM app_fd_workorder parent ")
+                .append(" LEFT JOIN APP_FD_WORKORDER child ON parent.c_wonum = child.C_PARENT ")
+                .append(" WHERE child.C_DETAILACTCODE = 'Shipment_Delivery' ")
+                .append(" AND child.c_parent = ? ");
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query.toString())) {
-            ps.setString(1, wonum);
+            ps.setString(1, parent);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                activityProp.put("parent", rs.getString("parent.C_WONUM"));
-                activityProp.put("wonum", rs.getString("child.C_WONUM"));
-                activityProp.put("customerName", rs.getString("parent.C_CUSTOMER_NAME"));
-                activityProp.put("ownerGroup", rs.getString("parent.C_OWNERGROUP"));
-                activityProp.put("workzone", rs.getString("parent.c_workzone"));
-                activityProp.put("scOrderNo", rs.getString("parent.C_SCORDERNO"));
-                activityProp.put("siteid", rs.getString("parent.C_SITEID"));
-                activityProp.put("serviceAddress", rs.getString("parent.C_SERVICEADDRESS"));
-                activityProp.put("productName", rs.getString("parent.C_PRODUCTNAME"));
-                activityProp.put("statusDate", rs.getString("parent.C_STATUSDATE"));
+                activityProp.put("parent", rs.getString("c_parent"));
+                activityProp.put("wonum", rs.getString("c_wonum"));
+                activityProp.put("customerName", rs.getString("c_customer_name"));
+                activityProp.put("ownerGroup", rs.getString("c_ownergroup"));
+                activityProp.put("workzone", rs.getString("c_workzone"));
+                activityProp.put("scOrderNo", rs.getString("c_scorderno"));
+                activityProp.put("siteid", rs.getString("c_siteid"));
+                activityProp.put("serviceAddress", rs.getString("c_serviceaddress"));
+                activityProp.put("productName", rs.getString("c_productname"));
+                activityProp.put("statusDate", rs.getString("c_statusdate"));
             } else {
                 activityProp = null;
             }
@@ -67,7 +65,7 @@ public class ReToolDao {
         return activityProp;
     }
     
-    public JSONObject getDocLinks(String wonum) throws SQLException {
+    public JSONObject getDocLinks(String wonum, String objName) throws SQLException {
         JSONObject activityProp = new JSONObject();
         StringBuilder query = new StringBuilder();
         query
@@ -77,14 +75,15 @@ public class ReToolDao {
                 .append(" C_FILENAME, ")
                 .append(" C_DOCUMENTNAME, ")
                 .append(" C_URL ")
-                .append(" FROM app_fd_doclinks child WHERE ")
-                .append(" AND C_DOCUMENTNAME = 'SERVICE_DETAIL' ")
-                .append(" c_wonum = ? ");
+                .append(" FROM app_fd_doclinks ")
+                .append(" WHERE c_objectname = ? ")
+                .append(" AND c_wonum = ? ");
         
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
             PreparedStatement ps = con.prepareStatement(query.toString())) {
-            ps.setString(1, wonum);
+            ps.setString(1, objName);
+            ps.setString(2, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 activityProp.put("wonum", rs.getString("C_WONUM"));
@@ -127,37 +126,40 @@ public class ReToolDao {
         return isAttachedFile;
     }
     
-//    public String docName(String wonum, String documentName) throws SQLException {
-//        String file = "";
-//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-//        String selectQuery = "SELECT DISTINCT c_documentname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ?";
-//        try (Connection con = ds.getConnection();
-//                PreparedStatement ps = con.prepareStatement(selectQuery)) {
-//            ps.setString(1, wonum);
-//            ps.setString(2, documentName);
-//            ResultSet rs = ps.executeQuery();
-//            while (rs.next()) {
-//                if (rs.getString("c_documentname") != null) {
-//                    file = rs.getString("c_documentname").toString();
-//                    LogUtil.info(getClass().getName(), "File = " + file);
-//                }
-//            }
-//        } catch (SQLException e) {
-//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-//        }
-//        return file;
-//    }
+    public boolean getUrl(String wonum, String objName) throws SQLException {
+        boolean isUrl = false;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String selectQuery = "SELECT c_url FROM app_fd_doclinks WHERE c_wonum = ? AND c_objectname = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(selectQuery)) {
+            ps.setString(1, wonum);
+            ps.setString(2, objName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                if (rs.getString("c_url") == null) {
+                    isUrl = true;
+                    LogUtil.info(getClass().getName(), "URL = " + isUrl);   
+                } else {
+                    isUrl = false;
+                    LogUtil.info(getClass().getName(), "URL = " + isUrl);
+                }
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        }
+        return isUrl;
+    }
     
     public String getObjectName(String wonum, String documentName) throws SQLException {
         String objName = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String selectQuery = "SELECT DISTINCT c_objectname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ? OR c_filename like '%.csv'";
+        String selectQuery = "SELECT c_objectname FROM app_fd_doclinks WHERE c_wonum = ? AND c_documentname = ? AND c_filename like '%.csv'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
             ps.setString(1, wonum);
             ps.setString(2, documentName);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
+            if (rs.next()) {
                 if (rs.getString("c_objectname") != null) {
                     objName = rs.getString("c_objectname").toString();
                     LogUtil.info(getClass().getName(), "Object Name = " + objName);

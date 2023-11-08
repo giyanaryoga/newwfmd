@@ -212,7 +212,7 @@ public class TaskAttributeDao2 {
             while (rs.next()) {
                 JSONObject intObj = new JSONObject();
                 String activity = rs.getString("c_detailactcode");
-                String[] splitted = activity.split("WDM");
+                String[] splitted = activity.split("WDM ");
                 String lastString = splitted[1];
                 int task = Integer.parseInt(lastString);
                 intObj.put("int_activity", task);

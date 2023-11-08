@@ -8,6 +8,7 @@ import id.co.telkom.wfm.plugin.TaskAttribute;
 import id.co.telkom.wfm.plugin.dao.RevisedTaskDao;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
+import id.co.telkom.wfm.plugin.dao.TaskAttributeDao2;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import java.util.Arrays;
 import java.sql.SQLException;
@@ -25,6 +26,7 @@ public class validateRevised {
     RevisedTaskDao dao = new RevisedTaskDao();
     GenerateWonumEbisDao generateDao = new GenerateWonumEbisDao();
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
+    TaskAttributeDao2 taskAttrDao2 = new TaskAttributeDao2();
     ResponseAPI response = new ResponseAPI();
     
     public void validate (String parent, String wonum, String attrName, String attrValue, String task) {
@@ -177,7 +179,7 @@ public class validateRevised {
         try {
             if (Arrays.asList(taskApproval).contains(task) && attrValue.equalsIgnoreCase("BACK_TO_SURVEY")) {
                 dao.reviseTask(parent);
-                dao.generateActivityTask(parent);
+                GenerateTaskNew(parent);
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
@@ -325,6 +327,31 @@ public class validateRevised {
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validateJumlahArnet(String parent, String task, String attrValue) {
+        try {
+            String[] value = {"0","1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
+            JSONArray intValue = taskAttrDao2.getTaskWDM(parent);
+            if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
+                int x=0;
+                for (Object obj: intValue){
+                    JSONObject actObj = (JSONObject)obj;
+                    int intActivity = (int)actObj.get("int_activity");
+                    if (Arrays.asList(value).contains(attrValue)) {
+                        int attr_value = Integer.parseInt(attrValue);
+                        if (attr_value == 0){
+                            
+                        } else if (attr_value < intActivity) {
+                            
+                        }
+                    }
+                    x++;
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

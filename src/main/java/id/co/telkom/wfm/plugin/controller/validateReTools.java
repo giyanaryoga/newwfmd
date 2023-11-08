@@ -56,7 +56,6 @@ public class ValidateReTools {
             bodyParam.put("service_id", param.getServiceId());
             bodyParam.put("supplier_code", param.getSupplierCode());
             bodyParam.put("partner_name", param.getNamaMitra());
-//            bodyParam.put("INSTALL_DATE", param.getInstallDate());
             bodyParam.put("site_id", param.getSiteId());
             
             String request = bodyParam.toString();
@@ -78,11 +77,13 @@ public class ValidateReTools {
             JSONObject responseObj = new JSONObject();
             responseObj.put("body", response);
             
+            LogUtil.info(this.getClass().getName(), response.toString());
+            
             if (responseCode == 200) {
-                LogUtil.info(this.getClass().getName(), "Success POST");
+                LogUtil.info(this.getClass().getName(), "Success POST Send URL");
                 integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_OBL_SEND_URL", "SUCCESS", bodyParam, responseObj);
             } else {
-                LogUtil.info(this.getClass().getName(), "Failed POST");
+                LogUtil.info(this.getClass().getName(), "Failed POST Send URL");
                 integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_OBL_SEND_URL", "FAILED", bodyParam, responseObj);
             }
             conn.disconnect();
@@ -134,11 +135,13 @@ public class ValidateReTools {
             JSONObject responseObj = new JSONObject();
             responseObj.put("body", response);
             
+            LogUtil.info(this.getClass().getName(), response.toString());
+            
             if (responseCode == 200) {
-                LogUtil.info(this.getClass().getName(), "Success POST");
+                LogUtil.info(this.getClass().getName(), "Success POST Create Customer");
                 integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "SUCCESS", bodyParam, responseObj);
             } else {
-                LogUtil.info(this.getClass().getName(), "Failed POST");
+                LogUtil.info(this.getClass().getName(), "Failed POST Create Customer");
                 integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "FAILED", bodyParam, responseObj);
             }
             conn.disconnect();
@@ -188,9 +191,9 @@ public class ValidateReTools {
             responseObj.put("body", response);
             
             if (responseCode == 200) {
-                LogUtil.info(this.getClass().getName(), "Success POST");
+                LogUtil.info(this.getClass().getName(), "Success Generate URL Minio");
             } else {
-                LogUtil.info(this.getClass().getName(), "Failed POST");
+                LogUtil.info(this.getClass().getName(), "Failed Generate URL Minio");
             }
             conn.disconnect();
         } catch (MalformedURLException ex) {
@@ -207,12 +210,16 @@ public class ValidateReTools {
             String objName = reDao.getObjectName(param.getParent(), "SERVICE_DETAIL");
             String productName = workorder.get("productName").toString();
             //Generate URL Minio
-            generateUrlMinio(param.getParent(), objName);
-            JSONObject doclink = reDao.getDocLinks(param.getParent());
+            boolean isURL = reDao.getUrl(wonum, objName);
+            if (isURL) {
+                generateUrlMinio(param.getParent(), objName);
+            }
+            JSONObject doclink = reDao.getDocLinks(param.getParent(), objName);
+            LogUtil.info(this.getClass().getName(), "doclink = "+doclink);
             
             param.setWonum(workorder.get("wonum").toString());
             String oblTrcNo = param.getWonum(); //wonum parent
-            String namaMitra = workorder.get("ownerGroup").toString();
+            String namaMitra = (workorder.get("ownerGroup") == null ? "" : workorder.get("ownerGroup").toString());
             String customerCode = woDao.getValueWorkorderAttribute(wonum, "CustomerID");
             String customerName = workorder.get("customerName").toString();
             String address = workorder.get("serviceAddress").toString();
@@ -242,6 +249,8 @@ public class ValidateReTools {
             param.setSiteId(siteid);
             param.setNamaMitra(namaMitra);
             param.setInstallDate(statusDate);
+            //Send URL document to ReTools
+            sendUrl(param);
             
             param.setLatitude(latitude);
             param.setLongitude(longitude);
@@ -251,11 +260,8 @@ public class ValidateReTools {
             param.setInstallLoc(serviceId);
             param.setAddress(address);
             param.setWorkzone(workzone);
-            
             //Create Customer to SCMT tool
             createCustomerSCMT(param);
-            //Send URL document to ReTools
-            sendUrl(param);
         } catch (SQLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }

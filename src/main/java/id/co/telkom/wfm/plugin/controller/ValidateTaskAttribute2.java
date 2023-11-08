@@ -372,29 +372,4 @@ public class ValidateTaskAttribute2 {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    private void validateJumlahArnet(String parent, String task, String attrValue) {
-        try {
-            String[] value = {"0","1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
-            JSONArray intValue = taskAttrDao2.getTaskWDM(parent);
-            if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
-                int x=0;
-                for (Object obj: intValue){
-                    JSONObject actObj = (JSONObject)obj;
-                    int intActivity = (int)actObj.get("int_activity");
-                    if (Arrays.asList(value).contains(attrValue)) {
-                        int attr_value = Integer.parseInt(attrValue);
-                        if (attr_value == 0){
-                            
-                        } else if (attr_value < intActivity) {
-                            
-                        }
-                    }
-                    x++;
-                }
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 }

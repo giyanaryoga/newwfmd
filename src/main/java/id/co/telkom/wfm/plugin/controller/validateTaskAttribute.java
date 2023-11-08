@@ -606,13 +606,13 @@ public class validateTaskAttribute {
             LogUtil.info(this.getClass().getName(), "ATTRIBUTES VALUES : " + attrValue);
             
 
-            if (!stpnamealn.isEmpty()) {
+//            if (!stpnamealn.isEmpty()) {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpnamealn + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
-            }
+//            }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
