@@ -42,6 +42,8 @@ public class ValidateReTools {
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
             conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", apiConfig.getClientSecret());
+//            LogUtil.info(this.getClass().getName(), "URL = "+apiConfig.getUrl());
             conn.setDoOutput(true);
             JSONObject bodyParam = new JSONObject();
             //requestnya belum
@@ -59,13 +61,21 @@ public class ValidateReTools {
             bodyParam.put("site_id", param.getSiteId());
             
             String request = bodyParam.toString();
+//            LogUtil.info(this.getClass().getName(), "REQUEST OBL : " + request);
             try (OutputStream outputStream = conn.getOutputStream()) {
                 byte[] b = request.getBytes("UTF-8");
                 outputStream.write(b);
                 outputStream.flush();
             }
+            LogUtil.info(this.getClass().getName(), "response code = "+conn.getResponseCode());
             
             int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                LogUtil.info(this.getClass().getName(), "Success Send URL");
+            } else {
+                LogUtil.info(this.getClass().getName(), "Failed Send URL");
+            }
+            
             InputStream inputStr = conn.getInputStream();
             StringBuilder response = new StringBuilder();
             byte[] res = new byte[2048];
@@ -73,19 +83,9 @@ public class ValidateReTools {
             while ((i = inputStr.read(res)) != -1) {
                 response.append(new String(res, 0, i));
             }
-            LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
             JSONObject responseObj = new JSONObject();
             responseObj.put("body", response);
-            
-            LogUtil.info(this.getClass().getName(), response.toString());
-            
-            if (responseCode == 200) {
-                LogUtil.info(this.getClass().getName(), "Success POST Send URL");
-                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_OBL_SEND_URL", "SUCCESS", bodyParam, responseObj);
-            } else {
-                LogUtil.info(this.getClass().getName(), "Failed POST Send URL");
-                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_OBL_SEND_URL", "FAILED", bodyParam, responseObj);
-            }
+            responseObj.put("status", responseCode);
             conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
@@ -124,6 +124,12 @@ public class ValidateReTools {
             }
             
             int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                LogUtil.info(this.getClass().getName(), "Success Create Customer SCMT");
+            } else {
+                LogUtil.info(this.getClass().getName(), "Failed Create Customer SCMT");
+            }
+            
             InputStream inputStr = conn.getInputStream();
             StringBuilder response = new StringBuilder();
             byte[] res = new byte[2048];
@@ -131,19 +137,9 @@ public class ValidateReTools {
             while ((i = inputStr.read(res)) != -1) {
                 response.append(new String(res, 0, i));
             }
-            LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
             JSONObject responseObj = new JSONObject();
             responseObj.put("body", response);
-            
-            LogUtil.info(this.getClass().getName(), response.toString());
-            
-            if (responseCode == 200) {
-                LogUtil.info(this.getClass().getName(), "Success POST Create Customer");
-                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "SUCCESS", bodyParam, responseObj);
-            } else {
-                LogUtil.info(this.getClass().getName(), "Failed POST Create Customer");
-                integrationHistory.insertKafka(param.getWonum(), apiConfig.getUrl(), "WFM_CREATE_CUSTOMER_SCMT", "FAILED", bodyParam, responseObj);
-            }
+            responseObj.put("status", responseCode);
             conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
@@ -179,6 +175,12 @@ public class ValidateReTools {
             }
             
             int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                LogUtil.info(this.getClass().getName(), "Success Generate URL Minio");
+            } else {
+                LogUtil.info(this.getClass().getName(), "Failed Generate URL Minio");
+            }
+            
             InputStream inputStr = conn.getInputStream();
             StringBuilder response = new StringBuilder();
             byte[] res = new byte[2048];
@@ -186,15 +188,9 @@ public class ValidateReTools {
             while ((i = inputStr.read(res)) != -1) {
                 response.append(new String(res, 0, i));
             }
-            LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response);
             JSONObject responseObj = new JSONObject();
             responseObj.put("body", response);
-            
-            if (responseCode == 200) {
-                LogUtil.info(this.getClass().getName(), "Success Generate URL Minio");
-            } else {
-                LogUtil.info(this.getClass().getName(), "Failed Generate URL Minio");
-            }
+            responseObj.put("status", responseCode);
             conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
@@ -206,6 +202,7 @@ public class ValidateReTools {
     public void validateOBL(String wonum) {
         try {
             JSONObject workorder = reDao.getWorkorder(wonum);
+//            LogUtil.info(this.getClass().getName(), "workorder = "+workorder);
             param.setParent(workorder.get("parent").toString());
             String objName = reDao.getObjectName(param.getParent(), "SERVICE_DETAIL");
             String productName = workorder.get("productName").toString();
@@ -215,7 +212,8 @@ public class ValidateReTools {
                 generateUrlMinio(param.getParent(), objName);
             }
             JSONObject doclink = reDao.getDocLinks(param.getParent(), objName);
-            LogUtil.info(this.getClass().getName(), "doclink = "+doclink);
+//            LogUtil.info(this.getClass().getName(), "doclink = "+doclink);
+//            LogUtil.info(this.getClass().getName(), "PRODUCT NAME = "+contractName);
             
             param.setWonum(workorder.get("wonum").toString());
             String oblTrcNo = param.getWonum(); //wonum parent
@@ -228,10 +226,14 @@ public class ValidateReTools {
             String siteid = workorder.get("siteid").toString();
             String statusDate = workorder.get("statusDate").toString();
             String supplierCode = "OBL"+ "|"+customerCode;
-            
-            String contractName = woDao.getValueWorkorderAttribute(wonum, "ContractName");
+            String contractName = "";
+            if (woDao.getValueWorkorderAttribute(wonum, "ContractName") == null) {
+                contractName = productName;
+            } else {
+                contractName = woDao.getValueWorkorderAttribute(wonum, "ContractName");
+            }
             String nomorKb = woDao.getValueWorkorderAttribute(wonum, "AgreementName");
-            String nomorKl = (contractName == null ? productName : contractName);
+            String nomorKl = contractName;
             String serviceId = woDao.getValueWorkorderAttribute(wonum, "Service_ID");
             String latitude = woDao.getValueWorkorderAttribute(wonum, "Latitude");
             String longitude = woDao.getValueWorkorderAttribute(wonum, "Longitude");
@@ -249,9 +251,7 @@ public class ValidateReTools {
             param.setSiteId(siteid);
             param.setNamaMitra(namaMitra);
             param.setInstallDate(statusDate);
-            //Send URL document to ReTools
-            sendUrl(param);
-            
+
             param.setLatitude(latitude);
             param.setLongitude(longitude);
             param.setCustCode(customerCode);
@@ -262,6 +262,11 @@ public class ValidateReTools {
             param.setWorkzone(workzone);
             //Create Customer to SCMT tool
             createCustomerSCMT(param);
+            //Send URL document to ReTools
+            sendUrl(param);
+//            LogUtil.info(this.getClass().getName(), "CONTRACT NAME = "+contractName);
+//            LogUtil.info(this.getClass().getName(), "NAMA MITRA = "+param.getNamaMitra());
+//            LogUtil.info(this.getClass().getName(), "NOMOR KL = "+param.getNomorKl());
         } catch (SQLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }

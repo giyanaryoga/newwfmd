@@ -30,7 +30,7 @@ public class ReToolDao {
                 .append(" parent.c_serviceaddress, ")
                 .append(" parent.c_productname, ")
                 .append(" parent.c_statusdate, ")
-                .append(" parent.c_ownergroup, ")
+                .append(" child.c_ownergroup, ")
                 .append(" parent.c_customer_name, ")
                 .append(" child.c_wonum ")
                 .append(" FROM app_fd_workorder parent ")
@@ -138,10 +138,10 @@ public class ReToolDao {
             if (rs.next()) {
                 if (rs.getString("c_url") == null) {
                     isUrl = true;
-                    LogUtil.info(getClass().getName(), "URL = " + isUrl);   
+//                    LogUtil.info(getClass().getName(), "URL = " + isUrl);   
                 } else {
                     isUrl = false;
-                    LogUtil.info(getClass().getName(), "URL = " + isUrl);
+//                    LogUtil.info(getClass().getName(), "URL = " + isUrl);
                 }
             }
         } catch (SQLException e) {
@@ -162,7 +162,7 @@ public class ReToolDao {
             if (rs.next()) {
                 if (rs.getString("c_objectname") != null) {
                     objName = rs.getString("c_objectname").toString();
-                    LogUtil.info(getClass().getName(), "Object Name = " + objName);
+//                    LogUtil.info(getClass().getName(), "Object Name = " + objName);
                 } else {
                     objName = "";
                 }

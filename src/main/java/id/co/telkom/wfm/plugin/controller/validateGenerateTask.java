@@ -212,7 +212,6 @@ public class ValidateGenerateTask {
                 String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
                 ownerGroup = owner_group;
             } else {
-//                String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
                 String owner_group = sortedTask.get("ownerGroup").toString();
                 ownerGroup = owner_group;
             }

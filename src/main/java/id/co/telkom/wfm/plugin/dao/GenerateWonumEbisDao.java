@@ -178,8 +178,11 @@ public class GenerateWonumEbisDao {
             ps.setString(1, wonum);
             ps.setString(2, woAttrName);
             ResultSet rs = ps.executeQuery();
-            if (rs.next())
+            if (rs.next()) {
                 woAttrValue = rs.getString("c_attr_value");
+            } else {
+                woAttrValue = null;
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
