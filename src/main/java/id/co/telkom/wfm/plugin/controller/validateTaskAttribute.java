@@ -76,6 +76,22 @@ public class ValidateTaskAttribute {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    private void validateRole1(String parent, String wonum) {
+        try {
+            String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
+
+            if (value.equalsIgnoreCase("STP")) {
+                taskAttrDao.deleteTaskAttrLike(parent, "NTE%");
+            } else {
+                //IF ROLE = NTE
+                taskAttrDao.deleteTaskAttrLike(parent, "STP%");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 
     private void validatePEName(String wonum, String attrValue) throws SQLException, Throwable {
         try {
@@ -144,7 +160,7 @@ public class ValidateTaskAttribute {
                     taskAttrDao.deleteTaskAttrLike(wonum, "NTE%");
 //                  #regenerate attribute STP
                     String condition = "c_wonum='" + wonum + "' and c_assetattrid like 'STP_NAME%'";
-                    boolean check = taskAttrDao.checkData("app_fd_classspec", condition);
+                    boolean check = taskAttrDao.checkData("app_fd_workorderspec", condition);
                     TimeUtil time = new TimeUtil();
                     if (check) {
 //                        classstructureid diambil dari workorder, where wonum
@@ -775,7 +791,7 @@ public class ValidateTaskAttribute {
 
 //            if (!stpnamealn.isEmpty()) {
             taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
-            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NAME_ALN'");
             taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME'");
             taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
             taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
@@ -959,7 +975,7 @@ public class ValidateTaskAttribute {
 
             switch (attrName) {
                 case "ROLE":
-                    validateRole(parent, wonum);
+                    validateRole1(parent, wonum);
                     break;
                 case "NTE_TYPE":
                     validateNteType(parent, wonum, attrValue, attrName);
