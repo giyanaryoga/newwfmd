@@ -411,8 +411,8 @@ public class TaskActivityDao {
                 .append(" dateModified = ? ")
                 .append(" WHERE ")
                 .append(" c_wonum = ? ")
-                .append(" AND ")
-                .append(" c_assetattrid = ? ");
+                .append(" AND c_assetattrid = ? ")
+                .append(" OR c_description = ? ");
         // change 03
         try {
             Connection con = ds.getConnection();
@@ -426,6 +426,7 @@ public class TaskActivityDao {
                     // change 03 where clause
                     ps.setString(3, wonum);
                     ps.setString(4, attrName);
+                    ps.setString(5, attrName);
                     // change 03
                     int exe = ps.executeUpdate();
                     //Checking insert status

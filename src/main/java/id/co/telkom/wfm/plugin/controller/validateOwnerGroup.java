@@ -54,6 +54,9 @@ public class ValidateOwnerGroup {
     
     private String BastFlag(JSONObject workorder) throws SQLException {
         String bastflag = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "BASTFlag");
+        if (bastflag == null) {
+            bastflag = "";
+        }
         return bastflag;
     }
     
