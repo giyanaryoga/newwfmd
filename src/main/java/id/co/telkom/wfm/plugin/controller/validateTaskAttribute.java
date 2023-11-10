@@ -67,7 +67,9 @@ public class validateTaskAttribute {
 
             if (!uplinkportid.isEmpty()) {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + uplinkportid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='AN_UPLINK_PORTID'");
-//                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='AN_UPLINK_PORTNAME'");
+            } else {
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='AN_UPLINK_PORTNAME'");
             }
         } catch (SQLException ex) {
             Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -599,16 +601,13 @@ public class validateTaskAttribute {
 
     public void validateSTPName(String parent, String wonum, String attrValue) {
         try {
-            String stpnamealn = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_NAME", attrValue);
             String stpid = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrValue);
-            LogUtil.info(this.getClass().getName(), "STP_NAME_ALN" + stpnamealn);
             LogUtil.info(this.getClass().getName(), "STP_ID" + stpid);
             LogUtil.info(this.getClass().getName(), "ATTRIBUTES VALUES : " + attrValue);
-            
 
-            if (!stpnamealn.isEmpty()) {
+            if (!attrValue.isEmpty()) {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpnamealn + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
