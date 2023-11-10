@@ -4,7 +4,6 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
-//import id.co.telkom.wfm.plugin.model.ListAttributes;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -179,8 +178,11 @@ public class GenerateWonumEbisDao {
             ps.setString(1, wonum);
             ps.setString(2, woAttrName);
             ResultSet rs = ps.executeQuery();
-            if (rs.next())
+            if (rs.next()) {
                 woAttrValue = rs.getString("c_attr_value");
+            } else {
+                woAttrValue = null;
+            }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {

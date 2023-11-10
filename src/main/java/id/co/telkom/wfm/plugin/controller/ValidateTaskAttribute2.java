@@ -6,11 +6,23 @@ package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.dao.TaskAttributeDao2;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
+import id.co.telkom.wfm.plugin.model.APIConfig;
+import id.co.telkom.wfm.plugin.util.ConnUtil;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.joget.commons.util.LogUtil;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -19,6 +31,7 @@ import org.joget.commons.util.LogUtil;
 public class ValidateTaskAttribute2 {
     TaskAttributeUpdateDao taskAttrDao1 = new TaskAttributeUpdateDao();
     TaskAttributeDao2 taskAttrDao2 = new TaskAttributeDao2();
+    ConnUtil connUtil = new ConnUtil();
     private static final String taskTSEL[] = {
         "WFMNonCore Review Order OSS ISP TSEL Regional", "WFMNonCore Review Order OSS OSP TSEL Regional"
     };
@@ -113,6 +126,9 @@ public class ValidateTaskAttribute2 {
                     break;
                 case "JUMLAH_BLOK_NOMOR":
                     validateBlokNomor(wonum, task, attrValue);
+                    break;
+                case "JUMLAH ARNET PASSTHROUGH":
+                    
                     break;
                 default:
                     LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
@@ -257,6 +273,102 @@ public class ValidateTaskAttribute2 {
                 }
             }
         } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void getPEPort(String wonum, String deviceName, String serviceType) {
+        try {
+            APIConfig apiConfig = new APIConfig();
+            apiConfig = connUtil.getApiParam("uimax_dev");
+            URL url = new URL(apiConfig.getUrl()+"/api/device/portsByService?deviceName="+deviceName+"&serviceType="+serviceType+""
+                    + "&portPurpose=TRUNK&portPurpose=ACTIVE");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+            StringBuffer response;
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                String inputLine;
+                response = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }   LogUtil.info(this.getClass().getName(), "Response = " + response);
+            }
+            // 'response' contains the JSON data as a string
+            String jsonData = response.toString();
+            JSONParser parser = new JSONParser();
+            JSONObject data_obj = (JSONObject)parser.parse(jsonData);
+            JSONArray jsonArray = (JSONArray) data_obj.get("port");
+            taskAttrDao2.deleteTkDeviceattribute(wonum, "'CPE_MGMT_PE_PORTNAME','PE_KEY'");
+            int x = 0;
+            for (Object obj: jsonArray) {
+                JSONObject peObj = (JSONObject)obj;
+                String attr_name = "CPE_MGMT_PE_PORTNAME";
+                String type = "";
+                String description = peObj.get("name").toString();
+                taskAttrDao2.insertToDeviceTable(wonum, type, attr_name, description);
+                String attr_name2 = "PE_KEY";
+                String type2 = peObj.get("name").toString();
+                String description2 = peObj.get("key").toString();
+                taskAttrDao2.insertToDeviceTable(wonum, type2, attr_name2, description2);
+                x++;
+            }
+            
+            if (conn.getResponseCode() != 200) {
+                LogUtil.info(this.getClass().getName(), "Error get data SBC Port");
+            }
+            conn.disconnect();
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | ParseException | SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void getSBCPort(String wonum, String deviceName, String serviceType) {
+        try {
+            APIConfig apiConfig = new APIConfig();
+            apiConfig = connUtil.getApiParam("uimax_dev");
+            URL url = new URL(apiConfig.getUrl()+"/api/device/portsByService?deviceName="+deviceName+"&serviceType="+serviceType+""
+                    + "&portPurpose=TRUNK&portPurpose=ACTIVE");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+            StringBuffer response;
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                String inputLine;
+                response = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }   LogUtil.info(this.getClass().getName(), "Response = " + response);
+            }
+            // 'response' contains the JSON data as a string
+            String jsonData = response.toString();
+            JSONParser parser = new JSONParser();
+            JSONObject data_obj = (JSONObject)parser.parse(jsonData);
+            JSONArray portArray = (JSONArray) data_obj.get("port");
+            taskAttrDao2.deleteTkDeviceattribute(wonum, "'SBC_PORTNAME'");
+            int x = 0;
+            for (Object obj : portArray) {
+                JSONObject portObj = (JSONObject)obj;
+                String attr_name = "SBC_PORTNAME";
+                String type = "";
+                String description = portObj.get("name").toString();
+                taskAttrDao2.insertToDeviceTable(wonum, type, attr_name, description);
+                x++;
+            }
+            
+            if (conn.getResponseCode() != 200) {
+                LogUtil.info(this.getClass().getName(), "Error get data SBC Port");
+            }
+            conn.disconnect();
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | ParseException | SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

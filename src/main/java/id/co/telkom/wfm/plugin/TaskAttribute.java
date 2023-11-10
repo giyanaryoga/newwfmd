@@ -4,8 +4,8 @@
  */
 package id.co.telkom.wfm.plugin;
 
-import id.co.telkom.wfm.plugin.controller.validateRevised;
-import id.co.telkom.wfm.plugin.controller.validateTaskAttribute;
+import id.co.telkom.wfm.plugin.controller.ValidateRevised;
+import id.co.telkom.wfm.plugin.controller.ValidateTaskAttribute;
 import id.co.telkom.wfm.plugin.controller.ValidateTaskAttribute2;
 import java.sql.SQLException;
 import java.util.*;
@@ -25,8 +25,8 @@ public class TaskAttribute extends DefaultApplicationPlugin {
 
     @Override
     public Object execute(Map map) {
-        validateRevised logicValidate = new validateRevised();
-        validateTaskAttribute logicTaskAttr = new validateTaskAttribute();
+        ValidateRevised logicValidate = new ValidateRevised();
+        ValidateTaskAttribute logicTaskAttr = new ValidateTaskAttribute();
         ValidateTaskAttribute2 logicTaskAttr2 = new ValidateTaskAttribute2();
                 
         String parent = getPropertyString("parent");

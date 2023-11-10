@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.UuidGenerator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -137,5 +138,91 @@ public class TaskAttributeDao2 {
         } finally {
             ds.getConnection().close();
         }
+    }
+    
+    public void deleteTkDeviceattribute(String wonum, String attr_name) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String select = "SELECT * FROM app_fd_tk_deviceattribute WHERE c_ref_num = ? AND c_attr_name in (?)";
+        String delete = "DELETE FROM app_fd_tk_deviceattribute WHERE c_ref_num = ? AND c_attr_name in (?)";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(select);
+                PreparedStatement ps2 = con.prepareStatement(delete);) {
+            ps.setString(1, wonum);
+            ps.setString(2, attr_name);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                ResultSet rs2 = ps2.executeQuery();
+                if (rs2.next()) {
+                    LogUtil.info(getClass().getName(), "Berhasil menghapus data");
+                }
+            } else {
+                LogUtil.info(getClass().getName(), "Gagal menghapus data");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void insertToDeviceTable(String wonum, String type, String attr_name, String description) throws SQLException {
+        // Generate UUID
+        String uuId = UuidGenerator.getInstance().getUuid();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String insert = "INSERT INTO APP_FD_TK_DEVICEATTRIBUTE (ID, C_REF_NUM, C_ATTR_NAME, C_ATTR_TYPE, C_DESCRIPTION) VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(insert)) {
+            ps.setString(1, uuId);
+            ps.setString(2, wonum);
+            ps.setString(3, attr_name);
+            ps.setString(4, type);
+            ps.setString(5, description);
+
+            int exe = ps.executeUpdate();
+
+            if (exe > 0) {
+                LogUtil.info(this.getClass().getName(), "Berhasil menambahkan data");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public JSONArray getTaskWDM(String parent) throws SQLException {
+        JSONArray attrName = new JSONArray();
+        StringBuilder query = new StringBuilder();
+        query
+                .append(" SELECT ")
+                .append(" c_detailactcode ")
+                .append(" FROM app_fd_workorder WHERE ")
+                .append(" c_parent = ? AND ")
+                .append(" c_detailactcode in ('WFMNonCore PassThrough Port WDM 1','WFMNonCore PassThrough Port WDM 2','WFMNonCore PassThrough Port WDM 3',"
+                        + "'WFMNonCore PassThrough Port WDM 4','WFMNonCore PassThrough Port WDM 5','WFMNonCore PassThrough Port WDM 6',"
+                        + "'WFMNonCore PassThrough Port WDM 7','WFMNonCore PassThrough Port WDM 8','WFMNonCore PassThrough Port WDM 9',"
+                        + "'WFMNonCore PassThrough Port WDM 10')");
+        
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query.toString())) {
+            ps.setString(1, parent);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject intObj = new JSONObject();
+                String activity = rs.getString("c_detailactcode");
+                String[] splitted = activity.split("WDM ");
+                String lastString = splitted[1];
+                int task = Integer.parseInt(lastString);
+                intObj.put("int_activity", task);
+                attrName.add(intObj);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close(); 
+        }
+        return attrName;
     }
 }

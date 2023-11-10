@@ -604,9 +604,9 @@ public class UpdateTaskStatusEbisDao {
             attributeObj.put("Attribute", getListAttribute(wonum));
         }
         // Checking attribute
-        if (name.equals("Survey-Ondesk")) {
-            attributeObj.put("Attribute", "");
-        }
+//        if (name.equals("Survey-Ondesk")) {
+//            attributeObj.put("Attribute", "");
+//        }
 
         JSONObject attributes = new JSONObject();
         attributes.put("Attributes", attributeObj);

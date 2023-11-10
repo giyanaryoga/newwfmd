@@ -7,11 +7,6 @@ package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.kafka.ResponseKafka;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
-import java.sql.*;
-import java.util.Date;
-import javax.sql.DataSource;
-import org.joget.apps.app.service.AppUtil;
-import org.joget.commons.util.LogUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -42,7 +37,5 @@ public class IntegrationHistory {
         String kafkaRes = data.toJSONString();
         //KAFKA DEVELOPMENT
         responseKafka.IntegrationHistory(kafkaRes);
-        //KAFKA PRODUCTION
-//        responseKafka.IntegrationHistory(kafkaRes);
     }
 }

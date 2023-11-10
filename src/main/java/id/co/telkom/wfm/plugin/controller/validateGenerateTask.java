@@ -10,7 +10,6 @@ import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
 import id.co.telkom.wfm.plugin.dao.NonCoreCompleteDao;
 import id.co.telkom.wfm.plugin.dao.GetSIDNetmonkDao;
-import id.co.telkom.wfm.plugin.controller.ValidateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -212,7 +211,6 @@ public class ValidateGenerateTask {
                 String owner_group = validateOwner.ownerGroupTask(sortedTask, workorder);
                 ownerGroup = owner_group;
             } else {
-//                String owner_group = dao2.getOwnerGroupPerson(sortedTask.get("ownerGroup").toString());
                 String owner_group = sortedTask.get("ownerGroup").toString();
                 ownerGroup = owner_group;
             }
@@ -382,9 +380,9 @@ public class ValidateGenerateTask {
             
             JSONArray taskIdArray = dao2.getTaskId(workorder.get("wonum").toString());
             int sizeTask = taskIdArray.size();
-            LogUtil.info(getClass().getName(), "SIZE TASK = "+ sizeTask);
+//            LogUtil.info(getClass().getName(), "SIZE TASK = "+ sizeTask);
             int taskId = (sizeTask+counter)*10;
-            LogUtil.info(getClass().getName(), "TASK ID = "+ taskId);
+//            LogUtil.info(getClass().getName(), "TASK ID = "+ taskId);
             sortedTask.put("taskid", taskId);
 
             if (sortedTask.get("ownerGroup").toString().equalsIgnoreCase("")) {
@@ -422,7 +420,7 @@ public class ValidateGenerateTask {
             //GENERATE ASSIGNMENT
             dao2.generateAssignment(sortedTask, workorder);
             //GENERATE TASK HISTORY
-            historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum OSM", "OSM", "OSM");
+            historyDao.insertTaskStatus((String) sortedTask.get("wonum"), "Generate Wonum from button", "WFM", "WFM");
             //GENERATE TASK ATTRIBUTE
             for (Object taskAttrArrayObj: taskAttrArray) {
                 JSONObject taskAttrObj = (JSONObject)taskAttrArrayObj;

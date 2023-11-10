@@ -5,7 +5,6 @@
 package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.dao.ReserveSTPDao;
-import id.co.telkom.wfm.plugin.dao.STPDao;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
@@ -21,7 +20,9 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import id.co.telkom.wfm.plugin.util.TimeUtil;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.UuidGenerator;
 import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -29,7 +30,7 @@ import org.json.simple.JSONObject;
 /**
  * @author Giyanaryoga Puguh
  */
-public class validateTaskAttribute {
+public class ValidateTaskAttribute {
 
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
     TaskActivityDao taskDao = new TaskActivityDao();
@@ -56,7 +57,7 @@ public class validateTaskAttribute {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -72,28 +73,140 @@ public class validateTaskAttribute {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='AN_UPLINK_PORTNAME'");
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void validateRole(String parent, String wonum) {
         try {
-            String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
+            String detailactcode = taskAttrDao.getActivity(wonum);
+            String[] activityList = {"Survey-Ondesk", "Site-Survey", "Survey-Ondesk Manual", "Site-Survey Manual", "WFMNonCore Site Survey", "WFMNonCore Site Survey 2", "Site-Survey_Backup", "Survey-Ondesk_Backup", "Site_Survey Wifi", "Survey-Ondesk Wifi", "Survey-Ondesk Backup Manual", "Site-Survey Backup Manual"};
+            if (Arrays.asList(activityList).contains(detailactcode)) {
+                String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
+                String user = "ngambil nya gmn neh ?";
+                String c_siteid = "ini juga ngambil dmn ?";
 
-            if (value.equalsIgnoreCase("STP")) {
-                taskAttrDao.deleteTaskAttrLike(parent, "NTE%");
-            } else {
-                //IF ROLE = NTE
-                taskAttrDao.deleteTaskAttrLike(parent, "STP%");
+                if (value.equalsIgnoreCase("STP")) {
+                    taskAttrDao.deleteTaskAttrLike(wonum, "NTE%");
+//                  #regenerate attribute STP
+                    String condition = "c_wonum='" + wonum + "' and c_assetattrid like 'STP_NAME%'";
+                    boolean check = taskAttrDao.checkData("app_fd_classspec", condition);
+                    TimeUtil time = new TimeUtil();
+                    if (check) {
+//                        classstructureid diambil dari workorder, where wonum
+                        String classstructure_id = taskAttrDao.getClassStructureID(wonum);
+                        condition = "c_assetattrid in ('STP_ID','STP_NAME','STP_NAME_ALN','STP_PORT_ID','STP_PORT_NAME','STP_PORT_NAME_ALN','STP_SPECIFICATION','STP_PORT_RESERVATION_ID')";
+                        JSONArray classSpecArray = taskAttrDao.getClassspec(classstructure_id, condition);
+                        for (Object obj : classSpecArray) {
+                            JSONObject classSpecObj = (JSONObject) obj;
+                            LogUtil.info(getClass().getName(), "Class Spec Object = " + classSpecObj);
+                            String c_assetattrid = classSpecObj.get("c_assetattrid").toString();
+                            String c_classstructureid = classSpecObj.get("c_classstructureid").toString();
+                            String c_sequence = classSpecObj.get("c_sequence").toString();
+                            String c_orgid = classSpecObj.get("c_orgid").toString();
+                            String c_mandatory = classSpecObj.get("c_mandatory").toString();
+                            String c_objectname = classSpecObj.get("c_objectname").toString();
+                            String c_classspecid = classSpecObj.get("c_classspecid").toString();
+                            String c_readonly = classSpecObj.get("c_mandatory").toString();
+                            String c_samplevalue = classSpecObj.get("c_samplevalue").toString();
+                            String c_defaultvalue = classSpecObj.get("c_defaultvalue").toString();
+
+                            String columns = "c_assetattrid, c_changeby, c_changedate, c_classstructureid, c_displaysequence, c_orgid, c_siteid, c_mandotory, c_refobjectname, c_classspecid, c_readonly, c_wonum, c_samplevalue, c_value";
+
+                            String values = UuidGenerator.getInstance().getUuid() + ","
+                                    + c_assetattrid + ","
+                                    + user + ","
+                                    + time.getCurrentTime() + ","
+                                    + c_classstructureid + ","
+                                    + c_sequence + ","
+                                    + c_orgid + ","
+                                    + c_siteid + ","
+                                    + c_mandatory + ","
+                                    + c_objectname + ","
+                                    + c_classspecid + ","
+                                    + c_readonly + ","
+                                    + wonum + ","
+                                    + c_samplevalue + ","
+                                    + c_defaultvalue;
+                            taskAttrDao.insertWO(wonum, "app_fd_workorderspec", columns, values);
+                        }
+                    }
+                } else if (value.equalsIgnoreCase("NTE")) {
+                    //IF ROLE = NTE
+                    taskAttrDao.deleteTaskAttrLike(parent, "STP%");
+//                  regenerate attribute NTE
+                    String condition = "c_wonum='" + wonum + "' and c_assetattrid like 'STP_NAME%'";
+                    boolean check = taskAttrDao.checkData("app_fd_classspec", condition);
+                    TimeUtil time = new TimeUtil();
+                    if (check) {
+//                        classstructureid diambil dari workorder, where wonum
+                        String classstructure_id = taskAttrDao.getClassStructureID(wonum);
+                        String[] activityList2 = {"Survey-Ondesk", "Survey-Ondesk Manual", "Survey-Ondesk_Backup", "Survey-Ondesk Wifi", "Survey-Ondesk Backup Manual"};
+                        String[] activityList3 = {"Site-Survey", "Site-Survey Manual", "WFMNonCore Site Survey", "WFMNonCore Site Survey 2", "Site-Survey_Backup", "Site_Survey Wifi", "Site-Survey Backup Manual"};
+
+                        if (Arrays.asList(activityList2).contains(detailactcode)) {
+                            condition = "c_assetattrid in ('NTE_AVAILABLE','NTE_DOWNLINK_PORT','NTE_DOWNLINK_PORTNAME','NTE_IPADDRESS','NTE_MANUFACTUR','NTE_MODEL','NTE_NAME','NTE_SERIALNUMBER','NTE_TYPE','NTE_UPLINK_PORT')";
+                        }
+                        if (Arrays.asList(activityList3).contains(detailactcode)) {
+                            condition = "c_assetattrid in ('NTE_AVAILABLE','NTE_DOWNLINK_PORT','NTE_DOWNLINK_PORTNAME','NTE_IPADDRESS','NTE_MANUFACTUR_ALN','NTE_MODEL_ALN','NTE_NAME','NTE_SERIALNUMBER','NTE_TYPE','NTE_UPLINK_PORT')";
+                        }
+                        JSONArray classSpecArray = taskAttrDao.getClassspec(classstructure_id, condition);
+                        for (Object obj : classSpecArray) {
+                            JSONObject classSpecObj = (JSONObject) obj;
+                            LogUtil.info(getClass().getName(), "Class Spec Object = " + classSpecObj);
+                            String c_assetattrid = classSpecObj.get("c_assetattrid").toString();
+                            String c_classstructureid = classSpecObj.get("c_classstructureid").toString();
+                            String c_sequence = classSpecObj.get("c_sequence").toString();
+                            String c_orgid = classSpecObj.get("c_orgid").toString();
+                            String c_mandatory = classSpecObj.get("c_mandatory").toString();
+                            String c_objectname = classSpecObj.get("c_objectname").toString();
+                            String c_classspecid = classSpecObj.get("c_classspecid").toString();
+                            String c_readonly = classSpecObj.get("c_mandatory").toString();
+                            String c_samplevalue = classSpecObj.get("c_samplevalue").toString();
+                            String c_defaultvalue = classSpecObj.get("c_defaultvalue").toString();
+
+                            String columns = "c_assetattrid, c_changeby, c_changedate, c_classstructureid, c_displaysequence, c_orgid, c_siteid, c_mandotory, c_refobjectname, c_classspecid, c_readonly, c_wonum, c_samplevalue, c_value";
+
+                            String values = UuidGenerator.getInstance().getUuid() + ","
+                                    + c_assetattrid + ","
+                                    + user + ","
+                                    + time.getCurrentTime() + ","
+                                    + c_classstructureid + ","
+                                    + c_sequence + ","
+                                    + c_orgid + ","
+                                    + c_siteid + ","
+                                    + c_mandatory + ","
+                                    + c_objectname + ","
+                                    + c_classspecid + ","
+                                    + c_readonly + ","
+                                    + wonum + ","
+                                    + c_samplevalue + ","
+                                    + c_defaultvalue;
+                            taskAttrDao.insertWO(wonum, "app_fd_workorderspec", columns, values);
+                        }
+                    }
+
+                }
             }
+
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void validateNteType(String parent, String wonum, String attrValue, String attrName) {
         try {
             String detailactcode = taskAttrDao.getActivity(wonum);
+
+            if (detailactcode.equalsIgnoreCase("Install NTE")) {
+                if (attrValue.equalsIgnoreCase("BigONT")) {
+                    String condition = "c_parent='" + parent + "' AND c_wonum!='" + wonum + "' AND c_detailactcode!='Pull Drop Cable' AND c_status='APPR'";
+                    taskAttrDao.updateWO("app_fd_workorder", "c_wfmdoctype='NEW'", condition);
+                } else {
+                    String condition = "c_parent='" + parent + "' AND c_wonum!='" + wonum + "' AND c_detailactcode!='Pull Drop Cable' AND c_status='APPR'";
+                    taskAttrDao.updateWO("app_fd_workorder", "c_wfmdoctype='REVISED'", condition);
+                }
+            }
             if (detailactcode.equalsIgnoreCase("Pickup NTE from SCM")) {
                 if (!attrValue.isEmpty() || !attrValue.equalsIgnoreCase("None")) {
                     if (attrName.equalsIgnoreCase("NTE_TYPE")) {
@@ -147,7 +260,7 @@ public class validateTaskAttribute {
             }
 
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -183,7 +296,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -203,7 +316,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -213,7 +326,7 @@ public class validateTaskAttribute {
             taskAttrDao.updateTaskValue(wonum, "REGION", workzone.get("region").toString());
             taskAttrDao.updateTaskValue(wonum, "WITEL", workzone.get("subregion").toString());
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -224,7 +337,7 @@ public class validateTaskAttribute {
                 taskAttrDao.updateWoAttrView(parent, "ContactPhoneNumber", valuePic);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -293,7 +406,7 @@ public class validateTaskAttribute {
                 LogUtil.info(getClass().getName(), "Product name is not INF_IPPBX_NEUAPIX");
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -311,7 +424,7 @@ public class validateTaskAttribute {
                 LogUtil.info(getClass().getName(), "Update Data failed");
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -328,7 +441,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -348,7 +461,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -390,7 +503,7 @@ public class validateTaskAttribute {
 //                }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -439,7 +552,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException | IOException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -454,7 +567,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -473,7 +586,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -496,7 +609,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -534,13 +647,14 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     public void validateApproval(String parent, String wonum, String attrValue, String classstructureid) {
         try {
             String detailactcode = taskAttrDao.getActivity(wonum);
+
             if (detailactcode.equalsIgnoreCase("Pickup AP From SCM Wifi")) {
                 if (attrValue.equalsIgnoreCase("REJECTED")) {
                     String setValue = "c_mandatory=0";
@@ -595,7 +709,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -605,15 +719,15 @@ public class validateTaskAttribute {
             LogUtil.info(this.getClass().getName(), "STP_ID" + stpid);
             LogUtil.info(this.getClass().getName(), "ATTRIBUTES VALUES : " + attrValue);
 
-            if (!attrValue.isEmpty()) {
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
-            }
+//            if (!stpnamealn.isEmpty()) {
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NAME_ALN'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
+//            }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -623,7 +737,7 @@ public class validateTaskAttribute {
             String condition = "c_wonum='" + wonum + "' AND c_wfmdoctype='NEW' AND c_assetattrid='" + attrName + "' AND c_detailactcode='Preconfig Connection of Access to WAC/WAG' AND c_parent='" + parent + "'";
             taskAttrDao.updateWO("app_fd_workorder", "c_value='" + attrValue + "'", condition);
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -632,7 +746,7 @@ public class validateTaskAttribute {
             String condition = "c_wonum='" + wonum + "' AND c_wfmdoctype='NEW' AND c_assetattrid='" + attrName + "' AND c_detailactcode='Preconfig Connection of Access to WAC/WAG' AND c_parent='" + parent + "'";
             taskAttrDao.updateWO("app_fd_workorder", "c_value='" + attrValue + "'", condition);
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -670,11 +784,11 @@ public class validateTaskAttribute {
                 LogUtil.info(getClass().getName(), "Task Bukan Survey-Ondesk Manual, Site-Survey Manual, WFMNonCore Site Survey");
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         } catch (JSONException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -690,7 +804,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -730,7 +844,7 @@ public class validateTaskAttribute {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -749,7 +863,7 @@ public class validateTaskAttribute {
             }
 
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -826,8 +940,8 @@ public class validateTaskAttribute {
                     validateSTP(parent, wonum, attrValue);
                     break;
                 case "STP_NETWORKLOCATION_LOV":
-                    if(!attrValue.equalsIgnoreCase("None")){
-                        taskAttrDao.updateWO("app_fd_workorderspec","c_value='"+attrValue+"'","c_parent='"+parent+"' AND c_assetattrid='STP_NETWORKLOCATION'");
+                    if (!attrValue.equalsIgnoreCase("None")) {
+                        taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NETWORKLOCATION'");
                     }
                     validateSTP(parent, wonum, attrValue);
                     break;
@@ -887,7 +1001,7 @@ public class validateTaskAttribute {
                     break;
                 case "LASTMILEEXTENSION_REQUIRED":
                     if (attrValue.equalsIgnoreCase("YES")) {
-
+                        taskAttrDao.deleteWO(wonum, "app_fd_workorderspec", "c_wonum='" + wonum + "' AND (c_assetattrid like 'NTE%' OR c_assetattrid LIKE 'STP%')");
                     }
                     break;
                 case "VRF_NAME_LOV":
@@ -896,12 +1010,28 @@ public class validateTaskAttribute {
                 case "AN_UPLINK_PORTNAME_LOV":
                     validateUplinkPortName(wonum, attrValue);
                     break;
+                case "PE_NAME_LOV":
+                    break;
+                case "PE_NAME":
+                    break;
+                case "PE_PORTNAME_LOV":
+                    break;
+                case "EXPANSION_TYPE":
+                    break;
+                case "PROVISIONING_TYPE":
+                    break;
+                case "ANALISA_KELAYAKAN_INVESTASI":
+                    break;
+                case "MITRA_LME":
+                    break;
+                case "MITRA_DEPLOY":
+                    break;
                 default:
                     LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
                     break;
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
