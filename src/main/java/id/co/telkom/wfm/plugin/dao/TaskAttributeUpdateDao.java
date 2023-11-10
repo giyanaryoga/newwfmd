@@ -4,6 +4,17 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import id.co.telkom.wfm.plugin.kafka.ResponseKafka;
+import id.co.telkom.wfm.plugin.model.APIConfig;
+import id.co.telkom.wfm.plugin.util.ConnUtil;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +26,7 @@ import java.time.format.DateTimeFormatter;
 import javax.sql.DataSource;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.UuidGenerator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -23,6 +35,12 @@ import org.json.simple.JSONObject;
  * @author Giyanaryoga Puguh
  */
 public class TaskAttributeUpdateDao {
+
+    // FormatLogIntegrationHistory insertIntegrationHistory = new FormatLogIntegrationHistory();
+    ResponseKafka responseKafka = new ResponseKafka();
+    // get URL
+    ConnUtil connUtil = new ConnUtil();
+    APIConfig apiConfig = new APIConfig();
 
     private Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
@@ -82,9 +100,9 @@ public class TaskAttributeUpdateDao {
     public JSONArray getClassspec(String classstructureid, String condition) throws SQLException {
         JSONArray woAttr = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_defaultvalue, c_classstructureid, c_sequence, c_mandatory, c_objectname, c_classspecid, c_orgid, c_readonly, c_samplevalue FROM APP_FD_CLASSSPEC WHERE C_CLASSSTRUCTUREID=? AND c_objectname='WOACTIVITY' AND "+condition;
+        String query = "SELECT c_assetattrid, c_defaultvalue, c_classstructureid, c_sequence, c_mandatory, c_objectname, c_classspecid, c_orgid, c_readonly, c_samplevalue FROM APP_FD_CLASSSPEC WHERE C_CLASSSTRUCTUREID=? AND c_objectname='WOACTIVITY' AND " + condition;
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, classstructureid);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -324,7 +342,7 @@ public class TaskAttributeUpdateDao {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 activity = rs.getString("c_detailactcode");
-                LogUtil.info(getClass().getName(), "Activity: "+activity);
+                LogUtil.info(getClass().getName(), "Activity: " + activity);
 
             }
         } catch (SQLException e) {
@@ -340,12 +358,12 @@ public class TaskAttributeUpdateDao {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT C_CLASSSTRUCTUREID FROM app_fd_workorder WHERE c_wonum = ?";
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 c_classstrucuterid = rs.getString("C_CLASSSTRUCTUREID");
-                LogUtil.info(getClass().getName(), "C_CLASSSTRUCTUREID: "+c_classstrucuterid);
+                LogUtil.info(getClass().getName(), "C_CLASSSTRUCTUREID: " + c_classstrucuterid);
 
             }
         } catch (SQLException e) {
@@ -512,7 +530,7 @@ public class TaskAttributeUpdateDao {
                 .append("AND c_detailactcode= ?")
                 .append("AND c_assetattrid = ?");
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(update.toString())) {
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setString(1, value);
             ps.setTimestamp(2, getTimeStamp());
             ps.setString(3, wonum);
@@ -556,13 +574,12 @@ public class TaskAttributeUpdateDao {
         }
     }
 
-
     public boolean checkData(String table, String condition) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT * FROM "+table+" WHERE "+condition;
+        String query = "SELECT * FROM " + table + " WHERE " + condition;
         boolean status = false;
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             ResultSet rs = ps.executeQuery();
             LogUtil.info(this.getClass().getName(), "Query : " + ps.toString());
             if (rs.next()) {
@@ -575,15 +592,16 @@ public class TaskAttributeUpdateDao {
         }
         return status;
     }
+
     public void updateWO(String table, String setvalue, String condition) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "UPDATE "+table+" SET "+setvalue+" WHERE "+condition;
+        String query = "UPDATE " + table + " SET " + setvalue + " WHERE " + condition;
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), " Update WO Activity , Query :   " + query);
-            }else{
+            } else {
                 LogUtil.info(getClass().getName(), " Update WO Activity FAILED, Query:  " + query);
             }
         } catch (SQLException e) {
@@ -592,16 +610,16 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
     }
-    
+
     public void insertWO(String wonum, String table, String columns, String values) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "INSERT INTO "+table+" ("+columns+") VALUES ("+values+")";
+        String query = "INSERT INTO " + table + " (" + columns + ") VALUES (" + values + ")";
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " Insert WO  , Query :   " + query);
-            }else{
+            } else {
                 LogUtil.info(getClass().getName(), wonum + " Insert WO  FAILED, Query:  " + query);
             }
         } catch (SQLException e) {
@@ -610,16 +628,16 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
     }
-    
+
     public void deleteWO(String wonum, String table, String condition) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "DELETE FROM "+table+" WHERE "+condition;
+        String query = "DELETE FROM " + table + " WHERE " + condition;
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " Delete WO  , Query :   " + query);
-            }else{
+            } else {
                 LogUtil.info(getClass().getName(), wonum + " Delete WO  FAILED, Query:  " + query);
             }
         } catch (SQLException e) {
@@ -628,18 +646,18 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
     }
-    
+
     public void updateTKDeviceAttribute(String wonum, String setvalue, String condition) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "UPDATE app_fd_workorder SET "+setvalue+" WHERE c_wonum = ? "+condition;
+        String query = "UPDATE app_fd_workorder SET " + setvalue + " WHERE c_wonum = ? " + condition;
         try (Connection con = ds.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
 
             ps.setString(1, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " Update TK Device Attribute , Query :   " + query);
-            }else{
+            } else {
                 LogUtil.info(getClass().getName(), wonum + " Update WO Activity FAILED, Query:  " + query);
             }
         } catch (SQLException e) {
@@ -698,7 +716,7 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
     }
-    
+
     public String getTkdeviceAttrValue(String wonum, String attrname, String attrtype) throws SQLException {
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -758,7 +776,7 @@ public class TaskAttributeUpdateDao {
 
         return result;
     }
-    
+
     public JSONObject getAssignment(String wonum) throws SQLException {
         JSONObject workzoneObj = new JSONObject();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -777,5 +795,111 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
         return workzoneObj;
+    }
+
+    public void deleteTkDeviceattribute(String wonum) throws SQLException {
+        DataSource dataSource = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String deleteQuery = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_NUM = ? AND C_ATTR)NAME IN ('PE_PORTNAME','PE_KEY')";
+
+        try (Connection connection = dataSource.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+
+            preparedStatement.setString(1, wonum);
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected > 0) {
+                LogUtil.info(getClass().getName(), "Berhasil menghapus data");
+            } else {
+                LogUtil.info(getClass().getName(), "Gagal menghapus data");
+            }
+
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+
+    private void insertToDeviceTable(String wonum, String name, String type, String description) throws Throwable {
+        // Generate UUID
+        String uuId = UuidGenerator.getInstance().getUuid();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String insert = "INSERT INTO APP_FD_TK_DEVICEATTRIBUTE (ID, C_REF_NUM, C_ATTR_NAME, C_ATTR_TYPE, C_DESCRIPTION, DATECREATED) VALUES (?, ?, ?, ?, ?, SYSDATE)";
+
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(insert)) {
+            ps.setString(1, uuId);
+            ps.setString(2, wonum);
+            ps.setString(3, name);
+            ps.setString(4, type);
+            ps.setString(5, description);
+
+            int exe = ps.executeUpdate();
+
+            if (exe > 0) {
+                LogUtil.info(this.getClass().getName(), "Berhasil menambahkan data");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+
+    public String getPEPorts(String wonum, String deviceName, String serviceType) throws MalformedURLException, IOException, Throwable {
+
+        // temp message
+        String message = "";
+        try {
+            apiConfig = connUtil.getApiParam("uimax_dev");
+
+            // checking deviceName
+            if (deviceName.equals("None")) {
+                LogUtil.info(getClass().getName(), "Devicename is empty");
+            } else if (!deviceName.isEmpty()) {
+                String url = apiConfig.getUrl() + "api/device/portsByService?deviceName=" + deviceName + "&serviceType=" + serviceType + "&portPurpose=TRUNK&portPurpose=ACTIVE";
+                URL obj = new URL(url);
+                HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+                // set header
+                con.setRequestMethod("GET");
+                con.setRequestProperty("Accept", "application/json");
+                int responseCode = con.getResponseCode();
+                LogUtil.info(this.getClass().getName(), "\nSending 'GET' request to URL : " + url);
+                LogUtil.info(this.getClass().getName(), "Response Code : " + responseCode);
+
+                if (responseCode == 404) {
+                    message = "PE PORT Not Found";
+                    LogUtil.info(getClass().getName(), message);
+                } else if (responseCode == 200) {
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuffer response = new StringBuffer();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    LogUtil.info(this.getClass().getName(), "PE Name : " + response);
+                    in.close();
+                    // At this point, 'response' contains the JSON data as a string
+                    String jsonData = response.toString();
+                    // parse the JSON data using jackson
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode jsonNode = objectMapper.readTree(jsonData);
+                    deleteTkDeviceattribute(wonum);
+
+                    JsonNode portArray = jsonNode.get("port");
+
+                    for (JsonNode portNode : portArray) {
+                        String name = portNode.get("name").asText();
+                        String key = portNode.get("key").asText();
+                        LogUtil.info(getClass().getName(), "PE_PORTNAME : " + name);
+                        LogUtil.info(getClass().getName(), "PE_KEY : " + key);
+                        insertToDeviceTable(wonum, "PE_PORTNAME", "", name);
+                        insertToDeviceTable(wonum, "PE_KEY", name, key);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
+        }
+        return message;
     }
 }

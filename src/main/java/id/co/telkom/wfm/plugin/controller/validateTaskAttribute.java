@@ -77,6 +77,60 @@ public class ValidateTaskAttribute {
         }
     }
 
+    private void validatePEName(String wonum, String attrValue) throws SQLException, Throwable {
+        try {
+            String detailactcode = taskAttrDao.getActivity(wonum);
+            String[] activityList = {"PopulatePEPort", "PopulatePEPort VPN", "Check Availablity PE Port", "PopulatePEPort Manage CE", "PopulatePEMain", "Populate PE Port IP Transit"};
+            if (Arrays.asList(activityList).contains(detailactcode)) {
+                String value = taskAttrDao.getTaskAttrValue(wonum, "SERVICE_TYPE");
+                String serviceType = "";
+                if (value.isEmpty()) {
+                    serviceType = value;
+                }
+                taskAttrDao.getPEPorts(wonum, attrValue, serviceType);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void validatePENameLOV(String wonum, String attrValue) throws SQLException {
+        try {
+            if (attrValue.isEmpty()) {
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME_LOV'");
+            } else if (!attrValue.isEmpty()) {
+                //String wonum, String attrname, String attrtype
+                String ipAddress = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_IPADDRESS", attrValue);
+                String manufactur = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_MANUFACTUR", attrValue);
+                String model = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_MODEL", attrValue);
+//                String name = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_NAME", attrValue);
+
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + ipAddress + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_IPADDRESS'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + manufactur + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_MANUFACTUR'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + model + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_MODEL'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_NAME'");
+
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void validatePEPortnameLOV(String wonum, String attrValue) {
+        try {
+            if (attrValue.isEmpty()) {
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_KEY'");
+            } else {
+                String key = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_KEY", attrValue);
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + key + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_KEY'");
+                taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + attrValue + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     private void validateRole(String parent, String wonum) {
         try {
             String detailactcode = taskAttrDao.getActivity(wonum);
@@ -867,7 +921,7 @@ public class ValidateTaskAttribute {
         }
     }
 
-    public void validate(String parent, String wonum, String attrName, String attrValue) throws SQLException {
+    public void validate(String parent, String wonum, String attrName, String attrValue) throws SQLException, Throwable {
         try {
             validateValueNextTask(parent, attrName, attrValue);
             String detailactcode = taskAttrDao.getActivity(wonum);
@@ -1011,8 +1065,10 @@ public class ValidateTaskAttribute {
                     validateUplinkPortName(wonum, attrValue);
                     break;
                 case "PE_NAME_LOV":
+                    validatePENameLOV(wonum, attrValue);
                     break;
                 case "PE_NAME":
+                    validatePEName(wonum, attrValue);
                     break;
                 case "PE_PORTNAME_LOV":
                     break;

@@ -52,6 +52,8 @@ public class TaskAttribute extends DefaultApplicationPlugin {
             logicTaskAttr.validate(parent, wonum, attrName, attrValue);
         } catch (SQLException ex) {
             Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Throwable ex) {
+            Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
         logicTaskAttr2.validate(parent, wonum, attrName, attrValue);
         logicValidate.validate(parent, wonum, attrName, attrValue, task);
