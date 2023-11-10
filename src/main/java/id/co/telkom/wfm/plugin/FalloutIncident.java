@@ -97,23 +97,31 @@ public class FalloutIncident extends Element implements PluginWebSupport {
                 FalloutIncidentDao dao = new FalloutIncidentDao();
                 boolean updateTask = dao.updateStatus(statusCode, ticketId, ownerGroup);
                 LogUtil.info(this.getClassName(), "update status : " + updateTask);
-                if (updateTask == true) {
-                    dao.buildFalloutJson(ticketId);
-                    JSONObject res = new JSONObject();
-                    res.put("code", 200);
-                    res.put("message", "Success mengirim data ke kafka");
-//                    res.put("data", data);
+
+                JSONObject res = new JSONObject();
+                if (statusCode.equals("OPEN")) {
+                    res.put("code", 422);
+                    res.put("message", "Select resolve code 'RETRY or MANUAL' before saving");
                     res.writeJSONString(hsr1.getWriter());
                     hsr1.setStatus(200);
-                    LogUtil.info(this.getClassName(), "update TRUE : " + updateTask);
                 } else {
-                    JSONObject res = new JSONObject();
-                    res.put("code", 422);
-                    res.put("message", "Send Message Failed");
-                    res.put("data", "");
-                    res.writeJSONString(hsr1.getWriter());
-                    hsr1.setStatus(422);
+                    if (updateTask == true) {
+                        dao.buildFalloutJson(ticketId);
+
+                        res.put("code", 200);
+                        res.put("message", "Success mengirim data ke kafka");
+//                    res.put("data", data);
+                        res.writeJSONString(hsr1.getWriter());
+                        hsr1.setStatus(200);
+                        LogUtil.info(this.getClassName(), "update TRUE : " + updateTask);
+                    } else {
+                        res.put("code", 422);
+                        res.put("message", "Send Message Failed");
+                        res.writeJSONString(hsr1.getWriter());
+                        hsr1.setStatus(422);
+                    }
                 }
+
             } catch (ParseException | SQLException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
             }

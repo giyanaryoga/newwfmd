@@ -23,55 +23,24 @@ import org.joget.commons.util.UuidGenerator;
  */
 public class GenerateFalloutDao {
 
-    public String apiId = "";
-    public String apiKey = "";
-
-    public void getApiAttribute() {
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_api_id, c_api_key FROM app_fd_api_wfm WHERE c_use_of_api = 'falloutincident' ";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(query);
-                try {
-                    try {
-                        ResultSet rs = ps.executeQuery();
-                        if (rs.next()) {
-                            this.apiId = rs.getString("c_api_id");
-                            this.apiKey = rs.getString("c_api_key");
-                        }
-                    } catch (SQLException e) {
-                        LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-                    }
-                    if (ps != null) {
-                        ps.close();
-                    }
-                } catch (SQLException throwable) {
-                    if (ps != null)
-                        try {
-                        ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
+    public boolean getApiAttribute(String apiId, String apiKey) {
+        boolean  isAuthSuccess = false;
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_api_id, c_api_key FROM app_fd_api_wfm WHERE c_use_of_api = 'falloutincident'";
+        try(Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                if (apiId.equals(rs.getString("c_api_id")) && apiKey.equals(rs.getString("c_api_key"))) {
+                    isAuthSuccess = true;
+                } else {
+                    isAuthSuccess = false;
                 }
-                if (con != null) {
-                    con.close();
-                }
-            } catch (SQLException throwable) {
-                if (con != null)
-                    try {
-                    con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
+        return isAuthSuccess;
     }
 
     public String getTicketid() {

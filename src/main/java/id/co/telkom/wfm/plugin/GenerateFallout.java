@@ -76,28 +76,14 @@ public class GenerateFallout extends Element implements PluginWebSupport {
 
         GenerateFalloutDao dao = new GenerateFalloutDao();
 
-        dao.getApiAttribute();
-        String apiIdPlugin = dao.apiId;
-        String apiKeyPlugin = dao.apiKey;
-
-        String headerApiId = hsr.getHeader("api_id");
-        String headerApiKey = hsr.getHeader("api_key");
-        LogUtil.info(getClassName(), "API ID" + apiIdPlugin);
-        LogUtil.info(getClassName(), "API KEY" + apiKeyPlugin);
-        
+        boolean isAuthSuccess = dao.getApiAttribute(hsr.getHeader("api_id"), hsr.getHeader("api_key"));
         boolean methodStatus = false;
-        boolean authStatus = false;
-        //Checking
-        if ("POST".equals(hsr.getMethod())) {
+
+        LogUtil.info(getClass().getName(), "Start Process: Generate Fallout");
+        //@Authorization
+        if ("POST".equals(hsr.getMethod()))
             methodStatus = true;
-            LogUtil.info(getClassName(), "METHOD STATUS : " + methodStatus);
-        }
-        if (apiIdPlugin.equals(headerApiId) && apiKeyPlugin.equals(headerApiKey)) {
-            authStatus = true;
-            LogUtil.info(getClassName(), "AUTH STATUS : " + authStatus);
-        }
-        //Authorization success
-        if (methodStatus && authStatus) {
+        if (methodStatus && isAuthSuccess) {
             try {
                 //@Parsing message
                 //HttpServletRequest get JSON Post data
@@ -161,7 +147,7 @@ public class GenerateFallout extends Element implements PluginWebSupport {
                         res1.writeJSONString(hsr1.getWriter());
                     } catch (IOException e) {
                         LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-                    }  
+                    }
                 }
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
@@ -185,5 +171,3 @@ public class GenerateFallout extends Element implements PluginWebSupport {
     }
 
 }
-
-
