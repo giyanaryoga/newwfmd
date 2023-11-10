@@ -18,7 +18,6 @@ import java.util.Arrays;
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
 import org.joget.commons.util.LogUtil;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 /**
  *

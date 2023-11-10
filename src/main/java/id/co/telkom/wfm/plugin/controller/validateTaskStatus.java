@@ -5,8 +5,6 @@
 package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
-import id.co.telkom.wfm.plugin.controller.ValidateNonCoreProduct;
-import id.co.telkom.wfm.plugin.controller.ValidateReTools;
 import id.co.telkom.wfm.plugin.dao.*;
 import id.co.telkom.wfm.plugin.kafka.ResponseKafka;
 import id.co.telkom.wfm.plugin.util.TimeUtil;

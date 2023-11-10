@@ -6,7 +6,6 @@ package id.co.telkom.wfm.plugin.controller;
 
 import id.co.telkom.wfm.plugin.model.ListReTools;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
-import id.co.telkom.wfm.plugin.controller.IntegrationHistory;
 import id.co.telkom.wfm.plugin.dao.ReToolDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.util.ConnUtil;

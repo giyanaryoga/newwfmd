@@ -10,7 +10,6 @@ import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.TaskHistoryDao;
 import id.co.telkom.wfm.plugin.dao.NonCoreCompleteDao;
 import id.co.telkom.wfm.plugin.dao.GetSIDNetmonkDao;
-import id.co.telkom.wfm.plugin.controller.ValidateOwnerGroup;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.sql.SQLException;
 import java.sql.Timestamp;

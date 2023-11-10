@@ -79,6 +79,46 @@ public class TaskAttributeUpdateDao {
         return woAttr;
     }
 
+    public JSONArray getClassspec(String classstructureid, String condition) throws SQLException {
+        JSONArray woAttr = new JSONArray();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_defaultvalue, c_classstructureid, c_sequence, c_mandatory, c_objectname, c_classspecid, c_orgid, c_readonly, c_samplevalue FROM APP_FD_CLASSSPEC WHERE C_CLASSSTRUCTUREID=? AND c_objectname='WOACTIVITY' AND "+condition;
+        try (Connection con = ds.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, classstructureid);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject obj = new JSONObject();
+                String c_assetattrid = rs.getString("c_assetattrid");
+                String c_defaultvalue = (rs.getString("c_defaultvalue") == null ? "" : rs.getString("c_value"));
+                String c_classstructureid = (rs.getString("c_classstructureid") == null ? "" : rs.getString("c_classstructureid"));
+                String c_sequence = (rs.getString("c_sequence") == null ? "" : rs.getString("c_sequence"));
+                String c_mandatory = (rs.getString("c_mandatory") == null ? "" : rs.getString("c_mandatory"));
+                String c_objectname = (rs.getString("c_objectname") == null ? "" : rs.getString("c_objectname"));
+                String c_classspecid = (rs.getString("c_classspecid") == null ? "" : rs.getString("c_classspecid"));
+                String c_orgid = (rs.getString("c_orgid") == null ? "" : rs.getString("c_orgid"));
+                String c_readonly = (rs.getString("c_readonly") == null ? "" : rs.getString("c_readonly"));
+                String c_samplevalue = (rs.getString("c_samplevalue") == null ? "" : rs.getString("c_samplevalue"));
+                obj.put("c_assetattrid", c_assetattrid);
+                obj.put("c_defaultvalue", c_defaultvalue);
+                obj.put("c_classstructureid", c_classstructureid);
+                obj.put("c_sequence", c_sequence);
+                obj.put("c_mandatory", c_mandatory);
+                obj.put("c_classspecid", c_classspecid);
+                obj.put("c_orgid", c_orgid);
+                obj.put("c_objectname", c_objectname);
+                obj.put("c_readonly", c_readonly);
+                obj.put("c_samplevalue", c_samplevalue);
+                woAttr.add(obj);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return woAttr;
+    }
+
     public JSONArray getTaskAttrWonum(String wonum) throws SQLException {
         JSONArray activityProp = new JSONArray();
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -284,6 +324,8 @@ public class TaskAttributeUpdateDao {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 activity = rs.getString("c_detailactcode");
+                LogUtil.info(getClass().getName(), "Activity: "+activity);
+
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -291,6 +333,27 @@ public class TaskAttributeUpdateDao {
             ds.getConnection().close();
         }
         return activity;
+    }
+
+    public String getClassStructureID(String wonum) throws SQLException {
+        String c_classstrucuterid = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT C_CLASSSTRUCTUREID FROM app_fd_workorder WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                c_classstrucuterid = rs.getString("C_CLASSSTRUCTUREID");
+                LogUtil.info(getClass().getName(), "C_CLASSSTRUCTUREID: "+c_classstrucuterid);
+
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return c_classstrucuterid;
     }
 
     public String getWonumActivityTask(String parent, String activity) throws SQLException {
@@ -493,6 +556,25 @@ public class TaskAttributeUpdateDao {
         }
     }
 
+
+    public boolean checkData(String table, String condition) throws SQLException {
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT * FROM "+table+" WHERE "+condition;
+        boolean status = false;
+        try (Connection con = ds.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ResultSet rs = ps.executeQuery();
+            LogUtil.info(this.getClass().getName(), "Query : " + ps.toString());
+            if (rs.next()) {
+                status = true;
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return status;
+    }
     public void updateWO(String table, String setvalue, String condition) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "UPDATE "+table+" SET "+setvalue+" WHERE "+condition;
@@ -627,9 +709,14 @@ public class TaskAttributeUpdateDao {
             ps.setString(2, attrname);
             ps.setString(3, attrtype);
             ResultSet rs = ps.executeQuery();
+            LogUtil.info(this.getClass().getName(), "Query : " + ps.toString());
+            String status = "Not Found";
             if (rs.next()) {
                 value = rs.getString("c_description");
+                status = "Found";
             }
+            LogUtil.info(this.getClass().getName(), "Data status: " + status);
+
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {

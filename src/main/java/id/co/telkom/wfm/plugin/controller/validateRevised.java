@@ -22,7 +22,7 @@ import org.json.simple.JSONObject;
  *
  * @author Giyanaryoga Puguh
  */
-public class validateRevised {
+public class ValidateRevised {
     RevisedTaskDao dao = new RevisedTaskDao();
     GenerateWonumEbisDao generateDao = new GenerateWonumEbisDao();
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
@@ -158,7 +158,7 @@ public class validateRevised {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateRevised.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -170,7 +170,7 @@ public class validateRevised {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateRevised.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -182,7 +182,7 @@ public class validateRevised {
                 GenerateTaskNew(parent);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateRevised.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -198,7 +198,7 @@ public class validateRevised {
                 }
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateRevised.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -214,7 +214,7 @@ public class validateRevised {
                 GenerateTaskNew(parent);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateRevised.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -302,7 +302,7 @@ public class validateRevised {
                 
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateRevised.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -326,7 +326,7 @@ public class validateRevised {
                 x += 1;
             }
         } catch (SQLException ex) {
-            Logger.getLogger(validateRevised.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ValidateRevised.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
