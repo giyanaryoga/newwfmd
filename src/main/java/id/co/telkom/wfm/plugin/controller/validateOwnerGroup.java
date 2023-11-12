@@ -38,6 +38,10 @@ public class ValidateOwnerGroup {
         "Shipment_Delivery", "Suspend_Service", "Resume_Service", "Deactivate_Service",
         "Approval_Project_Management"
     };
+    private static final String NonConnProduct[] = {
+        "REVIEW_ORDER", "Activate_Service", "Upload_Berita_Acara", "Modify_Service",
+        "Shipment_Delivery", "Suspend_Service", "Resume_Service", "Deactivate_Service"
+    };
     private static final String TSAProduct1[] = { "TSA_CONSPART","TSA_SPMS" };
     private static final String TSAProduct2[] = { "TSA_CONSPART","TSA_OSS_ISP","TSA_OSS_OSP","TSA_SPMS","TSA_PM_ISP" };
     private static final String activityTSA1[] = {
@@ -143,29 +147,36 @@ public class ValidateOwnerGroup {
     }
     
     public String ownerGroupTask(JSONObject taskObj, JSONObject workorder) throws SQLException {
-        String ownerGroupSet;
+        String ownerGroupSet = "";
+        String workzone = "";
         String classstructureid = taskObj.get("classstructureid").toString();
         String prodName = workorder.get("prodName").toString();
-        String workzone = workorder.get("workZone").toString();
         String activity = taskObj.get("activity").toString();
         String crmOrder = workorder.get("crmOrderType").toString();
         String dcType = (this.getDCTypeSegment(workorder) == null ? "" : this.getDCTypeSegment(workorder));
         String supplier = (this.getSupplier(workorder) == null ? "" : this.getSupplier(workorder));
         String division = (this.getDivision(workorder) == null ? "" : this.getDivision(workorder));
-        LogUtil.info(getClass().getName(), "DC TYPE = " +dcType);
+        
+        if (Arrays.asList(NonConnProduct).contains(activity)) {
+            workzone = "NAS";
+        } else {
+            workzone = workorder.get("workZone").toString();
+        }
+        
+//        LogUtil.info(getClass().getName(), "DC TYPE = " +dcType);
         LogUtil.info(getClass().getName(), "CLASSSTRUCTURE = " +classstructureid);
         LogUtil.info(getClass().getName(), "WORKZONE = " +workzone);
-        LogUtil.info(getClass().getName(), "SUPPLIER = " +supplier);
+//        LogUtil.info(getClass().getName(), "SUPPLIER = " +supplier);
         
         if (Arrays.asList(ProductNonConn).contains(activity)) {
             //Non - Connectivity mapping
             if (!"ASTINET".equalsIgnoreCase(prodName) && !"Approval_Project_Management".equalsIgnoreCase(activity) && "Wholesale".equalsIgnoreCase(dcType)) {
                 String ownerGroup = tkMapping.getOwnerGroup1("NAS", prodName, dcType, supplier, classstructureid);
                 ownerGroupSet = ownerGroup;
-                if (ownerGroupSet  == null) {
+                if (ownerGroupSet.equalsIgnoreCase("")) {
                     String ownerGroup2 = tkMapping.getOwnerGroup2("NAS", prodName, dcType, classstructureid);
                     ownerGroupSet = ownerGroup2;
-                    if (ownerGroupSet == null) {
+                    if (ownerGroupSet.equalsIgnoreCase("")) {
                         String ownerGroup3 = tkMapping.getOwnerGroup3(workzone, dcType, classstructureid);
                         ownerGroupSet = ownerGroup3;
                     }
@@ -180,30 +191,36 @@ public class ValidateOwnerGroup {
                 } else {
                     ownerGroup2 = tkMapping.getOwnerGroup6(division, dcType, classstructureid);
                 }
-                ownerGroupSet = ownerGroup2;
-                if (ownerGroupSet == null) {
+                if (ownerGroup2.equalsIgnoreCase("")) {
                     ownerGroup2 = tkMapping.getOwnerGroup7("NAS", dcType, classstructureid);
-                    ownerGroupSet = ownerGroup2;
                 }
+                if (ownerGroup2.equalsIgnoreCase("")) {
+                    ownerGroup2 = tkMapping.getOwnerGroup7(workzone, dcType, classstructureid);
+                }
+                ownerGroupSet = ownerGroup2;
             } else if (!Arrays.asList(dcType2).contains(dcType) && "Approval_Project_Management".equalsIgnoreCase(activity)) {
                 ownerGroupSet = tkMapping.getOwnerGroup8("NAS", dcType, classstructureid);
             } else {
-                ownerGroupSet = tkMapping.getOwnerGroup9("NAS", dcType, prodName, classstructureid);
-            }
-            if (ownerGroupSet == null) {
-                ownerGroupSet = tkMapping.getOwnerGroup10("NAS", dcType, prodName, classstructureid);
-                if (ownerGroupSet == null) {
-                    ownerGroupSet = tkMapping.getOwnerGroup11("NAS", prodName, classstructureid);
-                    if (ownerGroupSet == null) {
-                        ownerGroupSet = tkMapping.getOwnerGroup11(workzone, prodName, classstructureid);
-                        if (ownerGroupSet == null) {
-                            ownerGroupSet = tkMapping.getOwnerGroup12(workzone, classstructureid);
-                            if (ownerGroupSet == null) {
-                                ownerGroupSet = tkMapping.getOwnerGroup11("NAS", prodName, classstructureid);
-                            }
-                        }
-                    }
+                String ownerGroup = "";
+                ownerGroup = tkMapping.getOwnerGroup9("NAS", dcType, prodName, classstructureid);
+                LogUtil.info(getClass().getName(), "Validate OwnerGroup 9 = "+ownerGroupSet);
+                if (ownerGroup.equalsIgnoreCase("")) {
+                    ownerGroup = tkMapping.getOwnerGroup10("NAS", dcType, prodName, classstructureid);
+                    LogUtil.info(getClass().getName(), "Validate OwnerGroup 10 = "+ownerGroupSet);
+                } 
+                if (ownerGroup.equalsIgnoreCase("")) {
+                    ownerGroup = tkMapping.getOwnerGroup11("NAS", prodName, classstructureid);
+                    LogUtil.info(getClass().getName(), "Validate OwnerGroup 11 = "+ownerGroupSet);
+                } 
+                if (ownerGroup.equalsIgnoreCase("")) {
+                    ownerGroup = tkMapping.getOwnerGroup11(workzone, prodName, classstructureid);
+                    LogUtil.info(getClass().getName(), "Validate OwnerGroup 11 = "+ownerGroupSet);
+                } 
+                if (ownerGroup.equalsIgnoreCase("")) {
+                    ownerGroup = tkMapping.getOwnerGroup12(workzone, classstructureid);
+                    LogUtil.info(getClass().getName(), "Validate OwnerGroup 12 = "+ownerGroupSet);
                 }
+                ownerGroupSet = ownerGroup;
             }
         } else {
             //NonCoreProduct
@@ -272,10 +289,11 @@ public class ValidateOwnerGroup {
         }
 
         String bastFlag = BastFlag(workorder);
-        if (bastFlag.equalsIgnoreCase("N") && activity.equalsIgnoreCase("Approval_Project_Management")) {
-            ownerGroupSet = "SDA ASC";
+        if (bastFlag != null) {
+            if (bastFlag.equalsIgnoreCase("N") && activity.equalsIgnoreCase("Approval_Project_Management")) {
+                ownerGroupSet = "SDA ASC";
+            }   
         }
-        
         LogUtil.info(getClass().getName(), "Validate OwnerGroup return = "+ownerGroupSet);
         
         return ownerGroupSet;

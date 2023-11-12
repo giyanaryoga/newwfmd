@@ -167,232 +167,174 @@ public class RevisedTaskDao {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
     }
-    
+  
     public void reviseTaskNonConn_reviewOrder(String parent) throws SQLException {
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ? "
-                + "AND c_detailactcode NOT IN ('REVIEW_ORDER')";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update);
-                try {
-                    ps.setString(1, "REVISED");
-                    ps.setTimestamp(2, getTimeStamp());
-                    ps.setString(3, parent);
-                    int exe = ps.executeUpdate();
-                    //Checking insert status
-                    if (exe > 0) 
-                        LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
-                }
-                if (con != null)
-                    con.close();
-            } catch (SQLException throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+                .append("UPDATE app_fd_workorder SET ")
+                .append(" c_wfmdoctype = ?, ")
+                .append(" datemodified = ? ")
+                .append(" WHERE ")
+                .append(" c_parent = ? ")
+                .append(" AND c_detailactcode NOT IN ('REVIEW_ORDER') ");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, "REVISED");
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, parent);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
+            } else {
+                LogUtil.info(getClass().getName(), "Task is not Revised");
             }
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
         }
     }
     
     public void reviseTaskNonConn_toReviewOrder(String parent) throws SQLException {
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ? AND c_wfmdoctype = 'NEW'"
-                + " AND c_detailactcode IN ('REVIEW_ORDER', 'Shipment_Delivery', 'Activate_Service', 'Upload_Berita_Acara', 'Approval_Project_Management')";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update);
-                try {
-                    ps.setString(1, "REVISED");
-                    ps.setTimestamp(2, getTimeStamp());
-                    ps.setString(3, parent);
-                    int exe = ps.executeUpdate();
-                    //Checking insert status
-                    if (exe > 0) 
-                        LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
-                }
-                if (con != null)
-                    con.close();
-            } catch (SQLException throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder update = new StringBuilder();
+        update
+                .append("UPDATE app_fd_workorder SET ")
+                .append(" c_wfmdoctype = ?, ")
+                .append(" datemodified = ? ")
+                .append(" WHERE ")
+                .append(" c_parent = ? ")
+                .append(" AND c_wfmdoctype = 'NEW' ");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, "REVISED");
+            ps.setTimestamp(2, getTimeStamp());
+            ps.setString(3, parent);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
+            } else {
+                LogUtil.info(getClass().getName(), "Task is not Revised");
             }
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
         }
     }
-
+    
     public void reviseTaskNonConn_toShipmentDelivery(String parent) throws SQLException {
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ? AND c_wfmdoctype = 'NEW'"
-                + " AND c_detailactcode IN ('Shipment_Delivery', 'Activate_Service', 'Upload_Berita_Acara', 'Approval_Project_Management')";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update);
-                try {
-                    ps.setString(1, "REVISED");
-                    ps.setTimestamp(2, getTimeStamp());
-                    ps.setString(3, parent);
-                    int exe = ps.executeUpdate();
-                    //Checking insert status
-                    if (exe > 0) 
-                        LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder query = new StringBuilder();
+        StringBuilder update = new StringBuilder();
+        query
+                .append("SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_detailactcode = 'Shipment_Delivery'");
+        update
+                .append("UPDATE app_fd_workorder SET ")
+                .append(" c_wfmdoctype = ?, ")
+                .append(" datemodified = ? ")
+                .append(" WHERE ")
+                .append(" c_parent = ? ")
+                .append(" AND c_wosequence >= ? ");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps1 = con.prepareStatement(query.toString());
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps1.setString(1, parent);
+            ResultSet rs = ps1.executeQuery();
+            if (rs.next()) {
+                ps.setString(1, "REVISED");
+                ps.setTimestamp(2, getTimeStamp());
+                ps.setString(3, parent);
+                ps.setInt(4, rs.getInt("c_wosequence"));
+                int exe = ps.executeUpdate();
+                if (exe > 0) {
+                    LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
+                } else {
+                    LogUtil.info(getClass().getName(), "Task is not Revised");
                 }
-                if (con != null)
-                    con.close();
-            } catch (SQLException throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
             }
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
         }
     }
     
     public void reviseTaskNonConn_toActivateService(String parent) throws SQLException {
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ? AND c_wfmdoctype = 'NEW'"
-                + " AND c_detailactcode IN ('Activate_Service', 'Upload_Berita_Acara', 'Approval_Project_Management')";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update);
-                try {
-                    ps.setString(1, "REVISED");
-                    ps.setTimestamp(2, getTimeStamp());
-                    ps.setString(3, parent);
-                    int exe = ps.executeUpdate();
-                    //Checking insert status
-                    if (exe > 0) 
-                        LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder query = new StringBuilder();
+        StringBuilder update = new StringBuilder();
+        query
+                .append("SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_detailactcode = 'Activate_Service'");
+        update
+                .append("UPDATE app_fd_workorder SET ")
+                .append(" c_wfmdoctype = ?, ")
+                .append(" datemodified = ? ")
+                .append(" WHERE ")
+                .append(" c_parent = ? ")
+                .append(" AND c_wosequence >= ? ");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps1 = con.prepareStatement(query.toString());
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps1.setString(1, parent);
+            ResultSet rs = ps1.executeQuery();
+            if (rs.next()) {
+                ps.setString(1, "REVISED");
+                ps.setTimestamp(2, getTimeStamp());
+                ps.setString(3, parent);
+                ps.setInt(4, rs.getInt("c_wosequence"));
+                int exe = ps.executeUpdate();
+                if (exe > 0) {
+                    LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
+                } else {
+                    LogUtil.info(getClass().getName(), "Task is not Revised");
                 }
-                if (con != null)
-                    con.close();
-            } catch (SQLException throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
             }
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
         }
     }
     
     public void reviseTaskNonConn_toUploadBA(String parent) throws SQLException {
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_wfmdoctype = ?, datemodified = ? WHERE c_parent = ? AND c_wfmdoctype = 'NEW'"
-                + " AND c_detailactcode IN ('Upload_Berita_Acara', 'Approval_Project_Management')";
-        try {
-            Connection con = ds.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(update);
-                try {
-                    ps.setString(1, "REVISED");
-                    ps.setTimestamp(2, getTimeStamp());
-                    ps.setString(3, parent);
-                    int exe = ps.executeUpdate();
-                    //Checking insert status
-                    if (exe > 0) 
-                        LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
-                    if (ps != null)
-                        ps.close();
-                } catch (SQLException throwable) {
-                    try {
-                        if (ps != null)
-                            ps.close();
-                    } catch (SQLException throwable1) {
-                        throwable.addSuppressed(throwable1);
-                    }
-                    throw throwable;
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        StringBuilder query = new StringBuilder();
+        StringBuilder update = new StringBuilder();
+        query
+                .append("SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_detailactcode = 'Upload_Berita_Acara'");
+        update
+                .append("UPDATE app_fd_workorder SET ")
+                .append(" c_wfmdoctype = ?, ")
+                .append(" datemodified = ? ")
+                .append(" WHERE ")
+                .append(" c_parent = ? ")
+                .append(" AND c_wosequence >= ? ");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps1 = con.prepareStatement(query.toString());
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps1.setString(1, parent);
+            ResultSet rs = ps1.executeQuery();
+            if (rs.next()) {
+                ps.setString(1, "REVISED");
+                ps.setTimestamp(2, getTimeStamp());
+                ps.setString(3, parent);
+                ps.setInt(4, rs.getInt("c_wosequence"));
+                int exe = ps.executeUpdate();
+                if (exe > 0) {
+                    LogUtil.info(getClass().getName(), "Next activity task has been revised, will be deactivated task");
+                } else {
+                    LogUtil.info(getClass().getName(), "Task is not Revised");
                 }
-                if (con != null)
-                    con.close();
-            } catch (SQLException throwable) {
-                try {
-                    if (con != null)
-                        con.close();
-                } catch (SQLException throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
-            } finally {
-                ds.getConnection().close();
             }
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
         }
     }
-    
+
     public String getDomainId(String wonum) throws SQLException {
         String domainid = "";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -565,15 +507,15 @@ public class RevisedTaskDao {
                 activityProp.put("parent", rs.getString("c_parent"));
                 activityProp.put("orgid", rs.getString("c_orgid"));
                 activityProp.put("description", rs.getString("c_description"));
-                activityProp.put("detailActCode", rs.getString("c_detailactcode"));
+                activityProp.put("activity", rs.getString("c_detailactcode"));
                 activityProp.put("actplace", rs.getString("c_actplace"));
-                activityProp.put("woSequence", rs.getInt("c_wosequence"));
+                activityProp.put("sequence", rs.getInt("c_wosequence"));
                 activityProp.put("correlation", rs.getString("c_correlation"));
-                activityProp.put("ownerGroup", rs.getString("c_ownergroup"));
-                activityProp.put("siteid", rs.getString("c_siteid"));
+                activityProp.put("ownergroup", rs.getString("c_ownergroup"));
+                activityProp.put("siteId", rs.getString("c_siteid"));
                 activityProp.put("woclass", rs.getString("c_woclass"));
                 activityProp.put("worktype", rs.getString("c_worktype"));
-                activityProp.put("duration", rs.getInt("c_estdur"));
+                activityProp.put("duration", rs.getFloat("c_estdur"));
                 activityProp.put("iscpe", rs.getInt("c_iscpe"));
                 activityProp.put("scorderno", rs.getString("c_scorderno"));
                 activityProp.put("jmscorrid", rs.getString("c_jmscorrelationid"));
@@ -1025,8 +967,8 @@ public class RevisedTaskDao {
     
     public void updateWoDesc(String parent) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_description FROM app_fd_workorder WHERE c_parent = ? AND c_status = 'LABASSIGN' AND c_wfmdoctype = 'NEW'";
-        String update = "UPDATE app_fd_workorder SET c_description = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        String query = "SELECT c_description, c_ownergroup FROM app_fd_workorder WHERE c_parent = ? AND c_status = 'LABASSIGN' AND c_wfmdoctype = 'NEW'";
+        String update = "UPDATE app_fd_workorder SET c_description = ?, c_ownergroup = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps1 = con.prepareStatement(query);
                 PreparedStatement ps2 = con.prepareStatement(update)) {
@@ -1034,7 +976,8 @@ public class RevisedTaskDao {
             ResultSet rs = ps1.executeQuery();
             if (rs.next()) {
                 ps2.setString(1, rs.getString("c_description"));
-                ps2.setString(2, parent);
+                ps2.setString(2, rs.getString("c_ownergroup"));
+                ps2.setString(3, parent);
                 int exe = ps2.executeUpdate();
                 if (exe > 0) {
                     LogUtil.info(getClass().getName(), "description parent is updated");
