@@ -272,17 +272,17 @@ public class UpdateTaskStatusEbisDao {
         return isAttachedFile;
     }
 
-    public int isProductNameDigital(String wonum) throws SQLException {
+    public int isProductNameDigital(String parent) throws SQLException {
         int isProductName = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
         String selectProduct = "SELECT c_productname FROM APP_FD_WORKORDER \n"
-                + "WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Communication Assistant') \n"
+                + "WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'PIJAR', 'ANTARES Platform', 'Omni Communication Assistant') \n"
                 + "AND c_wonum = ?";
         
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectProduct)) {
-            ps.setString(1, wonum);
+            ps.setString(1, parent);
 
             ResultSet rs = ps.executeQuery();
 
@@ -307,7 +307,7 @@ public class UpdateTaskStatusEbisDao {
         LogUtil.info(this.getClass().getName(), "Is Product: " + checkDoc);
         
         if (checkAttachedFile(wonum, "BAA") == 0 && isProductNameDigital(wonum) == 1) {
-            value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). \\nPastikan dokumen telah diupload dengan nama dokumen 'BAA'";
+            value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). <br> Pastikan dokumen telah diupload dengan nama dokumen 'BAA'";
 
         } else if (isProductNameDigital(wonum) == 0 && checkAttachedFile(wonum, "BAST") == 0
                 && checkAttachedFile(wonum, "BAPLA") == 0
