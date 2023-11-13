@@ -139,7 +139,7 @@ public class ValidateTaskAttribute {
                     taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + attrValue + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
                 } else {
                     taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + key + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_KEY'");
-                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + attrValue + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
+                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
                 }
             }
         } catch (SQLException ex) {
