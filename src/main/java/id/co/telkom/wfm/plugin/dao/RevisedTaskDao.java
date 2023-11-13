@@ -993,4 +993,105 @@ public class RevisedTaskDao {
             ds.getConnection().close();
         }
     }
+    
+    public void GenerateTaskAttribute(JSONObject taskObj, String orderId) throws SQLException {
+        StringBuilder query = new StringBuilder();
+        query
+                .append(" SELECT ")
+                .append(" c_classspecid, ")
+                .append(" c_orgid, ")
+                .append(" c_assetattrid, ")
+                .append(" c_description, ")
+                .append(" c_sequence, ")
+                .append(" c_domainid, ")
+                .append(" c_readonly, ")
+                .append(" c_mandatory, ")
+                .append(" c_defaultvalue, ")
+                .append(" c_classstructureid, ")
+                .append(" c_isshared ")
+                .append(" FROM app_fd_classspec WHERE ")
+                .append(" c_classstructureid = ? ");
+        
+        StringBuilder insert = new StringBuilder();
+        insert
+                .append(" INSERT INTO app_fd_workorderspec ")
+                .append(" ( ")
+                .append(" id, dateCreated, createdBy, createdByName, c_workorderspecid,  ")
+                .append(" c_wonum, c_assetattrid, c_description, c_siteid, c_orgid, c_classspecid, c_orderid, c_displaysequence, c_domainid, ")
+                .append(" c_readonly, c_isshared, c_mandatory, c_parent, c_value, c_classstructureid, c_domaintype ")
+                .append(" ) ")
+                .append(" VALUES ")
+                .append(" ( ")
+                .append(" ?, ?, 'admin', 'Admin admin', WORKORDERSPECIDSEQ.NEXTVAL, ")
+                .append(" ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
+                .append(" ?, ?, ?, ?, ?, ?, ? ")
+                .append(" ) ");
+        
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        try(Connection con = ds.getConnection()) {
+            boolean oldAutoCommit = con.getAutoCommit();
+            LogUtil.info(getClass().getName(), "'start' auto commit state: " + oldAutoCommit);
+            con.setAutoCommit(false);
+            try(PreparedStatement ps = con.prepareStatement(query.toString());
+                PreparedStatement psInsert = con.prepareStatement(insert.toString())) {
+                    ps.setString(1, taskObj.get("classstructureid").toString());
+                    ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    psInsert.setString(1, UuidGenerator.getInstance().getUuid());
+                    psInsert.setTimestamp(2, getTimeStamp());
+                    psInsert.setString(3, taskObj.get("wonum").toString());
+                    psInsert.setString(4, rs.getString("c_assetattrid"));
+                    psInsert.setString(5, rs.getString("c_description"));
+                    psInsert.setString(6, taskObj.get("siteId").toString());
+                    psInsert.setString(7, rs.getString("c_orgid"));
+                    psInsert.setInt(8, rs.getInt("c_classspecid"));
+                    psInsert.setString(9, orderId);
+                    psInsert.setString(10, rs.getString("c_sequence"));
+                    psInsert.setString(11, rs.getString("c_domainid"));
+                    psInsert.setString(12, rs.getString("c_readonly"));
+                    psInsert.setString(13, rs.getString("c_isshared"));
+                    psInsert.setString(14, rs.getString("c_mandatory"));
+                    psInsert.setString(15, taskObj.get("parent").toString());
+                    psInsert.setString(16, rs.getString("c_defaultvalue"));
+                    psInsert.setString(17, rs.getString("c_classstructureid"));
+                    if (rs.getString("c_domainid") != null) {
+                        psInsert.setString(18, getDomainType(rs.getString("c_domainid")));
+                    } else {
+                        psInsert.setString(18, "");
+                    }
+                    psInsert.addBatch();
+                }
+                int[] exe = psInsert.executeBatch();
+                if (exe.length > 0) {
+                    LogUtil.info(getClass().getName(), "Success generated task attributes, for " + taskObj.get("activity").toString());
+                }
+                con.commit();
+            } catch(SQLException e) {
+                LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
+                con.rollback();
+            } finally {
+                con.setAutoCommit(oldAutoCommit);
+            }
+        } catch(SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace Error Here: " + e.getMessage());
+        }
+    }
+    
+    private String getDomainType(String domainId) throws SQLException {
+        String domainType = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_domaintype FROM app_fd_maxdomain WHERE c_domainid = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, domainId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                domainType = rs.getString("c_domaintype");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return domainType;
+    }
 }

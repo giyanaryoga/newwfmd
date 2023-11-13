@@ -294,12 +294,15 @@ public class ValidateRevised {
                 int nextTaskId = totalTask+x;
                 taskObj.put("wonum", generateDao.getWonum());
                 taskObj.put("taskid", nextTaskId*10);
+                String[] jmscorrid = taskObj.get("jmscorrid").toString().split("_");
+                String orderId = jmscorrid[0];
                 if (x==1) {
                     taskObj.put("status", "LABASSIGN");
                 } else {
                     taskObj.put("status", "APPR");
                 }
                 dao.generateActivityTask(taskObj);
+                dao.GenerateTaskAttribute(taskObj, orderId);
                 x += 1;
             }
         } catch (SQLException ex) {
