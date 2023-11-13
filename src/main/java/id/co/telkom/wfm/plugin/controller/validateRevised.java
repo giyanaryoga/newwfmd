@@ -43,13 +43,6 @@ public class ValidateRevised {
                     validateNonConn(parent, wonum, task, attrValue);
                     validateApprovalTSQ(parent, wonum, task, attrValue);
                     validateApprovalMangoesky(parent, task, attrValue);
-//                    if (attrValue.equalsIgnoreCase("REJECTED")) {
-//                        dao.reviseTask(parent);
-//                        dao.generateActivityTask(parent);
-//                    } else {
-//                        LogUtil.info(getClass().getName(), "Approval is not REJECTED");
-//                        LogUtil.info(getClass().getName(), "Task" + taskArray);
-//                    }
                 break;
                 case "NODE_ID":
                     validateNodeId(parent, task, attrValue);
@@ -240,55 +233,39 @@ public class ValidateRevised {
                     String value = taskObj2.get("value").toString();
                     String description = taskObj2.get("description").toString();
                     JSONArray taskArray2 = new JSONArray();
-                    if (description.equalsIgnoreCase(attrValue)) {
+                    if (value.equalsIgnoreCase(attrValue)) {
                         switch (value) {
                             case "REJECTED TO REVIEW ORDER":
                                 LogUtil.info(getClass().getName(), "Approval is REJECTED TO REVIEW ORDER!");
                                 dao.reviseTaskNonConn_toReviewOrder(parent);
                                 taskArray2 = dao.getTaskRevised(parent);
                                 LogUtil.info(getClass().getName(), "Task : " +taskArray2);
-                                for (Object obj2 : taskArray2) {
-                                    JSONObject taskObj = (JSONObject)obj2;
-                                    LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
-                                    dao.generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
-                                    dao.updateWoDesc(taskObj.get("parent").toString());
-                                }
+                                GenerateTaskNew(parent);
+                                dao.updateWoDesc(parent);
                                 break;
                             case "REJECTED TO SHIPMENT AND DELIVERY TASK":
                                 LogUtil.info(getClass().getName(), "Approval is REJECTED TO SHIPMENT AND DELIVERY TASK!");
                                 dao.reviseTaskNonConn_toShipmentDelivery(parent);
                                 taskArray2 = dao.getTaskRevised(parent);
                                 LogUtil.info(getClass().getName(), "Task : " +taskArray2);
-                                for (Object obj2 : taskArray2) {
-                                    JSONObject taskObj = (JSONObject)obj2;
-                                    LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
-                                    dao.generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
-                                    dao.updateWoDesc(taskObj.get("parent").toString());
-                                }
+                                GenerateTaskNew(parent);
+                                dao.updateWoDesc(parent);
                                 break;
                             case "REJECTED TO ACTIVATE SERVICE":
                                 LogUtil.info(getClass().getName(), "Approval is REJECTED TO ACTIVATE SERVICE!");
                                 dao.reviseTaskNonConn_toActivateService(parent);
                                 taskArray2 = dao.getTaskRevised(parent);
                                 LogUtil.info(getClass().getName(), "Task : " +taskArray2);
-                                for (Object obj2 : taskArray2) {
-                                    JSONObject taskObj = (JSONObject)obj2;
-                                    LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
-                                    dao.generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
-                                    dao.updateWoDesc(taskObj.get("parent").toString());
-                                }
+                                GenerateTaskNew(parent);
+                                dao.updateWoDesc(parent);
                                 break;
                             case "REJECTED TO UPLOAD BERITA ACARA":
                                 LogUtil.info(getClass().getName(), "Approval is REJECTED TO UPLOAD BERITA ACARA!");
                                 dao.reviseTaskNonConn_toUploadBA(parent);
                                 taskArray2 = dao.getTaskRevised(parent);
                                 LogUtil.info(getClass().getName(), "Task : " +taskArray2);
-                                for (Object obj2 : taskArray2) {
-                                    JSONObject taskObj = (JSONObject)obj2;
-                                    LogUtil.info(getClass().getName(), "Wonum : " +taskObj.get("detailActCode").toString());
-                                    dao.generateActivityTaskNonConn(taskObj.get("parent").toString(), taskObj.get("detailActCode").toString());
-                                    dao.updateWoDesc(taskObj.get("parent").toString());
-                                }
+                                GenerateTaskNew(parent);
+                                dao.updateWoDesc(parent);
                                 break;
                             default:
                                 LogUtil.info(getClass().getName(), "Approval is not REJECTED TO TASK BEFORE!");
