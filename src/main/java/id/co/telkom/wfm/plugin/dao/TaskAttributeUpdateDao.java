@@ -312,6 +312,25 @@ public class TaskAttributeUpdateDao {
         }
         return value;
     }
+    public String getAttrValue(String wonum, String assetattrid) throws SQLException {
+        String value = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ps.setString(2, assetattrid);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                value = rs.getString("c_assetattrid");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return value;
+    }
 
     public String getTaskAttrName(String wonum) throws SQLException {
         String assetattrid = "";
@@ -797,25 +816,27 @@ public class TaskAttributeUpdateDao {
         return workzoneObj;
     }
 
-    public void deleteTkDeviceattribute(String wonum) throws SQLException {
-        DataSource dataSource = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String deleteQuery = "DELETE FROM APP_FD_TK_DEVICEATTRIBUTE WHERE C_REF_NUM = ? AND C_ATTR)NAME IN ('PE_PORTNAME','PE_KEY')";
+    private String deleteTkDeviceattribute(String wonum) throws SQLException {
+        String moveFirst = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String delete = "DELETE FROM app_fd_tk_deviceattribute WHERE c_ref_num = ? AND c_attr_name IN ('PE_PORTNAME', 'PE_KEY')";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(delete)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
 
-        try (Connection connection = dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
-
-            preparedStatement.setString(1, wonum);
-            int rowsAffected = preparedStatement.executeUpdate();
-
-            if (rowsAffected > 0) {
+            if (rs.next()) {
+                moveFirst = "Deleted data";
                 LogUtil.info(getClass().getName(), "Berhasil menghapus data");
             } else {
                 LogUtil.info(getClass().getName(), "Gagal menghapus data");
             }
-
         } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
         }
+        return moveFirst;
     }
 
     private void insertToDeviceTable(String wonum, String name, String type, String description) throws Throwable {
@@ -855,7 +876,7 @@ public class TaskAttributeUpdateDao {
             if (deviceName.equals("None")) {
                 LogUtil.info(getClass().getName(), "Devicename is empty");
             } else if (!deviceName.isEmpty()) {
-                String url = apiConfig.getUrl() + "api/device/portsByService?deviceName=" + deviceName + "&serviceType=" + serviceType + "&portPurpose=TRUNK&portPurpose=ACTIVE";
+                String url = apiConfig.getUrl() + "api/device/portsByService?deviceName=" + deviceName + "&serviceType=" + serviceType + "&portPurpose=TRUNK&portStatus=ACTIVE";
                 URL obj = new URL(url);
                 HttpURLConnection con = (HttpURLConnection) obj.openConnection();
                 // set header
@@ -869,6 +890,8 @@ public class TaskAttributeUpdateDao {
                     message = "PE PORT Not Found";
                     LogUtil.info(getClass().getName(), message);
                 } else if (responseCode == 200) {
+                    deleteTkDeviceattribute(wonum);
+
                     BufferedReader in = new BufferedReader(
                             new InputStreamReader(con.getInputStream()));
                     String inputLine;
@@ -883,7 +906,6 @@ public class TaskAttributeUpdateDao {
                     // parse the JSON data using jackson
                     ObjectMapper objectMapper = new ObjectMapper();
                     JsonNode jsonNode = objectMapper.readTree(jsonData);
-                    deleteTkDeviceattribute(wonum);
 
                     JsonNode portArray = jsonNode.get("port");
 

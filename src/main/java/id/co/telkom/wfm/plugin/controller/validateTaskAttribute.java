@@ -10,22 +10,16 @@ import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 import id.co.telkom.wfm.plugin.util.TimeUtil;
-import org.joget.commons.util.LogUtil;
-import org.joget.commons.util.UuidGenerator;
+import org.joget.commons.util.*;
 import org.json.JSONException;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.simple.*;
 
 /**
  * @author Giyanaryoga Puguh
@@ -76,7 +70,7 @@ public class ValidateTaskAttribute {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void validateRole1(String parent, String wonum) {
         try {
             String value = taskAttrDao.getTaskAttrValue(wonum, "ROLE");
@@ -92,15 +86,15 @@ public class ValidateTaskAttribute {
         }
     }
 
-
     private void validatePEName(String wonum, String attrValue) throws SQLException, Throwable {
         try {
             String detailactcode = taskAttrDao.getActivity(wonum);
             String[] activityList = {"PopulatePEPort", "PopulatePEPort VPN", "Check Availablity PE Port", "PopulatePEPort Manage CE", "PopulatePEMain", "Populate PE Port IP Transit"};
             if (Arrays.asList(activityList).contains(detailactcode)) {
                 String value = taskAttrDao.getTaskAttrValue(wonum, "SERVICE_TYPE");
+                LogUtil.info(getClass().getName(), "SERVICE_TYPE : " + value);
                 String serviceType = "";
-                if (value.isEmpty()) {
+                if (!value.isEmpty()) {
                     serviceType = value;
                 }
                 taskAttrDao.getPEPorts(wonum, attrValue, serviceType);
@@ -110,11 +104,11 @@ public class ValidateTaskAttribute {
         }
     }
 
-    private void validatePENameLOV(String wonum, String attrValue) throws SQLException {
+    private void validatePENameLOV(String wonum, String attrValue) throws SQLException, Throwable {
         try {
             if (attrValue.isEmpty()) {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME_LOV'");
-            } else if (!attrValue.isEmpty()) {
+            } else {
                 //String wonum, String attrname, String attrtype
                 String ipAddress = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_IPADDRESS", attrValue);
                 String manufactur = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_MANUFACTUR", attrValue);
@@ -125,6 +119,7 @@ public class ValidateTaskAttribute {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + manufactur + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_MANUFACTUR'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + model + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_MODEL'");
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_NAME'");
+                validatePEName(wonum, attrValue);
 
             }
         } catch (SQLException ex) {
@@ -139,8 +134,13 @@ public class ValidateTaskAttribute {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_KEY'");
             } else {
                 String key = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_KEY", attrValue);
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + key + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_KEY'");
-                taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + attrValue + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
+                String PEKey  = taskAttrDao.getAttrValue(wonum, "PE_KEY");
+                if (PEKey.isEmpty()) {
+                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + attrValue + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
+                } else {
+                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + key + "'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_KEY'");
+                    taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + attrValue + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -1081,12 +1081,16 @@ public class ValidateTaskAttribute {
                     validateUplinkPortName(wonum, attrValue);
                     break;
                 case "PE_NAME_LOV":
+                    LogUtil.info(this.getClass().getName(), "############## START PROCESS PE NAME LOV ###############");
                     validatePENameLOV(wonum, attrValue);
                     break;
-                case "PE_NAME":
-                    validatePEName(wonum, attrValue);
-                    break;
+//                case "PE_NAME":
+//                    LogUtil.info(this.getClass().getName(), "############## START PROCESS PE NAME ###############");
+//                    validatePEName(wonum, attrValue);
+//                    break;
                 case "PE_PORTNAME_LOV":
+                    LogUtil.info(this.getClass().getName(), "############## START PROCESS PE PORTNAME LOV ###############");
+                    validatePEPortnameLOV(wonum, attrValue);
                     break;
                 case "EXPANSION_TYPE":
                     break;
