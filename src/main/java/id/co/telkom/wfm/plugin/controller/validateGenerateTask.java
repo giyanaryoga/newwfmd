@@ -65,7 +65,7 @@ public class ValidateGenerateTask {
             JSONArray detailTaskNonCore = dao2.getDetailTaskNonCore(prodName, crmOrderType);
             for (Object obj : detailTaskNonCore) {
                 JSONObject taskNonCoreObj = (JSONObject)obj;
-                isGenerateTask = isGenerateTask(workorder, prodName, taskNonCoreObj.get("activity").toString());
+//                isGenerateTask = isGenerateTask(workorder, prodName, taskNonCoreObj.get("activity").toString());
                 JSONObject taskNoncore = new JSONObject();
                 taskNoncore.put("ACTION", "ADD");
                 taskNoncore.put("CORRELATIONID", "35363732383333303936333333323130");
@@ -75,7 +75,7 @@ public class ValidateGenerateTask {
                 LogUtil.info(getClass().getName(), "GENERATE TASK : " +isGenerateTask);
             }
             
-            if (isGenerateTask) {
+//            if (isGenerateTask) {
                 int counter = 1;
                 String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");
                 String orderId = splittedJms[0];
@@ -84,9 +84,9 @@ public class ValidateGenerateTask {
                 sortedTask();
                 generateTask(workorder, counter, orderId);
                 LogUtil.info(getClass().getName(), "duration = "+ duration);
-            } else {
-                LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
-            }
+//            } else {
+//                LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
+//            }
         } catch (SQLException | JSONException ex) {
             Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }

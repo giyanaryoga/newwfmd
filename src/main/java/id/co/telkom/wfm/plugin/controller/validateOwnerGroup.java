@@ -87,16 +87,25 @@ public class ValidateOwnerGroup {
     }
     
     private String getDCTypeSegment(JSONObject workorder) throws SQLException {
-        dc_type = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "DC_Type");
-        String dcType[] = dc_type.split(" ");
-        dc_type = dcType[0];
-        dc_type_segment = dc_type;
+        String prodName = workorder.get("prodName").toString();
+        if (productNonCore.isNonCoreProduct(prodName) == 1) {
+            getDCTypeSegmentNonCore(workorder);
+        } else {
+            dc_type = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "DC_Type");
+            String dcType[] = dc_type.split(" ");
+            dc_type = dcType[0];
+            if (dc_type == null) {
+                dc_type_segment = "";
+            } else {
+                dc_type_segment = dc_type;
+            }
+        }
         return dc_type_segment;
     }
     
     private String getDCTypeSegmentNonCore(JSONObject workorder) throws SQLException {
         String dc_type_noncore = generateDao.getValueWorkorderAttribute(workorder.get("wonum").toString(), "DC_TYPE");
-        if (dc_type_noncore.equalsIgnoreCase(null) || dc_type_noncore.equalsIgnoreCase("")) {
+        if (dc_type_noncore == null || dc_type_noncore.equalsIgnoreCase("")) {
             dc_type = dc_type_noncore;
             dc_type_segment = dc_type;
         } else {
@@ -227,17 +236,23 @@ public class ValidateOwnerGroup {
             if (productNonCore.isNonCoreProduct(prodName) == 1) {
                 // Non Core OwnerGroup Logic
                 // Logic Neucentrix interconnect
-                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Origin")) {
-                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocOrig(workorder), prodName, classstructureid);
-                } else {
-                    ownerGroupSet = "";
-                }
-
-                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Destination")) {
-                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocDest(workorder), prodName, classstructureid);
-                } else {
-                    ownerGroupSet = "";
-                }
+//                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Origin")) {
+//                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocOrig(workorder), prodName, classstructureid);
+//                    if (ownerGroupSet == null || ownerGroupSet.equalsIgnoreCase("")){
+//                        ownerGroupSet = "";
+//                    }
+//                } else {
+//                    ownerGroupSet = "";
+//                }
+//
+//                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Destination")) {
+//                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocDest(workorder), prodName, classstructureid);
+//                    if (ownerGroupSet == null || ownerGroupSet.equalsIgnoreCase("")){
+//                        ownerGroupSet = "";
+//                    }
+//                } else {
+//                    ownerGroupSet = "";
+//                }
 
                 // CYS CyberSecurity
                 if (prodName.equalsIgnoreCase("DDoS Protection") && activity.equalsIgnoreCase("Approval_Project_Management")) {
