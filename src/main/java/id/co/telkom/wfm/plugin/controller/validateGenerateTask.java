@@ -65,7 +65,7 @@ public class ValidateGenerateTask {
             JSONArray detailTaskNonCore = dao2.getDetailTaskNonCore(prodName, crmOrderType);
             for (Object obj : detailTaskNonCore) {
                 JSONObject taskNonCoreObj = (JSONObject)obj;
-                isGenerateTask = isGenerateTask(workorder, prodName, taskNonCoreObj.get("activity").toString());
+//                isGenerateTask = isGenerateTask(workorder, prodName, taskNonCoreObj.get("activity").toString());
                 JSONObject taskNoncore = new JSONObject();
                 taskNoncore.put("ACTION", "ADD");
                 taskNoncore.put("CORRELATIONID", "35363732383333303936333333323130");
@@ -75,7 +75,7 @@ public class ValidateGenerateTask {
                 LogUtil.info(getClass().getName(), "GENERATE TASK : " +isGenerateTask);
             }
             
-            if (isGenerateTask) {
+//            if (isGenerateTask) {
                 int counter = 1;
                 String[] splittedJms = workorder.get("jmsCorrelationId").toString().split("_");
                 String orderId = splittedJms[0];
@@ -84,9 +84,9 @@ public class ValidateGenerateTask {
                 sortedTask();
                 generateTask(workorder, counter, orderId);
                 LogUtil.info(getClass().getName(), "duration = "+ duration);
-            } else {
-                LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
-            }
+//            } else {
+//                LogUtil.info(getClass().getName(), "TIDAK GENERATE TASK");
+//            }
         } catch (SQLException | JSONException ex) {
             Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -183,8 +183,13 @@ public class ValidateGenerateTask {
                 for (Object ossItemAttr : ossitem_attr) {
                     JSONObject arrayObj2 = (JSONObject)ossItemAttr;
                     JSONObject taskAttrItem = new JSONObject();
-                    taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
-                    taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
+                    if (arrayObj2.isEmpty()) {
+                        taskAttrItem.put("attrName", "null");
+                        taskAttrItem.put("attrValue", "null");
+                    } else {
+                        taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
+                        taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());   
+                    }
                     taskAttrList.add(taskAttrItem);
                 }
                 task.put("task_attr", taskAttrList);

@@ -494,6 +494,7 @@ public class TaskActivityDao {
                     stmt.setString(2, taskObj.get("parent").toString());
                     ResultSet rs = stmt.executeQuery();
                     if (rs.next()){
+                        String schedStart = workorder.get("schedStart").toString();
                         ps.setString(1, UuidGenerator.getInstance().getUuid());
                         ps.setString(2, taskObj.get("parent").toString());
                         ps.setString(3, rs.getString("c_wonum"));
@@ -502,10 +503,10 @@ public class TaskActivityDao {
                         ps.setString(6, rs.getString("c_description"));
                         ps.setString(7, "WFM");
                         ps.setString(8, "ACTIVITY");
-//                        TimeUtil time = new TimeUtil();
+                        TimeUtil time = new TimeUtil();
 //                        String dateChange = time.parseDate(workorder.get("schedStart").toString(), "yyyy:MM:dd HH:mm:ss");
-//                        ps.setTimestamp(9, dateChange == "" ? null : Timestamp.valueOf(dateChange));
-                        ps.setTimestamp(9, Timestamp.valueOf(workorder.get("schedStart").toString()));
+//                        ps.setTimestamp(9, dateChange == "" ? Timestamp.valueOf(time.getCurrentTime()) : Timestamp.valueOf(dateChange));
+                        ps.setTimestamp(9, (schedStart == "" ? Timestamp.valueOf(time.getCurrentTime()) : Timestamp.valueOf(schedStart)));
 
                         int exe = ps.executeUpdate();
                         //Checking insert status

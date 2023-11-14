@@ -30,6 +30,7 @@ public class ListReTools {
     private String workzone;
     private String address;
     private String objectName;
+    private String customerId;
 
     public String getParent() {
         return parent;
@@ -197,5 +198,13 @@ public class ListReTools {
 
     public void setObjectName(String objectName) {
         this.objectName = objectName;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 }

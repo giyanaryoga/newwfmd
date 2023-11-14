@@ -20,6 +20,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.joget.commons.util.LogUtil;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -46,7 +48,7 @@ public class ValidateReTools {
             conn.setDoOutput(true);
             JSONObject bodyParam = new JSONObject();
             //requestnya belum
-            bodyParam.put("customer_id", 1);
+            bodyParam.put("customer_id", Integer.parseInt(param.getCustomerId()));
             bodyParam.put("wo_number", param.getWonum());
             bodyParam.put("document_name", param.getDocName());
             bodyParam.put("url", param.getUrlDoc());
@@ -60,7 +62,7 @@ public class ValidateReTools {
             bodyParam.put("site_id", param.getSiteId());
             
             String request = bodyParam.toString();
-//            LogUtil.info(this.getClass().getName(), "REQUEST OBL : " + request);
+            LogUtil.info(this.getClass().getName(), "REQUEST OBL : " + request);
             try (OutputStream outputStream = conn.getOutputStream()) {
                 byte[] b = request.getBytes("UTF-8");
                 outputStream.write(b);
@@ -116,6 +118,7 @@ public class ValidateReTools {
             bodyParam.put("work_zone", param.getWorkzone());
             
             String request = bodyParam.toString();
+            LogUtil.info(this.getClass().getName(), "REQUEST Cust : " + request);
             try (OutputStream outputStream = conn.getOutputStream()) {
                 byte[] b = request.getBytes("UTF-8");
                 outputStream.write(b);
@@ -136,13 +139,21 @@ public class ValidateReTools {
             while ((i = inputStr.read(res)) != -1) {
                 response.append(new String(res, 0, i));
             }
+//            LogUtil.info(this.getClass().getName(), "RESPONSE Cust : " + response);
             JSONObject responseObj = new JSONObject();
-            responseObj.put("body", response);
+            responseObj.put("response", response);
             responseObj.put("status", responseCode);
+            JSONParser parser = new JSONParser();
+            JSONObject data_obj = (JSONObject)parser.parse(response.toString());
+            LogUtil.info(this.getClass().getName(), "cek: " + data_obj);
+            JSONObject body = (JSONObject) data_obj.get("body");
+            String customerId = body.get("customer_id").toString();
+            param.setCustomerId(customerId);
+            LogUtil.info(this.getClass().getName(), "Cust Id: " + param.getCustomerId());
             conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } catch (IOException | ParseException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -212,7 +223,6 @@ public class ValidateReTools {
             }
             JSONObject doclink = reDao.getDocLinks(param.getParent(), objName);
 //            LogUtil.info(this.getClass().getName(), "doclink = "+doclink);
-//            LogUtil.info(this.getClass().getName(), "PRODUCT NAME = "+contractName);
             
             param.setWonum(workorder.get("wonum").toString());
             String oblTrcNo = param.getWonum(); //wonum parent
@@ -263,9 +273,6 @@ public class ValidateReTools {
             createCustomerSCMT(param);
             //Send URL document to ReTools
             sendUrl(param);
-//            LogUtil.info(this.getClass().getName(), "CONTRACT NAME = "+contractName);
-//            LogUtil.info(this.getClass().getName(), "NAMA MITRA = "+param.getNamaMitra());
-//            LogUtil.info(this.getClass().getName(), "NOMOR KL = "+param.getNomorKl());
         } catch (SQLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }

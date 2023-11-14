@@ -439,16 +439,16 @@ public class ValidateTaskStatus {
                         response.put("message", "Berhasil mengupdate status Compwa!");
                     }
                     break;
-                case "Pickup NTE from SCM Manual":
-                case "Pickup NTE from SCM Wifi":
-                case "Pickup AP From SCM Wifi":
-                case "Pickup NTE from SCM":
-                case "Install NTE Manual":
-                case "Install NTE Wifi":
-                case "Install NTE":
-                case "Install AP":
-                    
-                    break;
+//                case "Pickup NTE from SCM Manual":
+//                case "Pickup NTE from SCM Wifi":
+//                case "Pickup AP From SCM Wifi":
+//                case "Pickup NTE from SCM":
+//                case "Install NTE Manual":
+//                case "Install NTE Wifi":
+//                case "Install NTE":
+//                case "Install AP":
+//                    
+//                    break;
                 default:
                     // Define the next move
                     final String nextMove = daoUpdate.nextMove(param.getParent(), Integer.toString(nextTaskId));
