@@ -236,23 +236,23 @@ public class ValidateOwnerGroup {
             if (productNonCore.isNonCoreProduct(prodName) == 1) {
                 // Non Core OwnerGroup Logic
                 // Logic Neucentrix interconnect
-//                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Origin")) {
-//                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocOrig(workorder), prodName, classstructureid);
-//                    if (ownerGroupSet == null || ownerGroupSet.equalsIgnoreCase("")){
-//                        ownerGroupSet = "";
-//                    }
-//                } else {
-//                    ownerGroupSet = "";
-//                }
-//
-//                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Destination")) {
-//                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocDest(workorder), prodName, classstructureid);
-//                    if (ownerGroupSet == null || ownerGroupSet.equalsIgnoreCase("")){
-//                        ownerGroupSet = "";
-//                    }
-//                } else {
-//                    ownerGroupSet = "";
-//                }
+                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Origin")) {
+                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocOrig(workorder), prodName, classstructureid);
+                    if (ownerGroupSet == null || ownerGroupSet.equalsIgnoreCase("")){
+                        ownerGroupSet = "";
+                    }
+                } else {
+                    ownerGroupSet = "";
+                }
+
+                if (activity.equalsIgnoreCase("WFMNonCore Integration DWDM Destination")) {
+                    ownerGroupSet = tkMapping.getOwnerGroupNonCore(LocDest(workorder), prodName, classstructureid);
+                    if (ownerGroupSet == null || ownerGroupSet.equalsIgnoreCase("")){
+                        ownerGroupSet = "";
+                    }
+                } else {
+                    ownerGroupSet = "";
+                }
 
                 // CYS CyberSecurity
                 if (prodName.equalsIgnoreCase("DDoS Protection") && activity.equalsIgnoreCase("Approval_Project_Management")) {

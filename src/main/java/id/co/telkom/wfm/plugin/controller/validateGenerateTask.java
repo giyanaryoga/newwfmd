@@ -183,8 +183,13 @@ public class ValidateGenerateTask {
                 for (Object ossItemAttr : ossitem_attr) {
                     JSONObject arrayObj2 = (JSONObject)ossItemAttr;
                     JSONObject taskAttrItem = new JSONObject();
-                    taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
-                    taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());
+                    if (arrayObj2.isEmpty()) {
+                        taskAttrItem.put("attrName", "null");
+                        taskAttrItem.put("attrValue", "null");
+                    } else {
+                        taskAttrItem.put("attrName", arrayObj2.get("ATTR_NAME").toString());
+                        taskAttrItem.put("attrValue", arrayObj2.get("ATTR_VALUE").toString() == null ? "" : arrayObj2.get("ATTR_VALUE").toString());   
+                    }
                     taskAttrList.add(taskAttrItem);
                 }
                 task.put("task_attr", taskAttrList);

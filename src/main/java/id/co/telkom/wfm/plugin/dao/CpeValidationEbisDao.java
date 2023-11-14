@@ -116,27 +116,20 @@ public class CpeValidationEbisDao {
         return updateStatus;
     }
 
-    public boolean updateAttribute(String wonum, String attrName, String attrValue){
-        boolean updateStatus = false;    
+    public void updateAttribute(String wonum, String attrName, String attrValue){
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        // change 22
-        String update = "UPDATE app_fd_workorderspec SET c_assetattrid = ?, c_value = ?, datemodified = ? WHERE c_wonum = ? AND c_assetattrid = ?";
-        // change 22
+        String update = "UPDATE app_fd_workorderspec SET c_value = ?, datemodified = 'sysdate' WHERE c_wonum = ? AND c_assetattrid = ?";
         try {
             Connection con = ds.getConnection();
             try {
                 PreparedStatement ps = con.prepareStatement(update);
                 try {
-                    ps.setString(1, attrName);
-                    ps.setString(2, attrValue);
-                    ps.setString(3, wonum);
-                    ps.setString(4, attrName);
-                    ps.setTimestamp(5, getTimeStamp());
+                    ps.setString(1, attrValue);
+                    ps.setString(2, wonum);
+                    ps.setString(3, attrName);
                     int exe = ps.executeUpdate();
-                    //Checking insert status
                     if (exe > 0) {
-                        updateStatus = true;
-                        LogUtil.info(getClass().getName(), "CPE Validation: PASS | wonum: " + wonum);
+                        LogUtil.info(getClass().getName(), "Update Attribute " + attrName);
                     }   
                     if (ps != null)
                         ps.close();
@@ -165,7 +158,6 @@ public class CpeValidationEbisDao {
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
         }
-        return updateStatus;
     }
 
     public boolean[] cpeModelCheck(boolean[] arrayBoolean, String cpeVendor, String cpeModel, int snLength) throws SQLException {

@@ -4,6 +4,7 @@
  */
 package id.co.telkom.wfm.plugin.controller;
 
+import id.co.telkom.wfm.plugin.dao.CpeValidationEbisDao;
 import id.co.telkom.wfm.plugin.dao.ReserveSTPDao;
 import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import id.co.telkom.wfm.plugin.dao.TaskActivityDao;
@@ -20,6 +21,8 @@ import id.co.telkom.wfm.plugin.util.TimeUtil;
 import org.joget.commons.util.*;
 import org.json.JSONException;
 import org.json.simple.*;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * @author Giyanaryoga Puguh
@@ -29,6 +32,7 @@ public class ValidateTaskAttribute {
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
     TaskActivityDao taskDao = new TaskActivityDao();
     ConnUtil connUtil = new ConnUtil();
+    CpeValidationEbisDao  cpeDao = new CpeValidationEbisDao();
 
     private static final String nteType1[] = {"L2Switch", "DirectME", "DirectPE"};
     private static final String satelitNameType[] = {"WFMNonCore Deactivate Transponder", "WFMNonCore Review Order Transponder", "WFMNonCore Upload BA", "WFMNonCore Modify Bandwidth Transponder", "WFMNonCore Allocate Service Transponder", "WFMNonCore Resume Transponder", "WFMNonCore Suspend Transponder"};
@@ -580,7 +584,7 @@ public class ValidateTaskAttribute {
     private void validateCpeScmt(String wonum, String attrValue) {
         try {
             String activity = taskAttrDao.getActivity(wonum);
-
+            
             if (Arrays.asList(cpeActivity).contains(activity)) {
                 APIConfig apiConfig = new APIConfig();
                 apiConfig = connUtil.getApiParam("cpe_validation_ebis");
@@ -614,14 +618,20 @@ public class ValidateTaskAttribute {
                     response.append(new String(res, 0, i));
                 }
                 LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
-
+                JSONParser parser = new JSONParser();
+                JSONObject body = (JSONObject)parser.parse(response.toString());
                 if (responseCode == 200) {
+                    String cpeModel = body.get("cpeModel").toString();
+                    String cpeVendor = body.get("cpeVendor").toString();
+                    cpeDao.updateAttribute(wonum, "NTE_MODEL_ALN", cpeModel);
+                    cpeDao.updateAttribute(wonum, "NTE_MANUFACTUR_ALN", cpeVendor);
                     LogUtil.info(this.getClass().getName(), "Success POST");
                 } else {
                     LogUtil.info(this.getClass().getName(), "Failed POST");
                 }
+                conn.disconnect();
             }
-        } catch (SQLException | IOException ex) {
+        } catch (SQLException | IOException | ParseException ex) {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -987,6 +997,7 @@ public class ValidateTaskAttribute {
                     taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Install NTE') AND c_assetattrid='NTE_MODEL'");
                     break;
                 case "NTE_SERIALNUMBER":
+                    validateCpeScmt(wonum, attrValue);
                     taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Install NTE') AND c_assetattrid='NTE_SERIALNUMBER'");
                     break;
                 case "NTE_IPADDRESS":
