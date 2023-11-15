@@ -234,7 +234,7 @@ public class NonCoreCompleteDao {
         Timestamp timestamp = new Timestamp(date.getTime());
 
         String selectQuery
-                = "SELECT DISTINCT c_classstructureid, c_assetattrid, c_value, c_orgid, c_siteid, c_workorderspecid "
+                = "SELECT DISTINCT c_classstructureid, c_assetattrid, c_value, c_orgid, c_siteid, c_workorderspecid, c_mandatory "
                 + "FROM app_fd_workorderspec WHERE c_wonum IN (select c_wonum FROM app_fd_workorder WHERE c_parent = ?)";
         String insertQuery
                 = "INSERT INTO app_fd_assetspec"
@@ -259,7 +259,7 @@ public class NonCoreCompleteDao {
                 + " ?,"
                 + " ?,"
                 + " ?,"
-                + " (SELECT c_mandatory FROM app_fd_classspec WHERE c_classstructureid = ?),"
+                + " ?,"
                 + " ASSETSPECIDSEQ.NEXTVAL)";
 
         try (Connection con = ds.getConnection()) {
@@ -283,7 +283,7 @@ public class NonCoreCompleteDao {
                     psInsert.setTimestamp(7, timestamp);
                     psInsert.setString(8, (rs.getString("c_siteid") == null ? "" : rs.getString("c_siteid")));
                     psInsert.setString(9, (rs.getString("c_orgid") == null ? "" : rs.getString("c_orgid")));
-                    psInsert.setString(10, (rs.getString("c_classstructureid") == null ? "" : rs.getString("c_classstructureid")));
+                    psInsert.setString(10, (rs.getString("c_mandatory") == null ? "" : rs.getString("c_mandatory")));
                     psInsert.addBatch();
                 }
                 clearAttributeNoncore(assetnum, con);
