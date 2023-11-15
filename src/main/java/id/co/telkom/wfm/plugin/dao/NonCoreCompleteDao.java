@@ -234,8 +234,8 @@ public class NonCoreCompleteDao {
         Timestamp timestamp = new Timestamp(date.getTime());
 
         String selectQuery
-                = "SELECT c_classstructureid, c_assetattrid, c_sequence, c_value, c_orgid, c_siteid "
-                + "FROM app_fd_workorderspec WHERE c_wonum = (select c_wonum from app_fd_workorder where c_parent = ? wfmdoctype='NEW')  ";
+                = "SELECT DISTINCT c_classstructureid, c_assetattrid, c_value, c_orgid, c_siteid, c_workorderspecid "
+                + "FROM app_fd_workorderspec WHERE c_wonum IN (select c_wonum FROM app_fd_workorder WHERE c_parent = ?)";
         String insertQuery
                 = "INSERT INTO app_fd_assetspec"
                 + "(id, "
@@ -250,17 +250,17 @@ public class NonCoreCompleteDao {
                 + "c_mandatory, "
                 + "c_assetspecid) "
                 + "VALUES "
-                + "?,"
+                + "(?,"
                 + " ?,"
                 + " ?,"
                 + " ?,"
                 + " ?,"
                 + " ?,"
-                + " (SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?),"
                 + " ?,"
                 + " ?,"
                 + " ?,"
-                + " (SELECT c_mandatory FROM app_fd_classspec WHERE c_classstructureid = ?), ASSETSPECIDSEQ.NEXTVAL)";
+                + " (SELECT c_mandatory FROM app_fd_classspec WHERE c_classstructureid = ?),"
+                + " ASSETSPECIDSEQ.NEXTVAL)";
 
         try (Connection con = ds.getConnection()) {
             boolean oldAutoCommit = con.getAutoCommit();
@@ -278,7 +278,7 @@ public class NonCoreCompleteDao {
                     psInsert.setString(2, assetnum);
                     psInsert.setString(3, (rs.getString("c_assetattrid") == null ? "" : rs.getString("c_assetattrid")));
                     psInsert.setString(4, (rs.getString("c_classstructureid") == null ? "" : rs.getString("c_classstructureid")));
-                    psInsert.setString(5, (rs.getString("c_sequence") == null ? "" : rs.getString("c_sequence")));
+                    psInsert.setString(5, (rs.getString("c_workorderspecid") == null ? "" : rs.getString("c_workorderspecid")));
                     psInsert.setString(6, (rs.getString("c_value") == null ? "" : rs.getString("c_value")));
                     psInsert.setTimestamp(7, timestamp);
                     psInsert.setString(8, (rs.getString("c_siteid") == null ? "" : rs.getString("c_siteid")));
