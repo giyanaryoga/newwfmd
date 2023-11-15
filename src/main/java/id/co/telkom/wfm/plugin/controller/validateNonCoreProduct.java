@@ -274,8 +274,9 @@ public class ValidateNonCoreProduct {
                 + " c_disabled," 
                 + " modifiedby,"
                 + " c_type,"
-                + " c_status)"
-                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                + " c_status,"
+                + " datecreated)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
