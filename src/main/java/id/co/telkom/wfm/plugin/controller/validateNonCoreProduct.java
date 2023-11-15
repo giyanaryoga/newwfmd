@@ -316,9 +316,10 @@ public class ValidateNonCoreProduct {
             LogUtil.info(this.getClass().getName(), "WORKTYPE : " + worktype);
             LogUtil.info(this.getClass().getName(), "PRODUCTNAME : " + productname);
             LogUtil.info(this.getClass().getName(), "DETAILACTCODE : " + detailactcode);
-
-            if (!productname.equalsIgnoreCase("") && Arrays.asList(listTask).contains(detailactcode)
-                    && "New Install".equals(crmordertype)) {
+            
+            if (!Arrays.asList(listTask).contains(detailactcode) && !productname.equalsIgnoreCase("")) {
+                startwa = true;
+            } else if (!productname.equalsIgnoreCase("") && Arrays.asList(listTask).contains(detailactcode) && "New Install".equalsIgnoreCase(crmordertype)) {
                 String SID = generate(param.getWonum(), "888");
 //                updateSID(param.getWonum());
                 updateSID(param.getParent());
@@ -464,7 +465,6 @@ public class ValidateNonCoreProduct {
         }
 
         LogUtil.info(getClass().getName(), "Status Insert : " + status);
-//        return status;
     }
 
     public boolean nonCoreAutoFill(String wonum) {
@@ -485,6 +485,8 @@ public class ValidateNonCoreProduct {
                 updateNonCoreAutoFillWorkorderSpec("DEVICETYPE", devicetype, wonum);
                 updateNonCoreAutoFillWorkorderSpec("AREANAME", workzone, wonum);
                 status = true;
+            } else {
+                status = false;
             }
         } catch (Exception e) {
             LogUtil.info(this.getClass().getName(), "Trace error here :" + e.getMessage());
