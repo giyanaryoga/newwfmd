@@ -118,7 +118,7 @@ public class CpeValidationEbisDao {
 
     public void updateAttribute(String wonum, String attrName, String attrValue){
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorderspec SET c_value = ?, datemodified = 'sysdate' WHERE c_wonum = ? AND c_assetattrid = ?";
+        String update = "UPDATE app_fd_workorderspec SET c_value = ?, datemodified = sysdate WHERE c_wonum = ? AND c_assetattrid = ?";
         try {
             Connection con = ds.getConnection();
             try {

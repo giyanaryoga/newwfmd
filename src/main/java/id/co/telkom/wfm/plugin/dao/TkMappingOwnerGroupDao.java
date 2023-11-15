@@ -414,7 +414,7 @@ public class TkMappingOwnerGroupDao {
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, supplier);
             ps.setString(2, productname);
-            ps.setString(3, classstructureid); //classstructureid
+            ps.setString(3, classstructureid);
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 ownerGroup = rs.getString("c_ownergroup");

@@ -143,7 +143,11 @@ public class ValidateTaskStatus {
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         startwa = true;
                     }
+                } else {
+                    startwa = false;
                 }
+                LogUtil.info(getClass().getName(), "startwa1 : " + startwa);
+                
                 if (autofillnoncore) {
                     response = "success";
                     if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
@@ -152,9 +156,10 @@ public class ValidateTaskStatus {
                         startwa = true;
                     }
                 } else {
-                    LogUtil.info(getClass().getName(), "startwa4 : " + startwa);
                     startwa = false;
                 }
+                
+                LogUtil.info(getClass().getName(), "startwa2 : " + startwa);
                 LogUtil.info(getClass().getName(), "autofillnoncore : " + autofillnoncore);
             } else {
                 updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
@@ -167,9 +172,7 @@ public class ValidateTaskStatus {
                 }
             }
             LogUtil.info(getClass().getName(), "result startwa product : " + startwa);
-        } catch (SQLException ex) {
-            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (JSONException ex) {
+        } catch (SQLException | JSONException ex) {
             Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
         return startwa;
