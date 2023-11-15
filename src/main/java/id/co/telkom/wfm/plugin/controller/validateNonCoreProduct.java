@@ -383,7 +383,7 @@ public class ValidateNonCoreProduct {
                             String classstructureid = daoNoncore.getAssetClassstructureid(productName);
 
                             daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
-                            daoNoncore.generateAssetSpecAttribute(sID, param.getSiteId(), params.optString("detailactcode"), param.getWonum());
+                            daoNoncore.generateAssetSpecAttribute(sID, param.getWonum());
                             daoNoncore.reserveResource(sID);
                         } else {
                             daoNoncore.generateServiceAddress(addresscode, siteId, description);
@@ -398,7 +398,7 @@ public class ValidateNonCoreProduct {
                             String classstructureid = daoNoncore.getAssetClassstructureid(productName);
 
                             daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
-                            daoNoncore.generateAssetSpecAttribute(sID, param.getSiteId(), params.optString("detailactcode"), param.getWonum());
+                            daoNoncore.generateAssetSpecAttribute(sID, param.getWonum());
                             daoNoncore.reserveResource(sID);
                         }
 

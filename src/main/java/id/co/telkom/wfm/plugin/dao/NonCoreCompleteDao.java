@@ -23,6 +23,7 @@ import org.json.simple.JSONObject;
  * @author ASUS
  */
 public class NonCoreCompleteDao {
+
     // Check Product Non-Core
     public int isNonCoreProduct(String productname) {
         int value = 0;
@@ -168,7 +169,7 @@ public class NonCoreCompleteDao {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         }
     }
-    
+
     // Clear Asset 
     private boolean clearAssetNoncore(String assetnum, Connection con) throws SQLException {
         boolean status = false;
@@ -182,6 +183,7 @@ public class NonCoreCompleteDao {
         LogUtil.info(getClass().getName(), "Status Delete : " + status);
         return status;
     }
+
     // Generate Asset
     public void generateServiceAsset(String assetnum, String location, String saddresscode, String assettype, String serviceno, String classstructureid) throws SQLException {
         String uuId = UuidGenerator.getInstance().getUuid();
@@ -212,8 +214,8 @@ public class NonCoreCompleteDao {
             ps.setString(6, serviceno);
             ps.setString(7, classstructureid);
             ps.setString(8, "OPERATING");
-            
-            clearAssetNoncore(assetnum, con);            
+
+            clearAssetNoncore(assetnum, con);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "Generate Service Asset Successfully for " + assetnum);
@@ -226,14 +228,14 @@ public class NonCoreCompleteDao {
     }
 
     // Generate attribute AssetSpec
-    public void generateAssetSpecAttribute(String assetnum, String siteid, String detailactcode, String wonum) throws SQLException {
+    public void generateAssetSpecAttribute(String assetnum, String wonum) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         java.util.Date date = new java.util.Date();
         Timestamp timestamp = new Timestamp(date.getTime());
 
         String selectQuery
-                = "SELECT c_mandatory, c_classstructureid, c_assetattrid, c_sequence, c_defaultvalue "
-                + "FROM app_fd_classspec WHERE c_activity = ?";
+                = "SELECT c_classstructureid, c_assetattrid, c_sequence, c_value, c_orgid, c_siteid "
+                + "FROM app_fd_workorderspec WHERE c_wonum = (select c_wonum from app_fd_workorder where c_parent = ? wfmdoctype='NEW')  ";
         String insertQuery
                 = "INSERT INTO app_fd_assetspec"
                 + "(id, "
@@ -248,9 +250,17 @@ public class NonCoreCompleteDao {
                 + "c_mandatory, "
                 + "c_assetspecid) "
                 + "VALUES "
-                + "(?, ?, ?, ?, ?, "
-                + "(SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?), "
-                + "?, ?, ?, ?, ASSETSPECIDSEQ.NEXTVAL)";
+                + "?,"
+                + " ?,"
+                + " ?,"
+                + " ?,"
+                + " ?,"
+                + " ?,"
+                + " (SELECT c_value FROM app_fd_workorderspec WHERE c_wonum = ? AND c_assetattrid = ?),"
+                + " ?,"
+                + " ?,"
+                + " ?,"
+                + " (SELECT c_mandatory FROM app_fd_classspec WHERE c_classstructureid = ?), ASSETSPECIDSEQ.NEXTVAL)";
 
         try (Connection con = ds.getConnection()) {
             boolean oldAutoCommit = con.getAutoCommit();
@@ -260,7 +270,7 @@ public class NonCoreCompleteDao {
             try (PreparedStatement psSelect = con.prepareStatement(selectQuery);
                     PreparedStatement psInsert = con.prepareStatement(insertQuery)) {
                 con.setAutoCommit(false);
-                psSelect.setString(1, detailactcode);
+                psSelect.setString(1, wonum);
 
                 ResultSet rs = psSelect.executeQuery();
                 while (rs.next()) {
@@ -269,12 +279,11 @@ public class NonCoreCompleteDao {
                     psInsert.setString(3, (rs.getString("c_assetattrid") == null ? "" : rs.getString("c_assetattrid")));
                     psInsert.setString(4, (rs.getString("c_classstructureid") == null ? "" : rs.getString("c_classstructureid")));
                     psInsert.setString(5, (rs.getString("c_sequence") == null ? "" : rs.getString("c_sequence")));
-                    psInsert.setString(6, wonum);
-                    psInsert.setString(7, (rs.getString("c_assetattrid") == null ? "" : rs.getString("c_assetattrid")));
-                    psInsert.setTimestamp(8, timestamp);
-                    psInsert.setString(9, siteid);
-                    psInsert.setString(10, "TELKOM");
-                    psInsert.setString(11, (rs.getString("c_mandatory") == null ? "" : rs.getString("c_mandatory")));
+                    psInsert.setString(6, (rs.getString("c_value") == null ? "" : rs.getString("c_value")));
+                    psInsert.setTimestamp(7, timestamp);
+                    psInsert.setString(8, (rs.getString("c_siteid") == null ? "" : rs.getString("c_siteid")));
+                    psInsert.setString(9, (rs.getString("c_orgid") == null ? "" : rs.getString("c_orgid")));
+                    psInsert.setString(10, (rs.getString("c_classstructureid") == null ? "" : rs.getString("c_classstructureid")));
                     psInsert.addBatch();
                 }
                 clearAttributeNoncore(assetnum, con);
@@ -295,7 +304,7 @@ public class NonCoreCompleteDao {
             throw e;
         }
     }
-    
+
     // Clear Attribute
     private boolean clearAttributeNoncore(String assetnum, Connection con) throws SQLException {
         boolean status = false;
@@ -309,13 +318,13 @@ public class NonCoreCompleteDao {
         LogUtil.info(getClass().getName(), "Status Delete : " + status);
         return status;
     }
-    
+
     // Reserve Resource UIM
     public JSONObject reserveResource(String serviceId) throws MalformedURLException, IOException, JSONException {
         IntegrationHistory dao = new IntegrationHistory();
         ConnUtil connUtil = new ConnUtil();
         APIConfig apiConfig = new APIConfig();
-        
+
         try {
             JSONArray attributes = getAttributeNoncore(serviceId);
             String attrName = "";
@@ -339,7 +348,7 @@ public class NonCoreCompleteDao {
                 org.json.JSONObject result = attributes.getJSONObject(i);
                 attrName = result.getString("attributeName");
                 attrValue = result.getString("attributeValue");
-                
+
                 String request2 = " <AttributeInformation>\n"
                         + "            <attributeName>" + attrName + "</attributeName>\n"
                         + "            <attributeValue>" + attrValue + "</attributeValue>\n"
@@ -380,13 +389,13 @@ public class NonCoreCompleteDao {
             }
             JSONObject responseObj = new JSONObject();
             responseObj.put("body", response);
-            
+
             int responseCode = connection.getResponseCode();
             StringBuilder result = response;
             org.json.JSONObject temp = XML.toJSONObject(result.toString());
             System.out.println("temp " + temp.toString());
             LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + temp.toString());
-            
+
             if (responseCode == 200) {
                 dao.insertKafka(serviceId, apiConfig.getUrl(), "COMPLETENONCORE", "SUCCESS", requestObj, responseObj);
             } else {
@@ -397,7 +406,7 @@ public class NonCoreCompleteDao {
         }
         return null;
     }
-    
+
     // Get Attribute from table assetspec
     public JSONArray getAttributeNoncore(String assetnum) throws SQLException {
         JSONArray listAttr = new JSONArray();
