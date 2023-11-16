@@ -481,7 +481,7 @@ public class TaskActivityDao {
                 + "(id, c_parent, c_wonum, c_taskid, c_status, c_description, c_wfmdoctype, c_woclass, c_scheduledate, dateCreated) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
         DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_description, c_taskid, c_wonum FROM app_fd_workorder WHERE c_detailactcode = ? AND c_parent = ? AND c_actplace = 'OUTSIDE'";
+        String query = "SELECT c_description, c_taskid, c_wonum FROM app_fd_workorder WHERE c_detailactcode = ? AND c_parent = ? AND c_actplace = 'OUTSIDE' AND c_wfmdoctype = 'NEW'";
 
         try {
             Connection con = ds.getConnection();
@@ -511,7 +511,7 @@ public class TaskActivityDao {
                         int exe = ps.executeUpdate();
                         //Checking insert status
                         if (exe > 0) {
-//                            LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
+                            LogUtil.info(getClass().getName(), "'" + rs.getString("c_description") + "' generated as assignment");
                         }
                         con.commit();
                     } else con.rollback();

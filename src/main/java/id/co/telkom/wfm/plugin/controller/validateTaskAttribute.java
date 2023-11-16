@@ -974,7 +974,7 @@ public class ValidateTaskAttribute {
                     break;
                 case "Survey-Ondesk Manual":
                     if (!attrValue.isEmpty() || attrValue.equalsIgnoreCase("None")) {
-                        String condition = "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Site-Survey Manual' AND status='APPR') and c_assetattrid in (select c_assetattrid from app_fd_classspec where c_assetattrid='" + attrName + "' and c_datatype='ALN')";
+                        String condition = "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Site-Survey Manual' AND status='APPR') and c_assetattrid in (select c_assetattrid from app_fd_classspec where c_assetattrid='" + attrName + "')";
                         taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", condition);
                     }
                     break;

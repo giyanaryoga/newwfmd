@@ -401,7 +401,7 @@ public class ValidateGenerateTask {
             }
             
             LogUtil.info(getClass().getName(), "OwnerGroup = "+ownerGroup);
-            if ((int) sortedTask.get("taskid") != (sizeTask+1)*10) {
+            if (counter != 1) {
                 sortedTask.put("status", "APPR"); 
             } else {
                 sortedTask.put("status", "LABASSIGN");   

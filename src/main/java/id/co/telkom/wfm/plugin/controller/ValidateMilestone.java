@@ -63,6 +63,7 @@ public class ValidateMilestone {
                 responseKafka.MilestoneEbis(kafkaRes, siteId);
                 result = true;
             } else {
+                formatJson.insertToWfmMilestone(parent, siteId, statusDate);
                 result = false;
             }
         } catch (SQLException ex) {
