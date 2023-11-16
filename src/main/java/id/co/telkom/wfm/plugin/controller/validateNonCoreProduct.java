@@ -274,9 +274,8 @@ public class ValidateNonCoreProduct {
                 + " c_disabled," 
                 + " modifiedby,"
                 + " c_type,"
-                + " c_status,"
-                + " datecreated)"
-                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+                + " c_status)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -400,7 +399,7 @@ public class ValidateNonCoreProduct {
                             String classstructureid = daoNoncore.getAssetClassstructureid(productName);
 
                             daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
-                            daoNoncore.generateAssetSpecAttribute(sID, param.getWonum());
+                            daoNoncore.generateAssetSpecAttribute(sID, param.getParent());
                             daoNoncore.reserveResource(sID);
                         }
 

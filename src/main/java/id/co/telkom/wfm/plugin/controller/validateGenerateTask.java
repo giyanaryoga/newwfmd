@@ -386,7 +386,7 @@ public class ValidateGenerateTask {
             JSONArray taskIdArray = dao2.getTaskId(workorder.get("wonum").toString());
             int sizeTask = taskIdArray.size();
 //            LogUtil.info(getClass().getName(), "SIZE TASK = "+ sizeTask);
-            int taskId = (sizeTask+counter)*10;
+            int taskId = (sizeTask+1)*10;
 //            LogUtil.info(getClass().getName(), "TASK ID = "+ taskId);
             sortedTask.put("taskid", taskId);
 
