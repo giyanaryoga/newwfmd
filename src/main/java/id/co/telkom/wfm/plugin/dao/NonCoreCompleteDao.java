@@ -238,7 +238,7 @@ public class NonCoreCompleteDao {
                 + "FROM app_fd_workorderspec WHERE c_wonum IN (select c_wonum FROM app_fd_workorder WHERE c_parent = ?)";
         String insertQuery
                 = "INSERT INTO app_fd_assetspec"
-                + "(id, "
+                + " (id, "
                 + "c_assetnum, "
                 + "c_assetattrid, "
                 + "c_classstructureid, "
@@ -318,6 +318,28 @@ public class NonCoreCompleteDao {
         LogUtil.info(getClass().getName(), "Status Delete : " + status);
         return status;
     }
+    // Get Attribute from table assetspec
+    private JSONArray getAttributeNoncore(String assetnum) throws SQLException {
+        JSONArray listAttr = new JSONArray();
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_assetattrid, c_alnvalue FROM app_fd_assetspec WHERE c_assetnum = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, assetnum);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                JSONObject attributeObject = new JSONObject();
+                attributeObject.put("attributeName", rs.getString("c_assetattrid"));
+                attributeObject.put("attributeValue", rs.getString("c_alnvalue"));
+                listAttr.put(attributeObject);
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return listAttr;
+    }
 
     // Reserve Resource UIM
     public JSONObject reserveResource(String serviceId) throws MalformedURLException, IOException, JSONException {
@@ -327,6 +349,7 @@ public class NonCoreCompleteDao {
 
         try {
             JSONArray attributes = getAttributeNoncore(serviceId);
+            LogUtil.info(getClass().getName(), "ASSETSPEC ATTRIBUTES : " + attributes);
             String attrName = "";
             String attrValue = "";
 
@@ -407,26 +430,4 @@ public class NonCoreCompleteDao {
         return null;
     }
 
-    // Get Attribute from table assetspec
-    public JSONArray getAttributeNoncore(String assetnum) throws SQLException {
-        JSONArray listAttr = new JSONArray();
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_alnvalue FROM app_fd_assetspec WHERE c_assetnum = ?";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, assetnum);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                JSONObject attributeObject = new JSONObject();
-                attributeObject.put("attributeName", rs.getString("c_assetattrid"));
-                attributeObject.put("attributeValue", rs.getString("c_alnvalue"));
-                listAttr.put(attributeObject);
-            }
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return listAttr;
-    }
 }

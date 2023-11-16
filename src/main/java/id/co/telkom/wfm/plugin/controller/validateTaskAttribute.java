@@ -857,7 +857,7 @@ public class ValidateTaskAttribute {
                             reservestp.getSoapResponseUnReserve(reservationID);
                         }
                         // Lakukan reservasi
-                        reservestp.getSoapResponseReservation(odpName, odpId, odpPortName, odpPortId);
+                        reservestp.getSoapResponseReservation(wonum, odpName, odpId, odpPortName, odpPortId);
                     }
                 }
             } else {

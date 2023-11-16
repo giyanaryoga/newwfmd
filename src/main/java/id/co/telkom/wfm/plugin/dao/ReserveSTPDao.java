@@ -24,6 +24,7 @@ public class ReserveSTPDao {
 
     ConnUtil util = new ConnUtil();
     DeviceUtil deviceUtil = new DeviceUtil();
+    TaskAttributeUpdateDao attribute = new TaskAttributeUpdateDao();
 
     public String getParams(String wonum) throws SQLException, JSONException {
         String resultObj = "";
@@ -95,10 +96,21 @@ public class ReserveSTPDao {
         return request;
     }
 
-    public JSONObject getSoapResponseReservation(String odpName, String odpId, String odpPortName, String odpPortId) throws IOException, MalformedURLException, JSONException {
+    public JSONObject getSoapResponseReservation(String wonum, String odpName, String odpId, String odpPortName, String odpPortId) throws IOException, MalformedURLException, JSONException, SQLException {
+        String reservationID = "";
         String request = createSoapRequestReservation(odpName, odpId, odpPortName, odpPortId);
+        
         // call UIM
         JSONObject temp = deviceUtil.callUIM(request);
+        
+        String value = attribute.getAttrValue(wonum, "STP_PORT_RESERVATION_ID");
+        if (reservationID.isEmpty()) {
+            reservationID = "Failed to reserved";
+        } else {
+            if (value.isEmpty() || value.equals("None")) {
+                attribute.updateWO("app_fd_workorderspec", "c_value='" + reservationID + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_RESERVATION_ID'");
+            }
+        }
         return temp;
     }
 
