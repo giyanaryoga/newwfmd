@@ -127,8 +127,17 @@ public class ValidateTaskAttribute2 {
                 case "JUMLAH_BLOK_NOMOR":
                     validateBlokNomor(wonum, task, attrValue);
                     break;
-                case "JUMLAH ARNET PASSTHROUGH":
-                    
+                case "CPE_MGMT_PE_NAME":
+                    validatePE_Name(wonum, task, attrValue);
+                    break;
+                case "CPE_MGMT_PE_PORTNAME_LOV":
+                    validatePE_NameLOV(wonum, attrValue);
+                    break;
+                case "SBC_NAME":
+                    validateSBC_Name(wonum, task, attrValue);
+                    break;
+                case "SBC_PORTNAME_LOV":
+                    validateSBC_NameLOV(wonum, attrValue);
                     break;
                 default:
                     LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
@@ -277,6 +286,35 @@ public class ValidateTaskAttribute2 {
         }
     }
     
+    private void validatePE_Name(String wonum, String task, String attrValue) {
+        String[] listTask = {"PopulatePEPort Manage CE", "Entry VLAN For Manage CPE"};
+        try {
+            if (Arrays.asList(listTask).contains(task)) {
+                if (!attrValue.equalsIgnoreCase("None")) {
+                    String serviceType = taskAttrDao1.getTaskAttrValue(wonum, "SERVICE_TYPE");
+                    getPEPort(wonum, attrValue, serviceType);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validatePE_NameLOV(String wonum, String attrValue) {
+        try {
+            if (attrValue.equalsIgnoreCase("None")) {
+                taskAttrDao1.updateTaskValue(wonum, "CPE_MGMT_PE_PORTNAME", attrValue);
+            } else {
+                String value = taskAttrDao1.getTkdeviceAttrValue(wonum, "CPE_MGMT_PE_PORTNAME", attrValue);
+                taskAttrDao1.updateTaskValue(wonum, "CPE_MGMT_PE_PORTNAME", value);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Throwable ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     private void getPEPort(String wonum, String deviceName, String serviceType) {
         try {
             APIConfig apiConfig = new APIConfig();
@@ -323,6 +361,34 @@ public class ValidateTaskAttribute2 {
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException | SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validateSBC_Name(String wonum, String task, String attrValue) {
+        try {
+            if (task.equalsIgnoreCase("Populate SBC")) {
+                if (!attrValue.equalsIgnoreCase("None")) {
+                    String serviceType = taskAttrDao1.getTaskAttrValue(wonum, "SERVICE_TYPE");
+                    getSBCPort(wonum, attrValue, serviceType);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validateSBC_NameLOV(String wonum, String attrValue) {
+        try {
+            if (attrValue.equalsIgnoreCase("None")) {
+                taskAttrDao1.updateTaskValue(wonum, "SBC_PORTNAME", attrValue);
+            } else {
+                String value = taskAttrDao1.getTkdeviceAttrValue(wonum, "SBC_PORTNAME", attrValue);
+                taskAttrDao1.updateTaskValue(wonum, "SBC_PORTNAME", value);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Throwable ex) {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

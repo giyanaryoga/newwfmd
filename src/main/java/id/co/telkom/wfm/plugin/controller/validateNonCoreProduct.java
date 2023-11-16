@@ -399,7 +399,7 @@ public class ValidateNonCoreProduct {
                             String classstructureid = daoNoncore.getAssetClassstructureid(productName);
 
                             daoNoncore.generateServiceAsset(sID, locationid, addresscode, assettype, sID, classstructureid);
-                            daoNoncore.generateAssetSpecAttribute(sID, param.getWonum());
+                            daoNoncore.generateAssetSpecAttribute(sID, param.getParent());
                             daoNoncore.reserveResource(sID);
                         }
 

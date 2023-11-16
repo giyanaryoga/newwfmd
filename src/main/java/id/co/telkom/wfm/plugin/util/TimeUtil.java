@@ -19,6 +19,12 @@ import org.joget.commons.util.LogUtil;
  * @author ASUS
  */
 public class TimeUtil {
+    public Timestamp getTimestampWithMillis() {
+        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+        Timestamp ts = Timestamp.valueOf(zdt.toLocalDateTime().format(format));
+        return ts;
+    }
         
     public Timestamp getTimeStamp() {
         ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Jakarta"));

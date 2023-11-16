@@ -186,32 +186,22 @@ public class ValidateTaskStatus {
             int isNoncore = daoNonCore.isNonCoreProduct(productname);
 
             if (isNoncore == 1) {
-                // Update parent status
-                daoUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
-                LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
-
-                // update task status
-                updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                    daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                }
-
                 //Validate Non-Core COMPLETE
                 validateNonCoreProduct.validateComplete(param);
-            } else {
-                // Update parent status
-                daoUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
-                LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
+            }
+            
+            // Update parent status
+            daoUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
+//            LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
 
-                // update task status
-                updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                    daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                }
+            // update task status
+            updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+            if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
             }
             
             // Insert data to table WFMMILESTONE
-            daoUpdate.insertToWfmMilestone(param.getWonum(), param.getSiteId(), time.getCurrentTime());
+            daoUpdate.insertToWfmMilestone(param.getParent(), param.getSiteId(), time.getCurrentTime());
             //Create response
             JSONObject dataRes = new JSONObject();
             dataRes.put("wonum", param.getParent());
@@ -223,8 +213,6 @@ public class ValidateTaskStatus {
             String kafkaRes = data.toJSONString();
             //KAFKA DEVELOPMENT
             responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
-            //KAFKA PRODUCTION
-//            responseKafka.MilestoneEbis(kafkaRes, param.getSiteId());
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -274,7 +262,7 @@ public class ValidateTaskStatus {
                     // Start of Set Install
                     daoScmt.sendInstall(param.getParent());
                     updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                    nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                    nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                     if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         response.put("code", 200);
@@ -287,7 +275,7 @@ public class ValidateTaskStatus {
                     // Start of Set Install
                     daoScmt.sendDismantle(param.getParent());
                     updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                    nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                    nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                     if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         response.put("code", 200);
@@ -303,7 +291,7 @@ public class ValidateTaskStatus {
                             response.put("message", isWoDocValue);
 
                             daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                             daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         } else {
                             response.put("code", 422);
@@ -323,7 +311,7 @@ public class ValidateTaskStatus {
                             response.put("code", 200);
                             response.put("message", "Document LOA ada...");
                             daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                             daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         } else {
                             response.put("code", 422);
@@ -339,7 +327,7 @@ public class ValidateTaskStatus {
                             response.put("code", 200);
                             response.put("message", "Document BA DEAKTIVASI AKSES ada...");
                             daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                             daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         } else {
                             response.put("code", 422);
@@ -355,7 +343,7 @@ public class ValidateTaskStatus {
                             response.put("code", 200);
                             response.put("message", "Document BA DEAKTIVASI TRANS ada...");
                             daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                             daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         } else {
                             response.put("code", 422);
@@ -371,7 +359,7 @@ public class ValidateTaskStatus {
                             response.put("code", 200);
                             response.put("message", "Document DATEK AKSES ada...");
                             daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                             daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         } else {
                             response.put("code", 422);
@@ -387,7 +375,7 @@ public class ValidateTaskStatus {
                             response.put("code", 200);
                             response.put("message", "Document DATEK TRANSPORT ada...");
                             daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                             daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         } else {
                             response.put("code", 422);
@@ -403,7 +391,7 @@ public class ValidateTaskStatus {
                             response.put("code", 200);
                             response.put("message", "Document BA INTEGRASI TRANS ada...");
                             daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                             daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         } else {
                             response.put("code", 422);
@@ -422,7 +410,7 @@ public class ValidateTaskStatus {
                             //response true send url to retools
                             validateRE.validateOBL(param.getParent());
                             updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                            nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                             if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
                                 daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                                 response.put("code", 200);
@@ -435,7 +423,7 @@ public class ValidateTaskStatus {
                         }
                     }
                     updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                    nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                    nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                     if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                         response.put("code", 200);
@@ -454,19 +442,19 @@ public class ValidateTaskStatus {
 //                    break;
                 default:
                     // Define the next move
-                    final String nextMove = daoUpdate.nextMove(param.getParent(), Integer.toString(nextTaskId));
+                    final String nextMove = daoUpdate.nextMove(param.getParent(), nextTaskId);
                     if ("COMPLETE".equals(nextMove)) {
                         completeTask(param);
                         response.put("code", 200);
                         response.put("message", "Berhasil mengupdate status, Mengirim Status COMPLETE ke OSM");
                     } else {
                         //Give LABASSIGN to next task
-                        nextAssign = daoUpdate.nextAssign(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                        nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
                         if (nextAssign) {
                             response.put("code", 200);
                             response.put("message", "Update Status compwa is success");
                         }
-                        daoUpdate.updateWoDesc(param.getParent(), Integer.toString(nextTaskId), param.getModifiedBy());
+                        daoUpdate.updateWoDesc(param.getParent(), nextTaskId, param.getModifiedBy());
                         daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                     }

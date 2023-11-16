@@ -199,10 +199,11 @@ public class NonCoreCompleteDao {
                 + " c_assettype,\n"
                 + " c_tk_serviceno,\n"
                 + " c_classstructureid,\n"
-                + " c_status\n"
+                + " c_status,\n"
+                + " datecreated"
                 + " )\n"
                 + " VALUES\n"
-                + " (?, ASSETIDSEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?)";
+                + " (?, ASSETIDSEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, sysdate)";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectQuery)) {
@@ -248,7 +249,8 @@ public class NonCoreCompleteDao {
                 + "c_siteid, "
                 + "c_orgid, "
                 + "c_mandatory, "
-                + "c_assetspecid) "
+                + "c_assetspecid, "
+                + "datecreated) "
                 + "VALUES "
                 + "(?,"
                 + " ?,"
@@ -260,7 +262,8 @@ public class NonCoreCompleteDao {
                 + " ?,"
                 + " ?,"
                 + " ?,"
-                + " ASSETSPECIDSEQ.NEXTVAL)";
+                + " ASSETSPECIDSEQ.NEXTVAL, "
+                + " sysdate)";
 
         try (Connection con = ds.getConnection()) {
             boolean oldAutoCommit = con.getAutoCommit();

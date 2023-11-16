@@ -69,7 +69,6 @@ public class ValidateReTools {
                 outputStream.flush();
             }
             LogUtil.info(this.getClass().getName(), "response code = "+conn.getResponseCode());
-            
             int responseCode = conn.getResponseCode();
             if (responseCode == 200) {
                 LogUtil.info(this.getClass().getName(), "Success Send URL");
@@ -87,10 +86,13 @@ public class ValidateReTools {
             JSONObject responseObj = new JSONObject();
             responseObj.put("body", response);
             responseObj.put("status", responseCode);
+            JSONParser parser = new JSONParser();
+            JSONObject data_obj = (JSONObject)parser.parse(response.toString());
+            JSONObject body = (JSONObject) data_obj.get("body");
             conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } catch (IOException | ParseException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -145,11 +147,11 @@ public class ValidateReTools {
             responseObj.put("status", responseCode);
             JSONParser parser = new JSONParser();
             JSONObject data_obj = (JSONObject)parser.parse(response.toString());
-            LogUtil.info(this.getClass().getName(), "cek: " + data_obj);
+//            LogUtil.info(this.getClass().getName(), "cek: " + data_obj);
             JSONObject body = (JSONObject) data_obj.get("body");
             String customerId = body.get("customer_id").toString();
             param.setCustomerId(customerId);
-            LogUtil.info(this.getClass().getName(), "Cust Id: " + param.getCustomerId());
+//            LogUtil.info(this.getClass().getName(), "Cust Id: " + param.getCustomerId());
             conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);

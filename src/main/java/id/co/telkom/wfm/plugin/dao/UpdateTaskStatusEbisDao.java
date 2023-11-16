@@ -272,17 +272,17 @@ public class UpdateTaskStatusEbisDao {
         return isAttachedFile;
     }
 
-    public int isProductNameDigital(String parent) throws SQLException {
+    public int isProductNameDigital(String wonum) throws SQLException {
         int isProductName = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
 
         String selectProduct = "SELECT c_productname FROM APP_FD_WORKORDER \n"
-                + "WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'PIJAR', 'ANTARES Platform', 'Omni Communication Assistant') \n"
+                + "WHERE c_productname IN ('VPN IP Netmonk', 'Nadeefa Netmonk', 'Pijar Sekolah', 'Omni Communication Assistant') \n"
                 + "AND c_wonum = ?";
         
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(selectProduct)) {
-            ps.setString(1, parent);
+            ps.setString(1, wonum);
 
             ResultSet rs = ps.executeQuery();
 
@@ -307,7 +307,7 @@ public class UpdateTaskStatusEbisDao {
         LogUtil.info(this.getClass().getName(), "Is Product: " + checkDoc);
         
         if (checkAttachedFile(wonum, "BAA") == 0 && isProductNameDigital(wonum) == 1) {
-            value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). <br> Pastikan dokumen telah diupload dengan nama dokumen 'BAA'";
+            value = "File BAA belum diupload. Attach/upload file BAA sebelum update status Complete Work Activity (COMPWA). \\nPastikan dokumen telah diupload dengan nama dokumen 'BAA'";
 
         } else if (isProductNameDigital(wonum) == 0 && checkAttachedFile(wonum, "BAST") == 0
                 && checkAttachedFile(wonum, "BAPLA") == 0
@@ -368,14 +368,14 @@ public class UpdateTaskStatusEbisDao {
     //===========================================================================
     // Checking Jika ada task selanjutnya maka ASSIGNTASK jika tidak Set COMPLETE 
     //===========================================================================
-    public String nextMove(String parent, String nextTaskId) throws SQLException {
+    public String nextMove(String parent, int nextTaskId) throws SQLException {
         String nextMove = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_wosequence FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, parent);
-            ps.setString(2, nextTaskId);
+            ps.setInt(2, nextTaskId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 nextMove = "ASSIGNTASK";
@@ -384,6 +384,7 @@ public class UpdateTaskStatusEbisDao {
                 nextMove = "COMPLETE";
                 LogUtil.info(getClass().getName(), "next move: " + nextMove);
             }
+            LogUtil.info(getClass().getName(), "query: " + query);
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
@@ -395,7 +396,7 @@ public class UpdateTaskStatusEbisDao {
     //=========================================
     // SET LABASSIGN FOR NEXT TASK
     //=========================================
-    public boolean nextAssign(String parent, String nextTaskId, String modifiedBy) throws SQLException {
+    public boolean nextAssign(String parent, int nextTaskId, String modifiedBy) throws SQLException {
         boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = ?, modifiedby = ? WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
@@ -404,7 +405,7 @@ public class UpdateTaskStatusEbisDao {
             ps.setTimestamp(1, getTimeStamp());
             ps.setString(2, modifiedBy);
             ps.setString(3, parent);
-            ps.setString(4, nextTaskId);
+            ps.setInt(4, nextTaskId);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "next assign berhasil");
@@ -421,7 +422,7 @@ public class UpdateTaskStatusEbisDao {
         return nextAssign;
     }
 
-    public void updateWoDesc(String parent, String nextTaskId, String modifiedBy) throws SQLException {
+    public void updateWoDesc(String parent, int nextTaskId, String modifiedBy) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_description, c_ownergroup FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_status = 'LABASSIGN' AND c_wfmdoctype = 'NEW'";
         String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_description = ?, c_ownergroup = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
@@ -429,7 +430,7 @@ public class UpdateTaskStatusEbisDao {
                 PreparedStatement ps1 = con.prepareStatement(query);
                 PreparedStatement ps2 = con.prepareStatement(update)) {
             ps1.setString(1, parent);
-            ps1.setString(2, nextTaskId);
+            ps1.setInt(2, nextTaskId);
             ResultSet rs = ps1.executeQuery();
             if (rs.next()) {
                 ps2.setString(1, modifiedBy);
