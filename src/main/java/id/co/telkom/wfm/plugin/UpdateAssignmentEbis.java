@@ -4,17 +4,12 @@
  */
 package id.co.telkom.wfm.plugin;
 
-//import id.co.telkom.wfm.plugin.dao.ScmtIntegrationEbisDao;
-//import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
-//import id.co.telkom.wfm.plugin.model.ListLabor;
 import id.co.telkom.wfm.plugin.dao.UpdateAssignmentEbisDao;
+import id.co.telkom.wfm.plugin.model.ListAssignment;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
-//import id.co.telkom.wfm.plugin.kafka.KafkaProducerTool;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
-//import java.time.LocalDateTime;
-//import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -97,8 +92,6 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                 JSONParser parser = new JSONParser();
                 JSONObject data_obj = (JSONObject) parser.parse(bodyParam);//JSON Object
                 
-                JSONObject res = new JSONObject();
-                
                 //Store param
                 String wonum = (data_obj.get("wonum") == null ? "" : data_obj.get("wonum").toString());
                 String status = (data_obj.get("status") == null ? "" : data_obj.get("status").toString());
@@ -107,68 +100,113 @@ public class UpdateAssignmentEbis extends Element implements PluginWebSupport {
                 String crewType = (data_obj.get("amcrewtype") == null ? "" : data_obj.get("amcrewtype").toString());
                 String amcrew = (data_obj.get("amcrew") == null ? "" : data_obj.get("amcrew").toString());
                 String laborhrs = (data_obj.get("laborhrs") == null ? "" : data_obj.get("laborhrs").toString());
-                String laborcode = (data_obj.get("laborcode") == null ? "" : data_obj.get("laborcode").toString());
-                String chiefcode = (data_obj.get("chiefCode") == null ? "" : data_obj.get("chiefCode").toString());
+                String chiefcode = (data_obj.get("chiefcode") == null ? "" : data_obj.get("chiefcode").toString());
+                String partnerCode = (data_obj.get("partnerCode") == null ? "" : data_obj.get("partnerCode").toString());
+                String user = (data_obj.get("modifiedBy") == null ? "" : data_obj.get("modifiedBy").toString());
+                String name = (data_obj.get("modifiedByName") == null ? "" : data_obj.get("modifiedByName").toString());
                 
+                ListAssignment listAssignment = new ListAssignment();
+                listAssignment.setWonum(wonum);
+                listAssignment.setStatus(status);
+                listAssignment.setTaskid(taskId);
+                listAssignment.setCraft(craft);
+                listAssignment.setCrewType(crewType);
+                listAssignment.setAmcrew(amcrew);
+                listAssignment.setLaborhrs(laborhrs);
+                listAssignment.setChiefcode(chiefcode);
+                listAssignment.setPartnerCode(partnerCode);
+                listAssignment.setUser(user);
+                listAssignment.setName(name);
+                
+                JSONObject res = new JSONObject();
                 UpdateAssignmentEbisDao dao = new UpdateAssignmentEbisDao();
                 ResponseAPI responseTemplete = new ResponseAPI();
                 String message = "";
                 
                 try {
-                    boolean getStatus = dao.getStatusTask(wonum);
+                    boolean getStatus = dao.getStatusTask(listAssignment.getWonum());
                     if (getStatus) {
-                        if (!laborcode.isEmpty()) {
-                            boolean validLabor = dao.validateLabor(laborcode);
+                        if (!listAssignment.getChiefcode().equalsIgnoreCase("") || !listAssignment.getChiefcode().isEmpty()) {
+                            boolean validChief = dao.validateLabor(listAssignment.getChiefcode());
                             
-                            if (validLabor) {
-                                dao.getLaborName(laborcode);
-                                String laborname = dao.getLaborName(laborcode);
-                                LogUtil.info(getClass().getName(), "Laborcode: " + laborcode + ", Laborname: " + laborname);
+                            if (validChief) {
+                                dao.getLaborName(listAssignment.getChiefcode());
+                                String laborname = dao.getLaborName(listAssignment.getChiefcode());
+                                listAssignment.setChiefName(laborname);
+                                LogUtil.info(getClass().getName(), "Laborcode: " + listAssignment.getChiefcode() + ", Laborname: " + laborname);
                                 /**
                                  * laborcode ada di table labor 
                                  */
-                                dao.updateLabor(laborcode, laborname, wonum);
+                                dao.updateLabor(listAssignment);
                                 /**
                                  * update c_laborcode dan c_laborname di table app_fd_workorder
                                  */
-                                dao.updateLaborWorkOrder(laborcode, laborname, wonum);
+                                dao.updateLaborWorkOrder(listAssignment);
                                 
                                 message = "Success update Labor";
-                                res = responseTemplete.getUpdateStatusSuccessResp(wonum, status, message);
+                                res = responseTemplete.getUpdateStatusSuccessResp(listAssignment.getWonum(), listAssignment.getStatus(), message);
                                 res.writeJSONString(hsr1.getWriter());
                             } else {
                                 hsr1.sendError(422, "Laborcode and laborname is not found!");
                             }
-                        } else if (!amcrew.isEmpty()) {
-                            boolean validCrew = dao.validateCrew(amcrew);
+                        } else if (!listAssignment.getPartnerCode().isEmpty() || !listAssignment.getPartnerCode().equalsIgnoreCase("")) {
+                            boolean validPartner = dao.validateLabor(listAssignment.getPartnerCode());
                             
-                            if (validCrew) {
-                                LogUtil.info(getClass().getName(), "Amcrew: " + amcrew);
+                            if (validPartner) {
+                                dao.getLaborName(listAssignment.getPartnerCode());
+                                String laborname = dao.getLaborName(listAssignment.getPartnerCode());
+                                listAssignment.setPartnerName(laborname);
+                                LogUtil.info(getClass().getName(), "Laborcode: " + listAssignment.getPartnerCode() + ", Laborname: " + laborname);
                                 /**
                                  * laborcode ada di table labor 
                                  */
-                                dao.updateCrew(amcrew, wonum);
+                                dao.updatePartner(listAssignment);
                                 /**
                                  * update c_laborcode dan c_laborname di table app_fd_workorder
                                  */
-                                dao.updateCrewWorkOrder(amcrew, wonum);
+                                dao.updateLaborWorkOrder(listAssignment);
+                                
+                                message = "Success update Labor";
+                                res = responseTemplete.getUpdateStatusSuccessResp(listAssignment.getWonum(), listAssignment.getStatus(), message);
+                                res.writeJSONString(hsr1.getWriter());
+                            } else {
+                                hsr1.sendError(422, "Laborcode and laborname is not found!");
+                            }
+                        } else if (!listAssignment.getAmcrew().isEmpty() || !listAssignment.getAmcrew().equalsIgnoreCase("")) {
+                            boolean validCrew = dao.validateCrew(listAssignment.getAmcrew());
+                            
+                            if (validCrew) {
+                                LogUtil.info(getClass().getName(), "Amcrew: " + listAssignment.getAmcrew());
+                                /**
+                                 * laborcode ada di table labor 
+                                 */
+                                dao.updateCrew(listAssignment);
+                                /**
+                                 * update c_laborcode dan c_laborname di table app_fd_workorder
+                                 */
+                                dao.updateCrewWorkOrder(listAssignment);
                                 
                                 message = "Success update Amcrew";
-                                res = responseTemplete.getUpdateStatusSuccessResp(wonum, status, message);
+                                res = responseTemplete.getUpdateStatusSuccessResp(listAssignment.getWonum(), listAssignment.getStatus(), message);
                                 res.writeJSONString(hsr1.getWriter());
                             } else {
                                 hsr1.sendError(422, "AmCrew is not found!");
                             }
-                        } else if (laborcode.equalsIgnoreCase("")) {
-                            dao.updateLaborWaitAssign(laborcode, "", wonum);
-                            dao.deleteLaborWorkOrder(laborcode, "", wonum);
+                        } else if (listAssignment.getChiefcode().equalsIgnoreCase("") || listAssignment.getPartnerCode().equalsIgnoreCase("")) {
+                            listAssignment.setChiefName("");
+                            listAssignment.setPartnerName("");
+                            dao.updateLaborWaitAssign(listAssignment);
+                            dao.deleteLaborWorkOrder(listAssignment);
                             
                             message = "Success delete assignment";
-                            res = responseTemplete.getUpdateStatusSuccessResp(wonum, status, message);
+                            res = responseTemplete.getUpdateStatusSuccessResp(listAssignment.getWonum(), listAssignment.getStatus(), message);
                             res.writeJSONString(hsr1.getWriter());
                         } else {
                             hsr1.sendError(422, "Laborcode and amcrew is null");
                         }
+                        
+                        // Insert into AssignmentLog
+                        dao.insertAssignmentLog(listAssignment);
                     } else {
                         hsr1.sendError(422, "Status parent task is COMPWA");
                     }

@@ -424,8 +424,8 @@ public class UpdateTaskStatusEbisDao {
 
     public void updateWoDesc(String parent, int nextTaskId, String modifiedBy) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_description, c_ownergroup FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_status = 'LABASSIGN' AND c_wfmdoctype = 'NEW'";
-        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_description = ?, c_ownergroup = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        String query = "SELECT c_description, c_ownergroup, c_schedstart, c_schedfinish, c_estdur FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_status = 'LABASSIGN' AND c_wfmdoctype = 'NEW'";
+        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_description = ?, c_ownergroup = ?, c_schedstart = ?, c_schedfinish = ?, c_estdur = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps1 = con.prepareStatement(query);
                 PreparedStatement ps2 = con.prepareStatement(update)) {
@@ -436,11 +436,13 @@ public class UpdateTaskStatusEbisDao {
                 ps2.setString(1, modifiedBy);
                 ps2.setString(2, rs.getString("c_description"));
                 ps2.setString(3, rs.getString("c_ownergroup"));
-                ps2.setString(4, parent);
+                ps2.setTimestamp(4, Timestamp.valueOf(rs.getString("c_schedstart")));
+                ps2.setTimestamp(5, Timestamp.valueOf(rs.getString("c_schedfinish")));
+                ps2.setFloat(6, rs.getFloat("c_estdur"));
+                ps2.setString(7, parent);
                 int exe = ps2.executeUpdate();
                 if (exe > 0) {
                     LogUtil.info(getClass().getName(), "description parent and ownergroup is updated");
-//                    nextAssign = true;
                 } else {
                     LogUtil.info(getClass().getName(), "description parent and ownergroup is not updated");
                 }
@@ -845,6 +847,78 @@ public class UpdateTaskStatusEbisDao {
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here: " + e.getMessage());
+        }
+    }
+    
+    public void updateActualStart(String parent, String actstart) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET c_actstart = ?, dateModified = sysdate WHERE c_wonum = ?";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setTimestamp(1, Timestamp.valueOf(actstart));
+            ps.setString(2, parent);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), "actStart updated");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateActualFinish(String parent, String actfinish) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET c_actfinish = ?, dateModified = sysdate WHERE c_wonum = ?";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setTimestamp(1, Timestamp.valueOf(actfinish));
+            ps.setString(2, parent);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), "actFinish updated");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateActualStartTask(String parent, String actstart) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET c_actstart = ?, dateModified = sysdate WHERE c_parent = ?";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setTimestamp(1, Timestamp.valueOf(actstart));
+            ps.setString(2, parent);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), "actStart updated");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateActualFinishTask(String parent, String actfinish) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET c_actfinish = ?, dateModified = sysdate WHERE c_parent = ?";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setTimestamp(1, Timestamp.valueOf(actfinish));
+            ps.setString(2, parent);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), "actFinish updated");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
         }
     }
 }

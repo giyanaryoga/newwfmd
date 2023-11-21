@@ -36,7 +36,30 @@ public class ValidateTaskStatus {
     ResponseKafka responseKafka = new ResponseKafka();
 
     TimeUtil time = new TimeUtil();
-    final JSONObject res = new JSONObject();
+//    final JSONObject res = new JSONObject();
+    
+    private void actualTime(UpdateStatusParam param) {
+        String actstart = time.getCurrentTime();
+        String actfinish = time.getCurrentTime();
+        try {
+            String status = param.getStatus();
+            String taskId = param.getTaskId();
+            int taskid = Integer.parseInt(taskId);
+            if (status.equalsIgnoreCase("STARTWA") && taskid == 10) {
+                daoUpdate.updateActualStart(param.getParent(), actstart);
+                daoUpdate.updateActualStartTask(param.getParent(), actstart);
+            } else {
+                int nextTaskId = taskid + 10;
+                String nextMove = daoUpdate.nextMove(param.getParent(), nextTaskId);
+                if (status.equalsIgnoreCase("COMPWA") && nextMove.equalsIgnoreCase("COMPLETE")) {
+                    daoUpdate.updateActualFinish(param.getParent(), actfinish);
+                    daoUpdate.updateActualFinishTask(param.getParent(), actfinish);
+                }   
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     public boolean startTask(UpdateStatusParam param) throws JSONException {
         boolean startwa = false;
@@ -48,14 +71,17 @@ public class ValidateTaskStatus {
             if (!checkActPlace.equalsIgnoreCase("OUTSIDE")) {
                 startwa = true;
                 validateStartwaProduct(param);
+                actualTime(param);
             } else if (isAssigned.equalsIgnoreCase("No Assign") && !checkActPlace.equalsIgnoreCase("OUTSIDE")) {
                 startwa = true;
                 validateStartwaProduct(param);
+                actualTime(param);
             } else if (isAssigned.equalsIgnoreCase("No Assign") && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
                 startwa = false;
             } else  if (isAssigned.equalsIgnoreCase("Assign") && checkActPlace.equalsIgnoreCase("OUTSIDE")) {
                 startwa = true;
                 validateStartwaProduct(param);
+                actualTime(param);
             } else {
                 startwa = false;
             }
@@ -192,8 +218,7 @@ public class ValidateTaskStatus {
             
             // Update parent status
             daoUpdate.updateParentStatus(param.getParent(), "COMPLETE", time.getCurrentTime(), param.getModifiedBy());
-//            LogUtil.info(getClass().getName(), "Update COMPLETE Successfully");
-
+            actualTime(param);
             // update task status
             updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
             if (updateTask.equalsIgnoreCase("Update task status berhasil")) {
@@ -454,7 +479,7 @@ public class ValidateTaskStatus {
                             response.put("code", 200);
                             response.put("message", "Update Status compwa is success");
                         }
-                        daoUpdate.updateWoDesc(param.getParent(), nextTaskId, param.getModifiedBy());
+                        daoUpdate .updateWoDesc(param.getParent(), nextTaskId, param.getModifiedBy());
                         daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
                         daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
                     }
