@@ -225,9 +225,11 @@ public class TaskActivityDao {
                 .append(" c_schedstart, ")
                 .append(" c_schedfinish, ")
                 .append(" c_iscpe, ")
-                .append(" c_classstructureid ")
+                .append(" c_classstructureid, ")
+                .append(" c_isobsolete ")
                 .append(" ) ")
                 .append(" VALUES ( ")
+                .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
                 .append(" ?, ")
@@ -287,6 +289,7 @@ public class TaskActivityDao {
                 ps.setInt(23, 0);
             }
             ps.setString(24, taskObj.get("classstructureid").toString());
+            ps.setInt(25, 0);
             
             int exe = ps.executeUpdate();
             //Checking insert status

@@ -25,6 +25,7 @@ public class UpdateStatusParam {
     private String activity;
     private String errorCode;
     private String engineerMemo;
+    private String sequence;
     
     /**
      * @return the parent
@@ -222,5 +223,13 @@ public class UpdateStatusParam {
 
     public void setChiefcode(String chiefcode) {
         this.chiefcode = chiefcode;
+    }
+
+    public String getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(String sequence) {
+        this.sequence = sequence;
     }
 }

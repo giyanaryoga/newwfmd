@@ -93,9 +93,6 @@ public class ValidateRevised {
                         dao.reviseTaskDocType(wonum, "NEW");
                     }
                 break;
-                default:
-                    LogUtil.info(getClass().getName(), "Attribute name dan value tidak memenuhi Revised Task");
-                break;
             }
         } catch (SQLException ex) {
             Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);

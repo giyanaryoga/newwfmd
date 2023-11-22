@@ -978,9 +978,9 @@ public class ValidateTaskAttribute {
                         taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", condition);
                     }
                     break;
-                default:
-                    LogUtil.info(getClass().getName(), "Detail Act Code is not found and not execute!");
-                    break;
+//                default:
+//                    LogUtil.info(getClass().getName(), "Detail Act Code is not found and not execute!");
+//                    break;
             }
 
             switch (attrName) {
@@ -1113,9 +1113,9 @@ public class ValidateTaskAttribute {
                     break;
                 case "MITRA_DEPLOY":
                     break;
-                default:
-                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
-                    break;
+//                default:
+//                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
+//                    break;
             }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);

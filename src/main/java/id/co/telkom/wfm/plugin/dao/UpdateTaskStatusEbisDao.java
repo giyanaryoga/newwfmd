@@ -196,24 +196,6 @@ public class UpdateTaskStatusEbisDao {
         }
         return taskAttrValue;
     }
-    
-    public String get(String wonum) throws SQLException {
-        String chiefCode = "";
-        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_chief_code FROM app_fd_workorder WHERE c_wonum = ?";
-        try (Connection con = ds.getConnection();
-            PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                chiefCode = rs.getString("c_chief_code");
-        } catch (SQLException e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return chiefCode;
-    }
 
     public String checkAssignment(String wonum) throws SQLException {
         String assign = "";
@@ -361,16 +343,17 @@ public class UpdateTaskStatusEbisDao {
     //===========================
     // Function Update Task
     //===========================
-    public String updateTask(String wonum, String status, String modifiedBy) {
+    public String updateTask(String wonum, String status, String modifiedBy, String modifiedByName) {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_status = ?, modifiedby = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_status = ?, modifiedby = ?, modifiedbyname = ?, dateModified = sysdate WHERE c_wonum = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
 
             ps.setString(1, status);
             ps.setString(2, modifiedBy);
-            ps.setString(3, wonum);
+            ps.setString(3, modifiedByName);
+            ps.setString(4, wonum);
             int exe = ps.executeUpdate();
 
             if (exe > 0) {
@@ -414,21 +397,22 @@ public class UpdateTaskStatusEbisDao {
     //=========================================
     // SET LABASSIGN FOR NEXT TASK
     //=========================================
-    public boolean nextAssign(String parent, int nextTaskId, String modifiedBy) throws SQLException {
+    public boolean nextAssign(String parent, int nextTaskId, String modifiedBy, String modifiedByName) throws SQLException {
         boolean nextAssign = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = ?, modifiedby = ? WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
+        String update = "UPDATE app_fd_workorder SET c_status = 'LABASSIGN', dateModified = ?, modifiedby = ?, modifiedbyname = ? WHERE c_parent = ? AND c_taskid = ? AND c_wfmdoctype = 'NEW' AND c_woclass = 'ACTIVITY'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update)) {
             ps.setTimestamp(1, getTimeStamp());
             ps.setString(2, modifiedBy);
-            ps.setString(3, parent);
-            ps.setInt(4, nextTaskId);
+            ps.setString(3, modifiedByName);
+            ps.setString(4, parent);
+            ps.setInt(5, nextTaskId);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "next assign berhasil");
                 nextAssign = true;
-                updateWoDesc(parent, nextTaskId, modifiedBy);
+                updateWoDesc(parent, nextTaskId, modifiedBy, modifiedByName);
             } else {
                 LogUtil.info(getClass().getName(), "next assign gagal");
             }
@@ -440,10 +424,10 @@ public class UpdateTaskStatusEbisDao {
         return nextAssign;
     }
 
-    public void updateWoDesc(String parent, int nextTaskId, String modifiedBy) throws SQLException {
+    public void updateWoDesc(String parent, int nextTaskId, String modifiedBy, String modifiedByName) throws SQLException {
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String query = "SELECT c_description, c_ownergroup, c_schedstart, c_schedfinish, c_estdur FROM app_fd_workorder WHERE c_parent = ? AND c_taskid = ? AND c_status = 'LABASSIGN' AND c_wfmdoctype = 'NEW'";
-        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_description = ?, c_ownergroup = ?, c_schedstart = ?, c_schedfinish = ?, c_estdur = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_description = ?, c_ownergroup = ?, c_schedstart = ?, c_schedfinish = ?, c_estdur = ?, modifiedbyname = ?, dateModified = sysdate WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps1 = con.prepareStatement(query);
                 PreparedStatement ps2 = con.prepareStatement(update)) {
@@ -457,7 +441,8 @@ public class UpdateTaskStatusEbisDao {
                 ps2.setTimestamp(4, Timestamp.valueOf(rs.getString("c_schedstart")));
                 ps2.setTimestamp(5, Timestamp.valueOf(rs.getString("c_schedfinish")));
                 ps2.setFloat(6, rs.getFloat("c_estdur"));
-                ps2.setString(7, parent);
+                ps2.setString(7, modifiedByName);
+                ps2.setString(8, parent);
                 int exe = ps2.executeUpdate();
                 if (exe > 0) {
                     LogUtil.info(getClass().getName(), "description parent and ownergroup is updated");
@@ -477,8 +462,8 @@ public class UpdateTaskStatusEbisDao {
     //========================================
     // UPDATE WOSTATUS
     //========================================
-    public void updateParentStatus(String wonum, String status, String statusDate, String modifiedBy) throws SQLException {
-        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_status = ?, c_statusdate = ?, dateModified = ? WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
+    public void updateParentStatus(String wonum, String status, String statusDate, String modifiedBy, String modifiedByName) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET modifiedby = ?, c_status = ?, c_statusdate = ?, dateModified = ?, modifiedbyname = ? WHERE c_wonum = ? AND c_woclass = 'WORKORDER'";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
@@ -487,7 +472,8 @@ public class UpdateTaskStatusEbisDao {
             ps.setString(2 + index, status);
             ps.setTimestamp(3 + index, getTimeStamp());
             ps.setTimestamp(4 + index, getTimeStamp());
-            ps.setString(5 + index, wonum);
+            ps.setString(5 + index, modifiedByName);
+            ps.setString(6 + index, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), wonum + " | Status updated to: " + status);

@@ -8,7 +8,6 @@ package id.co.telkom.wfm.plugin;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import id.co.telkom.wfm.plugin.controller.ValidateTaskStatus;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
-import id.co.telkom.wfm.plugin.util.MessageException;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import java.io.*;
 import java.util.Map;
@@ -16,7 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
-import org.joget.apps.app.model.AppDefinition;
+//import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.*;
 import org.joget.commons.util.LogUtil;
@@ -138,6 +137,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 param.setCurrentDate(currentDate);
                 param.setErrorCode(errorCode);
                 param.setEngineerMemo(engineerMemo);
+                param.setSequence(woSequence);
                 String message = "";
 
                 //GET BYPASS CONFIGURATION
@@ -182,7 +182,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 }
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-            } catch (JSONException | MessageException ex) {
+            } catch (JSONException ex) {
                 Logger.getLogger(UpdateTaskStatusEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (anonUser || !"POST".equals(hsr.getMethod())) {

@@ -458,7 +458,6 @@ public class TaskAttributeUpdateDao {
         update
                 .append("UPDATE app_fd_workorderspec SET ")
                 .append(" c_mandatory = ?, ")
-                //            .append(" c_isrequired = ?, ")
                 .append(" datemodified = ? ")
                 .append(" WHERE ")
                 .append(" c_wonum = ? ")
@@ -501,7 +500,7 @@ public class TaskAttributeUpdateDao {
             ps.setString(4, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), parent + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), parent + " | Updated task attribute parent where :  " + assetattrid);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -528,7 +527,7 @@ public class TaskAttributeUpdateDao {
             ps.setString(4, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid success updated");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -557,7 +556,7 @@ public class TaskAttributeUpdateDao {
             ps.setString(5, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), wonum + " | Success updated task attribute from = "+detailactcode);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -584,7 +583,7 @@ public class TaskAttributeUpdateDao {
             ps.setString(4, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), parent + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), parent + " Updated task attribute Like  " + assetattrid);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
