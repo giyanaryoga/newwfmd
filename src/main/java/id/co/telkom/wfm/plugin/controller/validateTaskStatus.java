@@ -7,6 +7,7 @@ package id.co.telkom.wfm.plugin.controller;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import id.co.telkom.wfm.plugin.dao.*;
 import id.co.telkom.wfm.plugin.kafka.ResponseKafka;
+import id.co.telkom.wfm.plugin.util.MessageException;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.IOException;
 import java.sql.*;
@@ -54,6 +55,21 @@ public class ValidateTaskStatus {
                 if (status.equalsIgnoreCase("COMPWA") && nextMove.equalsIgnoreCase("COMPLETE")) {
                     daoUpdate.updateActualFinish(param.getParent(), actfinish);
                     daoUpdate.updateActualFinishTask(param.getParent(), actfinish);
+                }   
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ValidateTaskStatus.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void taskMandatoryVariable(String chiefCode, String compViaUi, String wonum) throws MessageException {
+        try {
+            String actplace = daoUpdate.checkActPlace(wonum);
+            if (actplace.equalsIgnoreCase("OUTSIDE")) {
+                if (compViaUi.equals("0")) {
+                    throw new MessageException("can not compwa via UI");
+                } else if (chiefCode.equals("")) {
+                    throw new MessageException("labor must be assigned");
                 }   
             }
         } catch (SQLException ex) {
@@ -308,34 +324,39 @@ public class ValidateTaskStatus {
                     }
                     break;
                 case "Shipment_Delivery":
-                    //validasi workorderattribute C_ATTR_NAME = 'ManagedService' and C_ATTR_VALUE = 'Yes'
                     String woAttr = woDao.getValueWorkorderAttribute(param.getParent(), "ManagedService");
-                    
                     if (woAttr.equalsIgnoreCase("Yes") || woAttr.equalsIgnoreCase("YES")) {
                         //validasi attachment file SERVICE_DETAIL
                         int document = daoUpdate.checkAttachedFile(param.getParent(), "SERVICE_DETAIL");
                         if (document == 1) {
                             //response true send url to retools
-                            validateRE.validateOBL(param.getParent());
-                            updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                            nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
-                            if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                                daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                                response.put("code", 200);
-                                response.put("message", "Berhasil mengupdate status, Mengirim Document to ReTools and create Customer!");
+                            JSONObject validateObl = validateRE.validateOBL(param.getParent());
+                            int code = (int)validateObl.get("code");
+                            if (code == 200) {
+                                updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                                nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
+                                if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                                    daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                                    response.put("code", 200);
+                                    response.put("message", "Berhasil mengupdate status, Mengirim Document to ReTools and create Customer!");
+                                }   
+                            } else {
+                                response.put("code", 422);
+                                response.put("message", validateObl.get("message").toString());
                             }
                         } else {
                             //response false, gagal send url dan kirim message gagal
                             response.put("code", 422);
                             response.put("message", "Document 'SERVICE_DETAIL' is not found!");
                         }
-                    }
-                    updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
-                    nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
-                    if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
-                        daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
-                        response.put("code", 200);
-                        response.put("message", "Berhasil mengupdate status Compwa!");
+                    } else {
+                        updateTask = daoUpdate.updateTask(param.getWonum(), param.getStatus(), param.getModifiedBy());
+                        nextAssign = daoUpdate.nextAssign(param.getParent(), nextTaskId, param.getModifiedBy());
+                        if (nextAssign && updateTask.equalsIgnoreCase("Update task status berhasil")) {
+                            daoHistory.insertTaskStatus(param.getWonum(), param.getMemo(), param.getModifiedBy(), "WFM");
+                            response.put("code", 200);
+                            response.put("message", "Berhasil mengupdate status Compwa!");
+                        }
                     }
                     break;
                 case "Upload_Berita_Acara":

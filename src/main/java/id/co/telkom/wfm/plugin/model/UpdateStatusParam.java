@@ -18,6 +18,8 @@ public class UpdateStatusParam {
     private String description;
     private String status;
     private String modifiedBy;
+    private String modifiedByName;
+    private String chiefcode;
     private String memo;
     private String currentDate;
     private String activity;
@@ -204,5 +206,21 @@ public class UpdateStatusParam {
      */
     public void setEngineerMemo(String engineerMemo) {
         this.engineerMemo = engineerMemo;
+    }
+
+    public String getModifiedByName() {
+        return modifiedByName;
+    }
+
+    public void setModifiedByName(String modifiedByName) {
+        this.modifiedByName = modifiedByName;
+    }
+
+    public String getChiefcode() {
+        return chiefcode;
+    }
+
+    public void setChiefcode(String chiefcode) {
+        this.chiefcode = chiefcode;
     }
 }

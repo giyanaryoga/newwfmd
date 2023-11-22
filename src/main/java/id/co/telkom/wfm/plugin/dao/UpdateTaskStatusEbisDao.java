@@ -196,6 +196,24 @@ public class UpdateTaskStatusEbisDao {
         }
         return taskAttrValue;
     }
+    
+    public String get(String wonum) throws SQLException {
+        String chiefCode = "";
+        DataSource ds = (DataSource)AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_chief_code FROM app_fd_workorder WHERE c_wonum = ?";
+        try (Connection con = ds.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                chiefCode = rs.getString("c_chief_code");
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return chiefCode;
+    }
 
     public String checkAssignment(String wonum) throws SQLException {
         String assign = "";

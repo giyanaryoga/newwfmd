@@ -5,26 +5,24 @@
  */
 package id.co.telkom.wfm.plugin;
 
-//import id.co.telkom.wfm.plugin.controller.validateNonCoreProduct;
 import id.co.telkom.wfm.plugin.util.TimeUtil;
-import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
 import id.co.telkom.wfm.plugin.controller.ValidateTaskStatus;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
+import id.co.telkom.wfm.plugin.util.MessageException;
 import id.co.telkom.wfm.plugin.util.ResponseAPI;
 import java.io.*;
-//import java.sql.SQLException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
+import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.*;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
 import org.joget.workflow.model.service.WorkflowUserManager;
 import org.json.JSONException;
-//import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
 
@@ -103,7 +101,6 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 JSONObject body = (JSONObject) envelope2.get("WORKORDER");
 
                 ValidateTaskStatus validateTask = new ValidateTaskStatus();
-                UpdateTaskStatusEbisDao daoUpdate = new UpdateTaskStatusEbisDao();
                 UpdateStatusParam param = new UpdateStatusParam();
                 ResponseAPI responseTemplete = new ResponseAPI();
                 JSONObject res = new JSONObject();
@@ -122,6 +119,8 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 String engineerMemo = (body.get("engineerMemo") == null ? "" : body.get("engineerMemo").toString());
                 String memo = (body.get("memo") == null ? "" : body.get("memo").toString());
                 String modifiedBy = (body.get("modifiedBy") == null ? "" : body.get("modifiedBy").toString());
+                String modifiedByName = (body.get("modifiedByName") == null ? "" : body.get("modifiedByName").toString());
+                String chiefcode = (body.get("chiefcode") == null ? "" : body.get("chiefcode").toString());
                 String currentDate = time.getCurrentTime();
 
                 param.setParent(parent);
@@ -134,13 +133,20 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 param.setWoStatus(woStatus);
                 param.setMemo(memo);
                 param.setModifiedBy(modifiedBy);
+                param.setModifiedByName(modifiedByName);
+                param.setChiefcode(chiefcode);
                 param.setCurrentDate(currentDate);
                 param.setErrorCode(errorCode);
                 param.setEngineerMemo(engineerMemo);
-//                boolean validate = true;
-//                boolean validatenoncore = false;
                 String message = "";
 
+                //GET BYPASS CONFIGURATION
+//                AppDefinition AppDef = AppUtil.getCurrentAppDefinition();
+//                String compViaUi = "#envVariable.compViaUi#";
+//                LogUtil.info(getClass().getName(), "compwaUI: " + compViaUi);
+//                compViaUi = AppUtil.processHashVariable(compViaUi, null, null, null, AppDef);
+//                validateTask.taskMandatoryVariable(param.getChiefcode(), compViaUi, param.getWonum());
+                
                 switch (status) {
                     case "STARTWA":
                         boolean validateStarwa = validateTask.startTask(param);
@@ -176,7 +182,7 @@ public class UpdateTaskStatusEbis extends Element implements PluginWebSupport {
                 }
             } catch (ParseException e) {
                 LogUtil.error(getClassName(), e, "Trace error here: " + e.getMessage());
-            } catch (JSONException ex) {
+            } catch (JSONException | MessageException ex) {
                 Logger.getLogger(UpdateTaskStatusEbis.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (anonUser || !"POST".equals(hsr.getMethod())) {
