@@ -172,7 +172,7 @@ public class ValidateTaskStatus {
     private boolean validateStartwaProduct(UpdateStatusParam param) {
         boolean startwa = false;
         String updateTask = "";
-        String response = "";
+        String response;
         try {
             org.json.JSONObject params = validateNonCoreProduct.getParams(param.getWonum());
             String productname = (params.optString("productname", null));
@@ -344,7 +344,7 @@ public class ValidateTaskStatus {
                                     response.put("message", "Berhasil mengupdate status, Mengirim Document to ReTools and create Customer!");
                                 }   
                             } else {
-                                response.put("code", 422);
+                                response.put("code", (int)validateObl.get("code"));
                                 response.put("message", validateObl.get("message").toString());
                             }
                         } else {

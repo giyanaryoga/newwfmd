@@ -8,9 +8,12 @@ import id.co.telkom.wfm.plugin.model.ListReTools;
 import id.co.telkom.wfm.plugin.dao.GenerateWonumEbisDao;
 import id.co.telkom.wfm.plugin.dao.ReToolDao;
 import id.co.telkom.wfm.plugin.model.APIConfig;
+import id.co.telkom.wfm.plugin.model.HttpResponse;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -33,16 +36,19 @@ public class ValidateReTools {
     IntegrationHistory integrationHistory = new IntegrationHistory();
     ConnUtil connUtil = new ConnUtil();
     ListReTools param = new ListReTools();
+    JSONParser parser = new JSONParser();
     
-    private JSONObject sendUrl(ListReTools param) {
-        JSONObject responseObj = new JSONObject();
+    private HttpResponse sendUrl(ListReTools param) {
+        APIConfig apiConfig = new APIConfig();
+        apiConfig = connUtil.getApiParam("send_url_obl");
+        URL url = null;
+        HttpURLConnection conn = null;
         try {
-            APIConfig apiConfig = new APIConfig();
-            apiConfig = connUtil.getApiParam("send_url_obl");
-            URL url = new URL(apiConfig.getUrl());
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            url = new URL(apiConfig.getUrl());
+            conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+            conn.setRequestProperty("Accept-Charset", "UTF-8");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", apiConfig.getClientSecret());
             conn.setDoOutput(true);
@@ -62,7 +68,6 @@ public class ValidateReTools {
             bodyParam.put("site_id", param.getSiteId());
             
             String request = bodyParam.toString();
-//            LogUtil.info(this.getClass().getName(), "REQUEST OBL : " + request);
             try (OutputStream outputStream = conn.getOutputStream()) {
                 byte[] b = request.getBytes("UTF-8");
                 outputStream.write(b);
@@ -70,43 +75,46 @@ public class ValidateReTools {
             }
             
             int responseCode = conn.getResponseCode();
-            if (responseCode != 200) {
-//                LogUtil.info(this.getClass().getName(), "RESPONSE OBL : " + conn.getResponseMessage());
-//                LogUtil.info(this.getClass().getName(), "Failed Send URL");
-                responseObj.put("status", responseCode);
-                responseObj.put("message", "Failed Send URL OBL, Please contact adminitrator!");
-            }
-            InputStream inputStr = conn.getInputStream();
             StringBuilder response = new StringBuilder();
-            byte[] res = new byte[2048];
-            int i = 0;
-            while ((i = inputStr.read(res)) != -1) {
-                response.append(new String(res, 0, i));
-            }
+            BufferedReader br = null;
             
-            JSONParser parser = new JSONParser();
-            JSONObject data_obj = (JSONObject)parser.parse(response.toString());
-            String body = data_obj.get("body").toString();
-            responseObj.put("message", body);
-            responseObj.put("status", responseCode);
-//            LogUtil.info(this.getClass().getName(), "Response URL = "+response.toString());
-            conn.disconnect();
+            if (responseCode == 200) {
+                InputStream inputStr = conn.getInputStream();
+                br = new BufferedReader(new InputStreamReader(inputStr));
+            } else {
+                InputStream errStr = conn.getErrorStream();
+                br = new BufferedReader(new InputStreamReader(errStr));             
+            }
+            String line;
+            while ((line = br.readLine()) != null) {
+                response.append(line);
+            }
+            br.close();
+            return new HttpResponse(responseCode, response.toString());
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException | ParseException ex) {
+            return null;
+        } catch (IOException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
-        return responseObj;
     }
     
     private void createCustomerSCMT(ListReTools param) {
+        APIConfig apiConfig = new APIConfig();
+        apiConfig = connUtil.getApiParam("create_customer_obl");
+        URL url = null;
+        HttpURLConnection conn = null;
         try {
-            APIConfig apiConfig = new APIConfig();
-            apiConfig = connUtil.getApiParam("create_customer_obl");
-            URL url = new URL(apiConfig.getUrl());
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            url = new URL(apiConfig.getUrl());
+            conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+            conn.setRequestProperty("Accept-Charset", "UTF-8");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", apiConfig.getClientSecret());
             conn.setDoOutput(true);
@@ -144,27 +152,34 @@ public class ValidateReTools {
             JSONObject responseObj = new JSONObject();
             responseObj.put("response", response);
             responseObj.put("status", responseCode);
-            JSONParser parser = new JSONParser();
+            
             JSONObject data_obj = (JSONObject)parser.parse(response.toString());
             JSONObject body = (JSONObject) data_obj.get("body");
             String customerId = body.get("customer_id").toString();
             param.setCustomerId(customerId);
-            conn.disconnect();
+//            conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
     
     private void generateUrlMinio(String parent, String objectName) {
+        APIConfig apiConfig = new APIConfig();
+        apiConfig = connUtil.getApiParam("generate_url_minio");
+        URL url = null;
+        HttpURLConnection conn = null;
         try {
-            APIConfig apiConfig = new APIConfig();
-            apiConfig = connUtil.getApiParam("generate_url_minio");
-            URL url = new URL(apiConfig.getUrl());
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            url = new URL(apiConfig.getUrl());
+            conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+            conn.setRequestProperty("Accept-Charset", "UTF-8");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("api_id", apiConfig.getApiId());
             conn.setRequestProperty("api_key", apiConfig.getApiKey());
@@ -196,11 +211,15 @@ public class ValidateReTools {
             while ((i = inputStr.read(res)) != -1) {
                 response.append(new String(res, 0, i));
             }
-            conn.disconnect();
+//            conn.disconnect();
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
     
@@ -266,13 +285,17 @@ public class ValidateReTools {
             createCustomerSCMT(param);
             
             //Send URL document to ReTools
-            JSONObject responseURL = sendUrl(param);
-//            LogUtil.info(this.getClass().getName(), "Cek Validasi = "+responseURL);
-            int status = (int) responseURL.get("status");
-            String message = responseURL.get("message").toString();
-            resp.put("code", status);
-            resp.put("message", message);
-        } catch (SQLException ex) {
+            HttpResponse response = sendUrl(param);
+            int code = response.getCode();
+            JSONObject data_obj = (JSONObject)parser.parse(response.getBody());
+            if (code == 200) {
+                resp.put("code", code);
+                resp.put("message", data_obj.get("body").toString());
+            } else {
+                resp.put("code", code);
+                resp.put("message", data_obj.get("body").toString());
+            }
+        } catch (SQLException | ParseException ex) {
             Logger.getLogger(ValidateReTools.class.getName()).log(Level.SEVERE, null, ex);
         }
         return resp;
