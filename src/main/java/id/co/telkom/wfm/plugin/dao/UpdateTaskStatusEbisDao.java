@@ -5,6 +5,7 @@
  */
 package id.co.telkom.wfm.plugin.dao;
 
+import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
 import java.sql.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -915,6 +916,38 @@ public class UpdateTaskStatusEbisDao {
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
             ps.setTimestamp(1, Timestamp.valueOf(actfinish));
             ps.setString(2, parent);
+            int exe = ps.executeUpdate();
+            if (exe > 0) {
+                LogUtil.info(getClass().getName(), "actFinish updated");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+    }
+    
+    public void updateMyStaffStatusNull(String wonum, UpdateStatusParam param) throws SQLException {
+        String update = "UPDATE app_fd_workorder SET C_WOLO1 = ?, C_CPE_VENDOR = ?, C_CPE_MODEL = ?, C_CPE_SERIAL_NUMBER = ?, "
+                + "C_TK_CUSTOM_HEADER_03 = ?, C_TK_CUSTOM_HEADER_04 = ?, C_TK_CUSTOM_HEADER_10 = ?, "
+                + "C_LATITUDE = ?, C_LONGITUDE = ?, C_ERRORCODE = ?, C_ENGINEERMEMO = ?, "
+                + "C_URLEVIDENCE = ?, dateModified = sysdate WHERE c_wonum = ?";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(update.toString())) {
+            ps.setString(1, param.getWolo1());
+            ps.setString(2, param.getCpeVendor());
+            ps.setString(3, param.getCpeModel());
+            ps.setString(4, param.getCpeSerialNumber());
+            ps.setString(5, param.getTkCustomHeader03());
+            ps.setString(6, param.getTkCustomHeader04());
+            ps.setString(7, param.getTkCustomHeader10());
+            ps.setString(8, param.getLatitude());
+            ps.setString(9, param.getLongitude());
+            ps.setString(10, param.getErrorCode());
+            ps.setString(11, param.getEngineerMemo());
+            ps.setString(12, param.getUrlEvidence());
+            ps.setString(13, wonum);
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 LogUtil.info(getClass().getName(), "actFinish updated");

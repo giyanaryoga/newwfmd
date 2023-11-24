@@ -25,7 +25,6 @@ import org.json.simple.JSONObject;
 public class ValidateMyStaff {
     UpdateTaskStatusEbisDao daoUpdate = new UpdateTaskStatusEbisDao();
     TaskAttributeUpdateDao daoAttr = new TaskAttributeUpdateDao();
-    MyStaffParam paramAttr = new MyStaffParam();
     ValidateTaskAttribute validateTaskAttr1 = new ValidateTaskAttribute();
     ValidateTaskAttribute2 validateTaskAttr2 = new ValidateTaskAttribute2();
     ValidateRevised validateRevised = new ValidateRevised();
@@ -69,8 +68,8 @@ public class ValidateMyStaff {
 //                    LogUtil.info(getClassName(), "taskObj: " + taskObj);
             param.setParent(taskObj.get("parent").toString());
             param.setActivity(taskObj.get("detailactcode").toString());
-            
-            int nextTaskId = (int) taskObj.get("taskid") + 10;
+            param.setTaskId(taskObj.get("taskid").toString());
+//            int nextTaskId = (int) taskObj.get("taskid") + 10;
             String woSequence = taskObj.get("wosequence").toString();
             String description = taskObj.get("description").toString();
             String parent = taskObj.get("parent").toString();
@@ -106,7 +105,10 @@ public class ValidateMyStaff {
                     break;
                 case "":
                     //jika status null/"" maka hanya update column lain tanpa mengupdate status
-                    //column yang tidak terupdate: WONUM, SITEID, LATITUDE, LONGITUDE,
+                    //column yang tidak terupdate: WONUM, SITEID
+                    daoUpdate.updateMyStaffStatusNull(param.getWonum(), param);
+                    message = "Success Update Workorder for Status is NULL";
+                    resp = responseTemplete.ResponseMessage(200, message);
                     break;
             }
         } catch (SQLException | JSONException | IOException ex) {

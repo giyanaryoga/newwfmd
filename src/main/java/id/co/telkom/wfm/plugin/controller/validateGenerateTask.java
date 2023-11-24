@@ -282,7 +282,7 @@ public class ValidateGenerateTask {
             } else {
                 generate = false;
             }
-            LogUtil.info(getClass().getName(), "Task :" +taskWO);
+//            LogUtil.info(getClass().getName(), "Task :" +taskWO);
         } catch (SQLException ex) {
             Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -5,14 +5,11 @@
 package id.co.telkom.wfm.plugin;
 
 import id.co.telkom.wfm.plugin.dao.UpdateTaskStatusEbisDao;
-//import id.co.telkom.wfm.plugin.dao.TaskAttributeUpdateDao;
 import id.co.telkom.wfm.plugin.controller.ValidateMyStaff;
 import id.co.telkom.wfm.plugin.model.MyStaffParam;
 import id.co.telkom.wfm.plugin.model.UpdateStatusParam;
-import id.co.telkom.wfm.plugin.util.TimeUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -21,7 +18,6 @@ import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.PluginWebSupport;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -72,7 +68,6 @@ public class MyStaffIntegration extends Element implements PluginWebSupport {
     public void webService(HttpServletRequest hsr, HttpServletResponse hsr1) throws ServletException, IOException {
         //@@Start..
         UpdateTaskStatusEbisDao dao = new UpdateTaskStatusEbisDao();
-//        TaskAttributeUpdateDao daoAttr = new TaskAttributeUpdateDao();
         ValidateMyStaff validate = new ValidateMyStaff();
         MyStaffParam paramAttr = new MyStaffParam();
         UpdateStatusParam param = new UpdateStatusParam();
@@ -129,7 +124,6 @@ public class MyStaffIntegration extends Element implements PluginWebSupport {
                         res.put("code", 422);
                         res.put("message", "Failed update task attribute");
                         res.put("data", res.get("data"));
-//                        res.writeJSONString(hsr1.getWriter());
                     }
                 } else {
                     LogUtil.info(getClassName(), "Task request is not found");

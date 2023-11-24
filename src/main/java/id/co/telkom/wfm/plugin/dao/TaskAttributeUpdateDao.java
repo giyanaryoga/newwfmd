@@ -211,9 +211,10 @@ public class TaskAttributeUpdateDao {
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 taskUpdated = true;
-                LogUtil.info(getClass().getName(), "update task attribute mystaff berhasil");
+//                LogUtil.info(getClass().getName(), "update task attribute mystaff berhasil");
             } else {
-                LogUtil.info(getClass().getName(), "update task attribute gagal");
+                taskUpdated = false;
+//                LogUtil.info(getClass().getName(), "update task attribute gagal");
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
