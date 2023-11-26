@@ -31,8 +31,6 @@ public class ValidateMyStaff {
     ValidateTaskStatus validateTaskStatus = new ValidateTaskStatus();
     JSONObject taskObj = new JSONObject();
     ResponseAPI responseTemplete = new ResponseAPI();
-    
-    
     private static final String[] unusedUpdateParams = {"task","wonum","siteid","statusiface","np_statusmemo","chiefcode"};
     
     public JSONObject updateTaskStatus(UpdateStatusParam param, JSONObject body) {
@@ -65,17 +63,16 @@ public class ValidateMyStaff {
             taskObj.put("detailactcode", getTaskUpdate.get("detailactcode"));
             taskObj.put("description", getTaskUpdate.get("description"));
             taskObj.put("parent", getTaskUpdate.get("parent"));
-//                    LogUtil.info(getClassName(), "taskObj: " + taskObj);
-            param.setParent(taskObj.get("parent").toString());
+            String woSequence = taskObj.get("wosequence").toString();
+//            String description = taskObj.get("description").toString();
+            String parent = taskObj.get("parent").toString();
+            param.setSequence(woSequence);
+            param.setParent(parent);
             param.setActivity(taskObj.get("detailactcode").toString());
             param.setTaskId(taskObj.get("taskid").toString());
-//            int nextTaskId = (int) taskObj.get("taskid") + 10;
-            String woSequence = taskObj.get("wosequence").toString();
-            String description = taskObj.get("description").toString();
-            String parent = taskObj.get("parent").toString();
-            LogUtil.info(ValidateMyStaff.class.getName(), "parent: " + parent);
-            LogUtil.info(ValidateMyStaff.class.getName(), "wosequence: " + woSequence);
-            LogUtil.info(ValidateMyStaff.class.getName(), "description: " + description);
+//            LogUtil.info(ValidateMyStaff.class.getName(), "parent: " + parent);
+//            LogUtil.info(ValidateMyStaff.class.getName(), "wosequence: " + woSequence);
+//            LogUtil.info(ValidateMyStaff.class.getName(), "description: " + description);
             String message = "";
             switch (param.getStatus()) {
                 case "STARTWA":
@@ -162,23 +159,13 @@ public class ValidateMyStaff {
                 resp.put("attribute value", paramAttr.getValue());
                 data.add(resp);
             }
-
-            String woSequence = taskObj.get("wosequence").toString();
-            String description = taskObj.get("description").toString();
-            String parent = taskObj.get("parent").toString();
-//            LogUtil.info(ValidateMyStaff.class.getName(), "taskObj: " + taskObj);
-            LogUtil.info(ValidateMyStaff.class.getName(), "parent: " + parent);
-            LogUtil.info(ValidateMyStaff.class.getName(), "wosequence: " + woSequence);
-            LogUtil.info(ValidateMyStaff.class.getName(), "description: " + description);
             
             if (updateAttr) {
                 res.put("code", 200);
                 res.put("message", "Success");
-                res.put("data", data);
             } else {
                 res.put("code", 422);
                 res.put("message", "Failed");
-                res.put("data", data);
             }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateMyStaff.class.getName()).log(Level.SEVERE, null, ex);

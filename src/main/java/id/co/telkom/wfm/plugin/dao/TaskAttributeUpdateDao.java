@@ -311,6 +311,7 @@ public class TaskAttributeUpdateDao {
         }
         return value;
     }
+    
     public String getAttrValue(String wonum, String assetattrid) throws SQLException {
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
