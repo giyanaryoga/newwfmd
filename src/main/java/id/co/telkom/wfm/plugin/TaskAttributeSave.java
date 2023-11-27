@@ -8,6 +8,7 @@ package id.co.telkom.wfm.plugin;
  *
  * @author Giyanaryoga Puguh
  */
+
 public class TaskAttributeSave {
     
 }

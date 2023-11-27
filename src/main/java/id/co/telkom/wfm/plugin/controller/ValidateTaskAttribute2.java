@@ -139,14 +139,10 @@ public class ValidateTaskAttribute2 {
                 case "SBC_PORTNAME_LOV":
                     validateSBC_NameLOV(wonum, attrValue);
                     break;
+                case "CPE_MGMT_PE_NAME_LOV":
+                    validateCpeMgmtPeName(wonum, attrValue);
+                    break;
             }
-            
-//            switch(task) {
-//                case "Survey-Ondesk_Backup":
-//                    break;
-//                case "Site-Survey_Backup":
-//                    break;
-//            }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -429,6 +425,33 @@ public class ValidateTaskAttribute2 {
         } catch (MalformedURLException ex) {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException | SQLException ex) {
+            Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void validateCpeMgmtPeName(String wonum, String attrValue) {
+        try {
+            if (!attrValue.equalsIgnoreCase("None")) {
+                String descPEIp = taskAttrDao2.getDescTkDeviceAttr(wonum, "CPE_MGMT_PE_IPADDRESS", attrValue);
+                if (!descPEIp.isEmpty()) {
+                    taskAttrDao1.updateTaskValue(wonum, "CPE_MGMT_PE_IPADDRESS", descPEIp);
+                }
+                String descPEMan = taskAttrDao2.getDescTkDeviceAttr(wonum, "CPE_MGMT_PE_MANUFACTUR", attrValue);
+                if (!descPEMan.isEmpty()) {
+                    taskAttrDao1.updateTaskValue(wonum, "CPE_MGMT_PE_MANUFACTUR", descPEMan);
+                }
+                String descPEMod = taskAttrDao2.getDescTkDeviceAttr(wonum, "CPE_MGMT_PE_MODEL", attrValue);
+                if (!descPEMod.isEmpty()) {
+                    taskAttrDao1.updateTaskValue(wonum, "CPE_MGMT_PE_MODEL", descPEMod);
+                }
+                String descPEName = taskAttrDao2.getDescTkDeviceAttr(wonum, "CPE_MGMT_PE_NAME", attrValue);
+                if (!descPEName.isEmpty()) {
+                    taskAttrDao1.updateTaskValue(wonum, "CPE_MGMT_PE_NAME", descPEName);
+                }
+            } else {
+                
+            }
+        } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

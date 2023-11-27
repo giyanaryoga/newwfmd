@@ -489,14 +489,10 @@ public class ValidateTaskAttribute {
         String id = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrValue);
         String specification = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_SPECIFICATION", attrValue);
         String netLoc = taskAttrDao.getTaskAttrValue(wonum, "STP_NETWORKLOCATION_LOV");
-        LogUtil.info(getClass().getName(), "STP_ID = " + id + "; STP_SPECIFICATION = " + specification + "; STP_NETWORKLOCATION = " + netLoc);
         try {
-            boolean validate = taskAttrDao.updateAttributeSTP(wonum, id, specification, netLoc);
-            if (validate == true) {
-                LogUtil.info(getClass().getName(), "Update Data Successfully");
-            } else {
-                LogUtil.info(getClass().getName(), "Update Data failed");
-            }
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + id + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + specification + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_SPECIFICATION'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NETWORKLOCATION_LOV'");
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -800,7 +796,7 @@ public class ValidateTaskAttribute {
             LogUtil.info(this.getClass().getName(), "ATTRIBUTES VALUES : " + attrValue);
 
 //            if (!stpnamealn.isEmpty()) {
-            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
+//            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
             taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NAME_ALN'");
             taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME'");
             taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
@@ -1023,13 +1019,13 @@ public class ValidateTaskAttribute {
                 case "HOSTNAME SBC":
                     validateNeuAPIX(parent, wonum, attrValue);
                     break;
-                case "STP_NETWORKLOCATION":
-                    validateSTP(wonum, attrValue);
-                    break;
+//                case "STP_NETWORKLOCATION":
+//                    validateSTP(wonum, attrValue);
+//                    break;
                 case "STP_NETWORKLOCATION_LOV":
+                    validateSTP(wonum, attrValue);
                     if (!attrValue.equalsIgnoreCase("None")) {
-                        taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NETWORKLOCATION'");
-                        validateSTP(wonum, attrValue);
+                        taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NETWORKLOCATION'");    
                     }
                     break;
                 case "STP_NAME":
