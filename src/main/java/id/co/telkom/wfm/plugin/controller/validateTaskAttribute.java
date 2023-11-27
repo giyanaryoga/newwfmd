@@ -491,12 +491,14 @@ public class ValidateTaskAttribute {
         String netLoc = taskAttrDao.getTaskAttrValue(wonum, "STP_NETWORKLOCATION_LOV");
         LogUtil.info(getClass().getName(), "STP_ID = " + id + "; STP_SPECIFICATION = " + specification + "; STP_NETWORKLOCATION = " + netLoc);
         try {
-            boolean validate = taskAttrDao.updateAttributeSTP(parent, id, specification, netLoc);
-            if (validate == true) {
-                LogUtil.info(getClass().getName(), "Update Data Successfully");
-            } else {
-                LogUtil.info(getClass().getName(), "Update Data failed");
-            }
+//            boolean validate = taskAttrDao.updateAttributeSTP(parent, id, specification, netLoc);
+            taskAttrDao.updateTaskValueParent(parent, "STP_ID", id);
+            taskAttrDao.updateTaskValueParent(parent, "STP_SPECIFICATION", specification);
+//            if (validate == true) {
+//                LogUtil.info(getClass().getName(), "Update Data Successfully");
+//            } else {
+//                LogUtil.info(getClass().getName(), "Update Data failed");
+//            }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }

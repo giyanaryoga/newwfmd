@@ -35,28 +35,28 @@ public class TaskAttribute extends DefaultApplicationPlugin {
         String wonum = getPropertyString("wonum");
         String attrName = getPropertyString("assetattrid");
         String attrValue = getPropertyString("value");
-        String classstrcutureid = getPropertyString("classstrcutureid");
-        String siteid = getPropertyString("siteid");
-        String orgid = getPropertyString("orgid");
+//        String classstrcutureid = getPropertyString("classstrcutureid");
+//        String siteid = getPropertyString("siteid");
+//        String orgid = getPropertyString("orgid");
         LogUtil.info(this.getClassName(), "PARENT: " + parent);
         LogUtil.info(this.getClassName(), "WONUM: " + wonum);
-        LogUtil.info(this.getClassName(), "TASK ID: " + taskId);
-        LogUtil.info(this.getClassName(), "TASK: " + task);
+//        LogUtil.info(this.getClassName(), "TASK ID: " + taskId);
+//        LogUtil.info(this.getClassName(), "TASK: " + task);
         LogUtil.info(this.getClassName(), "ATTRIBUTE NAME: " + attrName);
         LogUtil.info(this.getClassName(), "ATTRIBUTE VALUE: " + attrValue);
-        LogUtil.info(this.getClassName(), "CLASSSTRUCTUREID VALUE: " + classstrcutureid);
-        LogUtil.info(this.getClassName(), "SITEID VALUE: " + siteid);
-        LogUtil.info(this.getClassName(), "ORGID VALUE: " + orgid);
+//        LogUtil.info(this.getClassName(), "CLASSSTRUCTUREID VALUE: " + classstrcutureid);
+//        LogUtil.info(this.getClassName(), "SITEID VALUE: " + siteid);
+//        LogUtil.info(this.getClassName(), "ORGID VALUE: " + orgid);
         
         try {
             logicTaskAttr.validate(parent, wonum, attrName, attrValue);
+            logicTaskAttr2.validate(parent, wonum, attrName, attrValue);
+            logicValidate.validate(parent, wonum, attrName, attrValue, task);
         } catch (SQLException ex) {
             Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Throwable ex) {
             Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
-        logicTaskAttr2.validate(parent, wonum, attrName, attrValue);
-        logicValidate.validate(parent, wonum, attrName, attrValue, task);
         return null;
     }
 

@@ -225,4 +225,25 @@ public class TaskAttributeDao2 {
         }
         return attrName;
     }
+    
+    public String getDescTkDeviceAttr(String wonum, String attrName, String attrType) throws SQLException {
+        String description = "";
+        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+        String query = "SELECT c_description FROM app_fd_tk_deviceattribute WHERE c_ref_num = ? AND c_attr_type = ? AND c_attr_name = ?";
+        try (Connection con = ds.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, wonum);
+            ps.setString(2, attrType);
+            ps.setString(3, attrName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                description = rs.getString("c_description");
+            }
+        } catch (SQLException e) {
+            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+        } finally {
+            ds.getConnection().close();
+        }
+        return description;
+    }
 }
