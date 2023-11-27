@@ -32,7 +32,7 @@ public class ValidateTaskAttribute {
     TaskAttributeUpdateDao taskAttrDao = new TaskAttributeUpdateDao();
     TaskActivityDao taskDao = new TaskActivityDao();
     ConnUtil connUtil = new ConnUtil();
-    CpeValidationEbisDao  cpeDao = new CpeValidationEbisDao();
+    CpeValidationEbisDao cpeDao = new CpeValidationEbisDao();
 
     private static final String nteType1[] = {"L2Switch", "DirectME", "DirectPE"};
     private static final String satelitNameType[] = {"WFMNonCore Deactivate Transponder", "WFMNonCore Review Order Transponder", "WFMNonCore Upload BA", "WFMNonCore Modify Bandwidth Transponder", "WFMNonCore Allocate Service Transponder", "WFMNonCore Resume Transponder", "WFMNonCore Suspend Transponder"};
@@ -138,7 +138,7 @@ public class ValidateTaskAttribute {
                 taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='PE_KEY'");
             } else {
                 String key = taskAttrDao.getTkdeviceAttrValue(wonum, "PE_KEY", attrValue);
-                String PEKey  = taskAttrDao.getAttrValue(wonum, "PE_KEY");
+                String PEKey = taskAttrDao.getAttrValue(wonum, "PE_KEY");
                 if (PEKey.isEmpty()) {
                     taskAttrDao.updateWO("app_fd_workorderspec", "c_value=" + attrValue + "", "c_wonum='" + wonum + "' AND c_assetattrid='PE_PORTNAME'");
                 } else {
@@ -584,7 +584,7 @@ public class ValidateTaskAttribute {
     private void validateCpeScmt(String wonum, String attrValue) {
         try {
             String activity = taskAttrDao.getActivity(wonum);
-            
+
             if (Arrays.asList(cpeActivity).contains(activity)) {
                 APIConfig apiConfig = new APIConfig();
                 apiConfig = connUtil.getApiParam("cpe_validation_ebis");
@@ -619,7 +619,7 @@ public class ValidateTaskAttribute {
                 }
                 LogUtil.info(this.getClass().getName(), "INI RESPONSE : " + response.toString());
                 JSONParser parser = new JSONParser();
-                JSONObject body = (JSONObject)parser.parse(response.toString());
+                JSONObject body = (JSONObject) parser.parse(response.toString());
                 if (responseCode == 200) {
                     String cpeModel = body.get("cpeModel").toString();
                     String cpeVendor = body.get("cpeVendor").toString();
@@ -830,7 +830,7 @@ public class ValidateTaskAttribute {
         }
     }
 
-    public void reserveSTP(String wonum, String attrName) {
+    public void reserveSTP(String wonum) {
         try {
             String[] listAttrid = {"STP_PORT_NAME_ALN", "STP_PORT_ID"};
             String[] listDetailActcode = {"Survey-Ondesk Manual", "Site-Survey Manual", "WFMNonCore Site Survey"};
@@ -840,15 +840,21 @@ public class ValidateTaskAttribute {
             String detailactcode = reservestp.getParams(wonum);
             org.json.JSONObject attribute = reservestp.getAttributes(wonum);
 
-            String odpName = attribute.optString("STP_NAME_ALN");
-            String odpPortName = attribute.optString("STP_PORT_NAME_ALN");
-            String odpId = attribute.optString("STP_ID");
-            String odpPortId = attribute.optString("STP_PORT_ID");
-            String reservationID = attribute.optString("STP_PORT_RESERVATION_ID");
+            String odpName = taskAttrDao.getTaskAttrValue(wonum, "STP_NAME_ALN");
+            String odpPortName = taskAttrDao.getTaskAttrValue(wonum, "STP_PORT_NAME_ALN");
+            String odpId = taskAttrDao.getTaskAttrValue(wonum, "STP_ID");
+            String odpPortId = taskAttrDao.getTaskAttrValue(wonum, "STP_PORT_ID");
+            String reservationID = taskAttrDao.getTaskAttrValue(wonum, "STP_PORT_RESERCATION_ID");
+
+            LogUtil.info(getClass().getName(), "ODPNAME : " + odpName);
+            LogUtil.info(getClass().getName(), "ODPPORTNAME : " + odpPortName);
+            LogUtil.info(getClass().getName(), "ODPID : " + odpPortId);
+            LogUtil.info(getClass().getName(), "ODPPORTID : " + odpId);
+            LogUtil.info(getClass().getName(), "RESERVATIONID : " + reservationID);
 
             String[] attributes = {odpName, odpPortName, odpId, odpPortId, reservationID};
 
-            if (Arrays.asList(listAttrid).contains(attrName) && Arrays.asList(listDetailActcode).contains(detailactcode)) {
+            if (Arrays.asList(listDetailActcode).contains(detailactcode)) {
                 // Periksa apakah alnValue tidak kosong atau "None"
                 for (int i = 0; i < attributes.length; i++) {
                     if (attributes[i].equals("None") || attributes[i].isEmpty()) {
@@ -974,7 +980,7 @@ public class ValidateTaskAttribute {
                     break;
                 case "Survey-Ondesk Manual":
                     if (!attrValue.isEmpty() || attrValue.equalsIgnoreCase("None")) {
-                        String condition = "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Site-Survey Manual' AND status='APPR') and c_assetattrid in (select c_assetattrid from app_fd_classspec where c_assetattrid='" + attrName + "' and c_datatype='ALN')";
+                        String condition = "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Site-Survey Manual' AND c_status='APPR') and c_assetattrid in (select c_assetattrid from app_fd_classspec where c_assetattrid='" + attrName + "')";
                         taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", condition);
                     }
                     break;
@@ -1023,8 +1029,8 @@ public class ValidateTaskAttribute {
                 case "STP_NETWORKLOCATION_LOV":
                     if (!attrValue.equalsIgnoreCase("None")) {
                         taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NETWORKLOCATION'");
+                        validateSTP(parent, wonum, attrValue);
                     }
-                    validateSTP(parent, wonum, attrValue);
                     break;
                 case "STP_NAME":
                     validateSTPName(parent, wonum, attrValue);
@@ -1033,7 +1039,7 @@ public class ValidateTaskAttribute {
                     LogUtil.info(this.getClass().getName(), "############## START PROCESS STP_PORT_NAME ###############");
                     validateSTPPortName(parent, wonum, attrValue);
                     LogUtil.info(this.getClass().getName(), "############## START PROCESS RESERVE STP ###############");
-                    reserveSTP(wonum, attrName);
+                    reserveSTP(wonum);
                     break;
                 case "AP_MANUFACTURE":
                     validateAPManufacture(wonum, attrValue); // ok

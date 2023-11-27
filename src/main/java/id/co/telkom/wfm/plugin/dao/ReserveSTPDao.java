@@ -51,7 +51,7 @@ public class ReserveSTPDao {
         String request = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\n"
                 + "  <SOAP-ENV:Body>\n"
                 + "    <releaseReservationRequest xmlns=\"http://xmlns.oracle.com/communications/inventory/webservice/enterpriseFeasibility\">\n"
-                + "      <reservationID>y" + reservationID + "</reservationID>\n"
+                + "      <reservationID>" + reservationID + "</reservationID>\n"
                 + "    </releaseReservationRequest>\n"
                 + "  </SOAP-ENV:Body>\n"
                 + "</SOAP-ENV:Envelope>";
@@ -96,22 +96,37 @@ public class ReserveSTPDao {
         return request;
     }
 
-    public JSONObject getSoapResponseReservation(String wonum, String odpName, String odpId, String odpPortName, String odpPortId) throws IOException, MalformedURLException, JSONException, SQLException {
+    public String getSoapResponseReservation(String wonum, String odpName, String odpId, String odpPortName, String odpPortId) throws IOException, MalformedURLException, JSONException, SQLException {
         String reservationID = "";
         String request = createSoapRequestReservation(odpName, odpId, odpPortName, odpPortId);
-        
+
         // call UIM
         JSONObject temp = deviceUtil.callUIM(request);
-        
-        String value = attribute.getAttrValue(wonum, "STP_PORT_RESERVATION_ID");
-        if (reservationID.isEmpty()) {
+        // Parsing response data
+        LogUtil.info(this.getClass().getName(), "############ Parsing Data Response ##############");
+        JSONObject envelope = temp.getJSONObject("env:Envelope").getJSONObject("env:Body");
+        JSONObject reservation = envelope.getJSONObject("ent:reserveEndpointResponse");
+        int statusCode = reservation.getInt("statusCode");
+        if (statusCode == 4001) {
             reservationID = "Failed to reserved";
+            attribute.updateWO("app_fd_workorderspec", "c_value='" + reservationID + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_RESERVATION_ID'");
         } else {
-            if (value.isEmpty() || value.equals("None")) {
+            reservationID = reservation.getString("reservationID");
+            LogUtil.info(getClass().getName(), "RESERVATIONID : " + reservationID);
+            String value = attribute.getTaskAttrValue(wonum, "STP_PORT_RESERVATION_ID");
+            LogUtil.info(getClass().getName(), "RESERVATIONID VALUE : " + value);
+            if (reservationID.isEmpty()) {
+                reservationID = "Failed to reserved";
                 attribute.updateWO("app_fd_workorderspec", "c_value='" + reservationID + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_RESERVATION_ID'");
+            } else {
+                if (value.isEmpty()) {
+                    attribute.updateWO("app_fd_workorderspec", "c_value='" + reservationID + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_RESERVATION_ID'");
+                }
             }
+
         }
-        return temp;
+
+        return reservationID;
     }
 
     public JSONObject getAttributes(String wonum) throws JSONException {
@@ -134,34 +149,5 @@ public class ReserveSTPDao {
         }
         return resultObj;
     }
-//
-//    public String ReserveSTP(String attrid, String wonum) throws SQLException, JSONException, IOException {
-//        String[] listAttrid = {"STP_PORT_NAME_ALN", "STP_PORT_ID"};
-//        String[] listDetailActcode = {"Survey-Ondesk Manual", "Site-Survey Manual", "WFMNonCore Site Survey"};
-//        String detailactcode = getParams(wonum);
-//        JSONObject attribute = getAttributes(wonum);
-//
-//        String odpName = attribute.optString("STP_NAME_ALN");
-//        String odpPortName = attribute.optString("STP_PORT_NAME_ALN");
-//        String odpId = attribute.optString("STP_ID");
-//        String odpPortId = attribute.optString("STP_PORT_ID");
-//        String reservationID = attribute.optString("STP_PORT_RESERVATION_ID");
-//
-//        String[] attributes = {odpName, odpPortName, odpId, odpPortId, reservationID};
-//
-//        if (Arrays.asList(listAttrid).contains(attrid) && Arrays.asList(listDetailActcode).contains(detailactcode)) {
-//            // Periksa apakah alnValue tidak kosong atau "None"
-//            for (int i = 0; i < attributes.length; i++) {
-//                if (attributes[i].equals("None") || attributes[i].isEmpty()) {
-//                    // Hapus reservasi jika sudah ada
-//                    if (!reservationID.isEmpty() && !"Failed to reserved".equals(reservationID)) {
-//                        getSoapResponseUnReserve(reservationID);
-//                    }
-//                    // Lakukan reservasi
-//                    getSoapResponseReservation(odpName, odpId, odpPortName, odpPortId);
-//                }
-//            }
-//        }
-//        return null;
-//    }
+
 }
