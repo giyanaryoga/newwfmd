@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import id.co.telkom.wfm.plugin.kafka.ResponseKafka;
 import id.co.telkom.wfm.plugin.model.APIConfig;
+import id.co.telkom.wfm.plugin.model.MyStaffParam;
 import id.co.telkom.wfm.plugin.util.ConnUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -182,7 +183,7 @@ public class TaskAttributeUpdateDao {
         return workzoneObj;
     }
 
-    public boolean updateAttributeMyStaff(String wonum, String siteId, String assetAttrId, String value, String changeBy, String modifiedBy, String changeDate) throws SQLException {
+    public boolean updateAttributeMyStaff(MyStaffParam param) throws SQLException {
         boolean taskUpdated = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         StringBuilder update = new StringBuilder();
@@ -190,32 +191,30 @@ public class TaskAttributeUpdateDao {
                 .append(" UPDATE app_fd_workorderspec SET ")
                 .append(" c_value = ?, ")
                 .append(" c_changeby = ?, ")
-                .append(" c_changedate = ?, ")
-                .append(" c_siteid = ?, ")
-                .append(" datemodified = ?, ")
+                .append(" datemodified = sysdate, ")
                 .append(" modifiedby = ? ")
                 .append(" WHERE c_wonum = ? ")
                 .append(" AND ")
-                .append(" c_assetattrid = ? ");
+                .append(" c_assetattrid = ? ")
+                .append(" AND ")
+                .append(" c_siteid = ? ");
 
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(update.toString())) {
-            ps.setString(1, value);
-            ps.setString(2, value);
-            ps.setString(3, changeBy);
-            ps.setString(4, changeDate);
-            ps.setString(5, siteId);
-            ps.setTimestamp(6, getTimeStamp());
-            ps.setString(7, modifiedBy);
-            ps.setString(8, wonum);
-            ps.setString(9, assetAttrId);
+            ps.setString(1, param.getValue());
+            ps.setString(2, param.getChangeBy());
+            ps.setString(3, param.getModifiedBy());
+            ps.setString(4, param.getWonum());
+            ps.setString(5, param.getAssetAttrId());
+            ps.setString(6, param.getSiteid());
 
             int exe = ps.executeUpdate();
             if (exe > 0) {
                 taskUpdated = true;
-                LogUtil.info(getClass().getName(), "update task attribute mystaff berhasil");
+//                LogUtil.info(getClass().getName(), "update task attribute mystaff berhasil");
             } else {
-                LogUtil.info(getClass().getName(), "update task attribute gagal");
+                taskUpdated = false;
+//                LogUtil.info(getClass().getName(), "update task attribute gagal");
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -312,6 +311,7 @@ public class TaskAttributeUpdateDao {
         }
         return value;
     }
+    
     public String getAttrValue(String wonum, String assetattrid) throws SQLException {
         String value = "";
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
@@ -458,7 +458,6 @@ public class TaskAttributeUpdateDao {
         update
                 .append("UPDATE app_fd_workorderspec SET ")
                 .append(" c_mandatory = ?, ")
-                //            .append(" c_isrequired = ?, ")
                 .append(" datemodified = ? ")
                 .append(" WHERE ")
                 .append(" c_wonum = ? ")
@@ -501,7 +500,7 @@ public class TaskAttributeUpdateDao {
             ps.setString(4, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), parent + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), parent + " | Updated task attribute parent where :  " + assetattrid);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -528,7 +527,7 @@ public class TaskAttributeUpdateDao {
             ps.setString(4, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), wonum + " | Assetattrid success updated");
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -557,7 +556,7 @@ public class TaskAttributeUpdateDao {
             ps.setString(5, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), wonum + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), wonum + " | Success updated task attribute from = "+detailactcode);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -584,7 +583,7 @@ public class TaskAttributeUpdateDao {
             ps.setString(4, assetattrid);
             int exe = ps.executeUpdate();
             if (exe > 0) {
-                LogUtil.info(getClass().getName(), parent + " | Assetattrid mandatory update to:  " + assetattrid);
+                LogUtil.info(getClass().getName(), parent + " Updated task attribute Like  " + assetattrid);
             }
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -762,7 +761,7 @@ public class TaskAttributeUpdateDao {
         return value;
     }
 
-    public boolean updateAttributeSTP(String parent, String stpid, String specification, String netLoc) throws SQLException {
+    public boolean updateAttributeSTP(String wonum, String stpid, String specification, String netLoc) throws SQLException {
         boolean result = false;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
         String updateQuery
@@ -772,7 +771,7 @@ public class TaskAttributeUpdateDao {
                 + "WHEN 'STP_SPECIFICATION' THEN ? "
                 + "WHEN 'STP_NETWORKLOCATION_LOV' THEN ? "
                 + "ELSE 'Missing' END "
-                + "WHERE c_parent = ? "
+                + "WHERE c_wonum = ? "
                 + "AND c_assetattrid IN ('STP_ID', 'STP_SPECIFICATION', 'STP_NETWORKLOCATION_LOV')";
 
         try (Connection con = ds.getConnection();
@@ -780,13 +779,13 @@ public class TaskAttributeUpdateDao {
             ps.setString(1, stpid);
             ps.setString(2, specification);
             ps.setString(3, netLoc);
-            ps.setString(4, parent);
+            ps.setString(4, wonum);
 
             int exe = ps.executeUpdate();
 
             if (exe > 0) {
                 result = true;
-                LogUtil.info(getClass().getName(), "Attribute value updated to " + parent);
+                LogUtil.info(getClass().getName(), "Attribute value updated to " + wonum);
             }
 
         } catch (SQLException e) {

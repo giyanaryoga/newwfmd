@@ -18,191 +18,267 @@ public class UpdateStatusParam {
     private String description;
     private String status;
     private String modifiedBy;
+    private String modifiedByName;
+    private String chiefcode;
     private String memo;
     private String currentDate;
     private String activity;
     private String errorCode;
     private String engineerMemo;
-    
-    /**
-     * @return the parent
-     */
+    private String sequence;
+    private String wolo1;
+    private String cpeVendor;
+    private String cpeModel;
+    private String cpeSerialNumber;
+    private String tkCustomHeader03;
+    private String tkCustomHeader04;
+    private String tkCustomHeader10;
+    private String laborScmt;
+    private String latitude;
+    private String longitude;
+    private String statusiface;
+    private String statusMemo;
+    private String subErrorCode;
+    private String urlEvidence;
+
     public String getParent() {
         return parent;
     }
 
-    /**
-     * @param parent the parent to set
-     */
     public void setParent(String parent) {
         this.parent = parent;
     }
 
-    /**
-     * @return the wonum
-     */
     public String getWonum() {
         return wonum;
     }
 
-    /**
-     * @param wonum the wonum to set
-     */
     public void setWonum(String wonum) {
         this.wonum = wonum;
     }
 
-    /**
-     * @return the taskId
-     */
     public String getTaskId() {
         return taskId;
     }
 
-    /**
-     * @param taskId the taskId to set
-     */
     public void setTaskId(String taskId) {
         this.taskId = taskId;
     }
 
-    /**
-     * @return the siteId
-     */
     public String getSiteId() {
         return siteId;
     }
 
-    /**
-     * @param siteId the siteId to set
-     */
     public void setSiteId(String siteId) {
         this.siteId = siteId;
     }
 
-    /**
-     * @return the woStatus
-     */
     public String getWoStatus() {
         return woStatus;
     }
 
-    /**
-     * @param woStatus the woStatus to set
-     */
     public void setWoStatus(String woStatus) {
         this.woStatus = woStatus;
     }
 
-    /**
-     * @return the description
-     */
     public String getDescription() {
         return description;
     }
 
-    /**
-     * @param description the description to set
-     */
     public void setDescription(String description) {
         this.description = description;
     }
 
-    /**
-     * @return the status
-     */
     public String getStatus() {
         return status;
     }
 
-    /**
-     * @param status the status to set
-     */
     public void setStatus(String status) {
         this.status = status;
     }
 
-    /**
-     * @return the modifiedBy
-     */
     public String getModifiedBy() {
         return modifiedBy;
     }
 
-    /**
-     * @param modifiedBy the modifiedBy to set
-     */
     public void setModifiedBy(String modifiedBy) {
         this.modifiedBy = modifiedBy;
     }
 
-    /**
-     * @return the memo
-     */
+    public String getModifiedByName() {
+        return modifiedByName;
+    }
+
+    public void setModifiedByName(String modifiedByName) {
+        this.modifiedByName = modifiedByName;
+    }
+
+    public String getChiefcode() {
+        return chiefcode;
+    }
+
+    public void setChiefcode(String chiefcode) {
+        this.chiefcode = chiefcode;
+    }
+
     public String getMemo() {
         return memo;
     }
 
-    /**
-     * @param memo the memo to set
-     */
     public void setMemo(String memo) {
         this.memo = memo;
     }
 
-    /**
-     * @return the activity
-     */
-    public String getActivity() {
-        return activity;
-    }
-
-    /**
-     * @param activity the activity to set
-     */
-    public void setActivity(String activity) {
-        this.activity = activity;
-    }
-    
-    /**
-     * @return the currentDate
-     */
     public String getCurrentDate() {
         return currentDate;
     }
 
-    /**
-     * @param currentDate the currentDate to set
-     */
     public void setCurrentDate(String currentDate) {
         this.currentDate = currentDate;
     }
 
-    /**
-     * @return the errorCode
-     */
+    public String getActivity() {
+        return activity;
+    }
+
+    public void setActivity(String activity) {
+        this.activity = activity;
+    }
+
     public String getErrorCode() {
         return errorCode;
     }
 
-    /**
-     * @param errorCode the errorCode to set
-     */
     public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
     }
 
-    /**
-     * @return the engineerMemo
-     */
     public String getEngineerMemo() {
         return engineerMemo;
     }
 
-    /**
-     * @param engineerMemo the engineerMemo to set
-     */
     public void setEngineerMemo(String engineerMemo) {
         this.engineerMemo = engineerMemo;
     }
+
+    public String getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(String sequence) {
+        this.sequence = sequence;
+    }
+
+    public String getWolo1() {
+        return wolo1;
+    }
+
+    public void setWolo1(String wolo1) {
+        this.wolo1 = wolo1;
+    }
+
+    public String getCpeVendor() {
+        return cpeVendor;
+    }
+
+    public void setCpeVendor(String cpeVendor) {
+        this.cpeVendor = cpeVendor;
+    }
+
+    public String getCpeModel() {
+        return cpeModel;
+    }
+
+    public void setCpeModel(String cpeModel) {
+        this.cpeModel = cpeModel;
+    }
+
+    public String getCpeSerialNumber() {
+        return cpeSerialNumber;
+    }
+
+    public void setCpeSerialNumber(String cpeSerialNumber) {
+        this.cpeSerialNumber = cpeSerialNumber;
+    }
+
+    public String getTkCustomHeader03() {
+        return tkCustomHeader03;
+    }
+
+    public void setTkCustomHeader03(String tkCustomHeader03) {
+        this.tkCustomHeader03 = tkCustomHeader03;
+    }
+
+    public String getTkCustomHeader04() {
+        return tkCustomHeader04;
+    }
+
+    public void setTkCustomHeader04(String tkCustomHeader04) {
+        this.tkCustomHeader04 = tkCustomHeader04;
+    }
+
+    public String getTkCustomHeader10() {
+        return tkCustomHeader10;
+    }
+
+    public void setTkCustomHeader10(String tkCustomHeader10) {
+        this.tkCustomHeader10 = tkCustomHeader10;
+    }
+
+    public String getLaborScmt() {
+        return laborScmt;
+    }
+
+    public void setLaborScmt(String laborScmt) {
+        this.laborScmt = laborScmt;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getStatusiface() {
+        return statusiface;
+    }
+
+    public void setStatusiface(String statusiface) {
+        this.statusiface = statusiface;
+    }
+
+    public String getStatusMemo() {
+        return statusMemo;
+    }
+
+    public void setStatusMemo(String statusMemo) {
+        this.statusMemo = statusMemo;
+    }
+
+    public String getSubErrorCode() {
+        return subErrorCode;
+    }
+
+    public void setSubErrorCode(String subErrorCode) {
+        this.subErrorCode = subErrorCode;
+    }
+
+    public String getUrlEvidence() {
+        return urlEvidence;
+    }
+
+    public void setUrlEvidence(String urlEvidence) {
+        this.urlEvidence = urlEvidence;
+    }
+    
 }

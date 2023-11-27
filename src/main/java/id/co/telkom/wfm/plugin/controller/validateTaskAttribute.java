@@ -484,14 +484,14 @@ public class ValidateTaskAttribute {
         }
     }
 
-    private void validateSTP(String parent, String wonum, String attrValue) throws SQLException {
+    private void validateSTP(String wonum, String attrValue) throws SQLException {
 
         String id = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrValue);
         String specification = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_SPECIFICATION", attrValue);
         String netLoc = taskAttrDao.getTaskAttrValue(wonum, "STP_NETWORKLOCATION_LOV");
         LogUtil.info(getClass().getName(), "STP_ID = " + id + "; STP_SPECIFICATION = " + specification + "; STP_NETWORKLOCATION = " + netLoc);
         try {
-            boolean validate = taskAttrDao.updateAttributeSTP(parent, id, specification, netLoc);
+            boolean validate = taskAttrDao.updateAttributeSTP(wonum, id, specification, netLoc);
             if (validate == true) {
                 LogUtil.info(getClass().getName(), "Update Data Successfully");
             } else {
@@ -980,13 +980,13 @@ public class ValidateTaskAttribute {
                     break;
                 case "Survey-Ondesk Manual":
                     if (!attrValue.isEmpty() || attrValue.equalsIgnoreCase("None")) {
-                        String condition = "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Site-Survey Manual' AND c_status='APPR') and c_assetattrid in (select c_assetattrid from app_fd_classspec where c_assetattrid='" + attrName + "')";
+                        String condition = "c_wonum in (select c_wonum from app_fd_workorder where c_parent='" + parent + "' AND c_detailactcode='Site-Survey Manual' AND status='APPR') and c_assetattrid in (select c_assetattrid from app_fd_classspec where c_assetattrid='" + attrName + "')";
                         taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", condition);
                     }
                     break;
-                default:
-                    LogUtil.info(getClass().getName(), "Detail Act Code is not found and not execute!");
-                    break;
+//                default:
+//                    LogUtil.info(getClass().getName(), "Detail Act Code is not found and not execute!");
+//                    break;
             }
 
             switch (attrName) {
@@ -1024,12 +1024,12 @@ public class ValidateTaskAttribute {
                     validateNeuAPIX(parent, wonum, attrValue);
                     break;
                 case "STP_NETWORKLOCATION":
-                    validateSTP(parent, wonum, attrValue);
+                    validateSTP(wonum, attrValue);
                     break;
                 case "STP_NETWORKLOCATION_LOV":
                     if (!attrValue.equalsIgnoreCase("None")) {
                         taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NETWORKLOCATION'");
-                        validateSTP(parent, wonum, attrValue);
+                        validateSTP(wonum, attrValue);
                     }
                     break;
                 case "STP_NAME":
@@ -1119,9 +1119,9 @@ public class ValidateTaskAttribute {
                     break;
                 case "MITRA_DEPLOY":
                     break;
-                default:
-                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
-                    break;
+//                default:
+//                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
+//                    break;
             }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);

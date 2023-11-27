@@ -282,7 +282,7 @@ public class ValidateGenerateTask {
             } else {
                 generate = false;
             }
-            LogUtil.info(getClass().getName(), "Task :" +taskWO);
+//            LogUtil.info(getClass().getName(), "Task :" +taskWO);
         } catch (SQLException ex) {
             Logger.getLogger(ValidateGenerateTask.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -401,7 +401,7 @@ public class ValidateGenerateTask {
             }
             
             LogUtil.info(getClass().getName(), "OwnerGroup = "+ownerGroup);
-            if ((int) sortedTask.get("taskid") != (sizeTask+1)*10) {
+            if (counter != 1) {
                 sortedTask.put("status", "APPR"); 
             } else {
                 sortedTask.put("status", "LABASSIGN");   

@@ -139,20 +139,14 @@ public class ValidateTaskAttribute2 {
                 case "SBC_PORTNAME_LOV":
                     validateSBC_NameLOV(wonum, attrValue);
                     break;
-                default:
-                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
-                    break;
             }
             
-            switch(task) {
-                case "Survey-Ondesk_Backup":
-                    break;
-                case "Site-Survey_Backup":
-                    break;
-                default:
-                    LogUtil.info(getClass().getName(), "Validate Task Attribute is not found and not execute!");
-                    break;
-            }
+//            switch(task) {
+//                case "Survey-Ondesk_Backup":
+//                    break;
+//                case "Site-Survey_Backup":
+//                    break;
+//            }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute2.class.getName()).log(Level.SEVERE, null, ex);
         }

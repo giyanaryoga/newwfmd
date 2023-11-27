@@ -93,9 +93,6 @@ public class ValidateRevised {
                         dao.reviseTaskDocType(wonum, "NEW");
                     }
                 break;
-                default:
-                    LogUtil.info(getClass().getName(), "Attribute name dan value tidak memenuhi Revised Task");
-                break;
             }
         } catch (SQLException ex) {
             Logger.getLogger(TaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -312,7 +309,7 @@ public class ValidateRevised {
     
     private void validateJumlahArnet(String parent, String task, String attrValue) {
         try {
-            String[] value = {"0","1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
+            String[] value = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
             JSONArray intValue = taskAttrDao2.getTaskWDM(parent);
             if (task.equalsIgnoreCase("WFMNonCore Allocate New WDM")) {
                 int x=0;

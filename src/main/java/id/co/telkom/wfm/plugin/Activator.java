@@ -31,6 +31,7 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(IntegrationFallout.class.getName(), new IntegrationFallout(), null));
         registrationList.add(context.registerService(ButtonGenerateTask.class.getName(), new ButtonGenerateTask(), null));
         registrationList.add(context.registerService(RollbackStatus.class.getName(), new RollbackStatus(), null));
+        registrationList.add(context.registerService(MyStaffIntegration.class.getName(), new MyStaffIntegration(), null));
     }
 
     @Override
