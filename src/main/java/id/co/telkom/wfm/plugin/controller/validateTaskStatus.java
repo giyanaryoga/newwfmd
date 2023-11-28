@@ -114,15 +114,9 @@ public class ValidateTaskStatus {
     public String compwaTask(UpdateStatusParam param) {
         String compwa = "";
         try {
-            JSONArray isMandatoryNone = daoUpdate.checkMandatory(param.getWonum());
-            JSONArray isMandatoryNull = daoUpdate.isRequired(param.getWonum());
-            LogUtil.info(getClass().getName(), "None: " + isMandatoryNone);
-            LogUtil.info(getClass().getName(), "Null: " + isMandatoryNull);
-            
-            int NoneLength = isMandatoryNone.size();
-            int NullLength = isMandatoryNull.size();
-            
-            if (NoneLength == 0 && NullLength == 0) {
+            JSONArray isMandatory = daoUpdate.checkMandatory(param.getWonum());
+            int Length = isMandatory.size();
+            if (Length == 0) {
                 compwa = "true";
             } else {
                 compwa = "false";

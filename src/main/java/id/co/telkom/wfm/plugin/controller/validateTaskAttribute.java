@@ -484,15 +484,15 @@ public class ValidateTaskAttribute {
         }
     }
 
-    private void validateSTP(String wonum, String attrValue) throws SQLException {
+    private void validateSTP(String parent, String wonum, String attrValue) throws SQLException {
 
         String id = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_ID", attrValue);
         String specification = taskAttrDao.getTkdeviceAttrValue(wonum, "STP_SPECIFICATION", attrValue);
         String netLoc = taskAttrDao.getTaskAttrValue(wonum, "STP_NETWORKLOCATION_LOV");
         try {
-            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + id + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
-            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + specification + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_SPECIFICATION'");
-            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_NETWORKLOCATION_LOV'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + id + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_ID'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + specification + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_SPECIFICATION'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NETWORKLOCATION_LOV'");
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -798,9 +798,9 @@ public class ValidateTaskAttribute {
 //            if (!stpnamealn.isEmpty()) {
 //            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + stpid + "'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_ID'");
             taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NAME_ALN'");
-            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME'");
-            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_ID'");
-            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_wonum='" + wonum + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_parent='" + parent + "' AND c_assetattrid='STP_PORT_NAME'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_parent='" + parent + "' AND c_assetattrid='STP_PORT_ID'");
+            taskAttrDao.updateWO("app_fd_workorderspec", "c_value='None'", "c_parent='" + parent + "' AND c_assetattrid='STP_PORT_NAME_ALN'");
 //            }
         } catch (SQLException ex) {
             Logger.getLogger(ValidateTaskAttribute.class.getName()).log(Level.SEVERE, null, ex);
@@ -1023,7 +1023,7 @@ public class ValidateTaskAttribute {
 //                    validateSTP(wonum, attrValue);
 //                    break;
                 case "STP_NETWORKLOCATION_LOV":
-                    validateSTP(wonum, attrValue);
+                    validateSTP(parent, wonum, attrValue);
                     if (!attrValue.equalsIgnoreCase("None")) {
                         taskAttrDao.updateWO("app_fd_workorderspec", "c_value='" + attrValue + "'", "c_parent='" + parent + "' AND c_assetattrid='STP_NETWORKLOCATION'");    
                     }

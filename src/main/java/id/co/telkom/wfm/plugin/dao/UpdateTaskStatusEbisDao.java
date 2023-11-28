@@ -97,44 +97,43 @@ public class UpdateTaskStatusEbisDao {
         return activityProp;
     }
     
-    public JSONArray isRequired(String wonum) throws SQLException {
-        JSONArray valueArray = new JSONArray();
-        int value = 0;
-        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_alnvalue, c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ? "
-                + "AND c_mandatory = 1"
-                + "AND c_value is NULL";
-        try (Connection con = ds.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, wonum);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                JSONObject valueObj = new JSONObject();
-                String value2 = rs.getString("c_value");
-                if (value2 != null) {
-                    value = 0;
-                } else {
-                    value = 1;
-                }
-                valueObj.put("value", value);
-                valueArray.add(valueObj);
-                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + " = " + rs.getString("c_mandatory") + " = " + value);
-            }
-        } catch (Exception e) {
-            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
-        } finally {
-            ds.getConnection().close();
-        }
-        return valueArray;
-    }
+//    public JSONArray isRequired(String wonum) throws SQLException {
+//        JSONArray valueArray = new JSONArray();
+//        int value = 0;
+//        DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+//        String query = "SELECT c_assetattrid, c_value, c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ? "
+//                + "AND c_mandatory = 1"
+//                + "AND c_value is NULL";
+//        try (Connection con = ds.getConnection();
+//                PreparedStatement ps = con.prepareStatement(query)) {
+//            ps.setString(1, wonum);
+//            ResultSet rs = ps.executeQuery();
+//            while (rs.next()) {
+//                JSONObject valueObj = new JSONObject();
+//                String value2 = rs.getString("c_value");
+//                if (value2 != null) {
+//                    value = 0;
+//                } else {
+//                    value = 1;
+//                }
+//                valueObj.put("value", value);
+//                valueArray.add(valueObj);
+//                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + " = " + rs.getString("c_mandatory") + " = " + value);
+//            }
+//        } catch (Exception e) {
+//            LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
+//        } finally {
+//            ds.getConnection().close();
+//        }
+//        return valueArray;
+//    }
     
     public JSONArray checkMandatory(String wonum) throws SQLException {
         JSONArray valueArray = new JSONArray();
         int value = 0;
         DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
-        String query = "SELECT c_assetattrid, c_value, c_alnvalue, c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ? "
-                + "AND c_mandatory = 1"
-                + "AND c_value = 'None'";
+        String query = "SELECT c_assetattrid, c_value, c_mandatory FROM app_fd_workorderspec WHERE c_wonum = ? "
+                + "AND c_mandatory = 1";
         try (Connection con = ds.getConnection();
                 PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, wonum);
@@ -142,14 +141,15 @@ public class UpdateTaskStatusEbisDao {
             while (rs.next()) {
                 JSONObject valueObj = new JSONObject();
                 String value2 = rs.getString("c_value");
-                if (value2 != null) {
+                if (value2 != null && !value2.equalsIgnoreCase("None")) {
                     value = 0;
                 } else {
                     value = 1;
                 }
                 valueObj.put("value", value);
-                valueArray.add(valueObj);
-                LogUtil.info(getClass().getName(), rs.getString("c_assetattrid") + " = " + rs.getString("c_value") + " = " + rs.getString("c_mandatory") + " = " + value);
+                if (value == 1) {
+                    valueArray.add(valueObj);
+                }
             }
         } catch (Exception e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
@@ -386,7 +386,6 @@ public class UpdateTaskStatusEbisDao {
                 nextMove = "COMPLETE";
                 LogUtil.info(getClass().getName(), "next move: " + nextMove);
             }
-            LogUtil.info(getClass().getName(), "query: " + query);
         } catch (SQLException e) {
             LogUtil.error(getClass().getName(), e, "Trace error here : " + e.getMessage());
         } finally {
